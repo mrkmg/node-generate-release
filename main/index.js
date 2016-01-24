@@ -171,8 +171,6 @@
       if (!do_update) {
         throw new Error('Update Canceled');
       }
-    }).then(function() {
-      throw new Error('NO');
     }).then(preGitCommands).then(function() {
       return writeNewVersionToReadme(options.p, current_version, new_version);
     }).then(function() {

@@ -136,8 +136,6 @@ module.exports = (args) ->
   .then (do_update) ->
     unless do_update
       throw new Error 'Update Canceled'
-  .then ->
-    throw new Error 'NO'
   .then preGitCommands
   .then ->
     writeNewVersionToReadme options.p, current_version, new_version
