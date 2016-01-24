@@ -87,7 +87,7 @@
 
   writeNewVersionToReadme = function(readme_path, current_version, new_version) {
     var file, new_file, real_path;
-    real_path = path.resolve(readme_path);
+    real_path = Path.resolve(readme_path);
     file = FS.readFileSync(real_path);
     new_file = file.toString().replace(current_version, new_version);
     return FS.writeFileSync(real_path, new_file, 'utf8');
@@ -95,13 +95,13 @@
 
   writeNewVersionPackage = function(package_path, current_version, new_version) {
     var pack, real_path;
-    real_path = path.resolve(package_path);
+    real_path = Path.resolve(package_path);
     pack = require(real_path);
     pack.version = new_version;
     return FS.writeFileSync(real_path, JSON.stringify(pack, null, 2) + '\n', 'utf8');
   };
 
-  preGitCommands = function() {
+  preGitCommands = function(new_version) {
     var opts;
     opts = {
       env: process.env
@@ -115,7 +115,7 @@
     return Exec("git flow release start " + new_version, opts);
   };
 
-  postGitCommands = function() {
+  postGitCommands = function(new_version) {
     var opts;
     opts = {
       env: process.env
@@ -171,11 +171,15 @@
       if (!do_update) {
         throw new Error('Update Canceled');
       }
-    }).then(preGitCommands).then(function() {
+    }).then(function() {
+      return preGitCommands(new_version);
+    }).then(function() {
       return writeNewVersionToReadme(options.p, current_version, new_version);
     }).then(function() {
       return writeNewVersionPackage(options.m, current_version, new_version);
-    }).then(postGitCommands)["catch"](function(err) {
+    }).then(function() {
+      return postGitCommands(new_version);
+    })["catch"](function(err) {
       console.log(err.message);
       return process.exit(1);
     });

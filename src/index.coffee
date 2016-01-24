@@ -60,18 +60,18 @@ confirmUpdate = (current_version, new_version) ->
       resolve answers.confirm
 
 writeNewVersionToReadme = (readme_path, current_version, new_version) ->
-  real_path = path.resolve readme_path
+  real_path = Path.resolve readme_path
   file = FS.readFileSync real_path
   new_file = file.toString().replace current_version, new_version
   FS.writeFileSync real_path, new_file, 'utf8'
 
 writeNewVersionPackage = (package_path, current_version, new_version) ->
-  real_path = path.resolve package_path
+  real_path = Path.resolve package_path
   pack = require real_path
   pack.version = new_version
   FS.writeFileSync real_path, JSON.stringify(pack, null, 2) + '\n', 'utf8'
 
-preGitCommands = ->
+preGitCommands = (new_version) ->
   opts =
     env: process.env
 
@@ -83,7 +83,7 @@ preGitCommands = ->
   Exec 'git checkout develop', opts
   Exec "git flow release start #{new_version}", opts
 
-postGitCommands = ->
+postGitCommands = (new_version) ->
   opts =
     env: process.env
 
@@ -136,12 +136,14 @@ module.exports = (args) ->
   .then (do_update) ->
     unless do_update
       throw new Error 'Update Canceled'
-  .then preGitCommands
+  .then ->
+    preGitCommands new_version
   .then ->
     writeNewVersionToReadme options.p, current_version, new_version
   .then ->
     writeNewVersionPackage options.m, current_version, new_version
-  .then postGitCommands
+  .then ->
+    postGitCommands new_version
   .catch (err) ->
     console.log err.message
     process.exit 1
