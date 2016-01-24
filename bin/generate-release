@@ -10,4 +10,4 @@ var path = require('path');
 var fs   = require('fs');
 var main  = path.join(path.dirname(fs.realpathSync(__filename)), '../main');
 
-require(main + '/bin/main')(process.argv);
+require(main + '/index')(process.argv);
