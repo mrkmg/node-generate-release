@@ -1,0 +1,40 @@
+{
+  "name": "node-generate-release",
+  "version": "0.0.1",
+  "description": "Generate a release for a project following semver using nodejs and gitflow",
+  "main": "index.js",
+  "scripts": {
+    "compile": "coffee -c -o main/ src/",
+    "compile-watch": "coffee -cw -o main/ src/",
+    "test": "npm run lint && npm run unit",
+    "lint": "coffeelint -f .coffeelint.json src",
+    "unit": "mocha --recursive --compilers coffee:coffee-script/register ./test/specs --timeout 10000",
+    "cover": "npm run cover-local && npm run coveralls",
+    "cover-local": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul ./test/specs --timeout 10000",
+    "coveralls": "istanbul-coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrkmg/node-generate-release.git"
+  },
+  "author": "Kevin Gravier <kevin@mrkmg.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mrkmg/node-generate-release/issues"
+  },
+  "homepage": "https://github.com/mrkmg/node-generate-release#readme",
+  "dependencies": {
+    "bluebird": "^3.1.2",
+    "inquirer": "^0.11.3"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "coffee-coverage": "^1.0.1",
+    "coffee-script": "^1.10.0",
+    "coffeelint": "^1.14.2",
+    "extend": "^3.0.0",
+    "istanbul": "^0.4.2",
+    "istanbul-coveralls": "^1.0.3",
+    "mocha": "^2.3.4"
+  }
+}
