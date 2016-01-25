@@ -94,11 +94,13 @@
   };
 
   writeNewVersionPackage = function(package_path, current_version, new_version) {
-    var pack, real_path;
+    var pack, pack_string, real_path;
     real_path = Path.resolve(package_path);
     pack = require(real_path);
     pack.version = new_version;
-    return FS.writeFileSync(real_path, JSON.stringify(pack, null, 2) + '\n', 'utf8');
+    pack_string = JSON.stringify(pack, null, 2);
+    pack_string += '\n';
+    return FS.writeFileSync(real_path, pack_string, 'utf8');
   };
 
   preGitCommands = function(new_version) {

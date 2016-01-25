@@ -69,7 +69,9 @@ writeNewVersionPackage = (package_path, current_version, new_version) ->
   real_path = Path.resolve package_path
   pack = require real_path
   pack.version = new_version
-  FS.writeFileSync real_path, JSON.stringify(pack, null, 2) + '\n', 'utf8'
+  pack_string = JSON.stringify pack, null, 2
+  pack_string += '\n'
+  FS.writeFileSync real_path, pack_string, 'utf8'
 
 preGitCommands = (new_version) ->
   opts =
