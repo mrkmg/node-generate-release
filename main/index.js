@@ -176,9 +176,9 @@
     }).then(function() {
       return preGitCommands(new_version);
     }).then(function() {
-      return writeNewVersionToReadme(options.p, current_version, new_version);
+      return writeNewVersionToReadme(options.m, current_version, new_version);
     }).then(function() {
-      return writeNewVersionPackage(options.m, current_version, new_version);
+      return writeNewVersionPackage(options.p, current_version, new_version);
     }).then(function() {
       return postGitCommands(new_version);
     })["catch"](function(err) {

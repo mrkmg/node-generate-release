@@ -141,9 +141,9 @@ module.exports = (args) ->
   .then ->
     preGitCommands new_version
   .then ->
-    writeNewVersionToReadme options.p, current_version, new_version
+    writeNewVersionToReadme options.m, current_version, new_version
   .then ->
-    writeNewVersionPackage options.m, current_version, new_version
+    writeNewVersionPackage options.p, current_version, new_version
   .then ->
     postGitCommands new_version
   .catch (err) ->
