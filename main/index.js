@@ -7,180 +7,67 @@
  */
 
 (function() {
-  var Exec, FS, Inquirer, Minimist, Path, Promise, bumpVersion, confirmUpdate, getBumpType, getCurrentVersion, postGitCommands, preGitCommands, writeNewVersionPackage, writeNewVersionToReadme;
+  var GitCommands, IS_DEBUG, Minimist, Options, Promise, askConfirmUpdate, askReleaseType, incrementVersion, readVersionFromPackage, writeNewPackage, writeNewReadme;
 
-  Inquirer = require('inquirer');
+  IS_DEBUG = process.env.IS_DEBUG != null;
 
   Promise = require('bluebird');
 
-  FS = require('fs');
-
-  Exec = require('child_process').execSync;
-
-  Path = require('path');
-
   Minimist = require('minimist');
 
-  getCurrentVersion = function(package_path) {
-    var version;
-    version = require(Path.resolve(package_path)).version;
-    if (!version) {
-      throw new Error('Could not read current version');
-    }
-    return version;
-  };
+  Options = require('./lib/Options');
 
-  getBumpType = function() {
-    var args;
-    args = {
-      type: 'list',
-      name: 'release',
-      message: 'Release Type?',
-      "default": 'patch',
-      choices: ['patch', 'minor', 'major']
-    };
-    return new Promise(function(resolve) {
-      return Inquirer.prompt([args], function(answers) {
-        return resolve(answers.release);
-      });
-    });
-  };
+  askReleaseType = require('./lib/askReleaseType');
 
-  bumpVersion = function(version, bump) {
-    var version_split;
-    version_split = version.split('.').map(function(t) {
-      return parseInt(t);
-    });
-    switch (bump) {
-      case 'patch':
-        version_split[2]++;
-        break;
-      case 'minor':
-        version_split[1]++;
-        version_split[2] = 0;
-        break;
-      case 'major':
-        version_split[0]++;
-        version_split[1] = 0;
-        version_split[2] = 0;
-        break;
-      default:
-        console.log('Unknown Bump Type');
-        process.exit(1);
-    }
-    return version_split.join('.');
-  };
+  incrementVersion = require('./lib/incrementVersion');
 
-  confirmUpdate = function(current_version, new_version) {
-    var args;
-    args = {
-      type: 'confirm',
-      name: 'confirm',
-      message: "Are you sure you want to update the release from " + current_version + " to " + new_version
-    };
-    return new Promise(function(resolve) {
-      return Inquirer.prompt(args, function(answers) {
-        return resolve(answers.confirm);
-      });
-    });
-  };
+  askConfirmUpdate = require('./lib/askConfirmUpdate');
 
-  writeNewVersionToReadme = function(readme_path, current_version, new_version) {
-    var file, new_file, real_path;
-    real_path = Path.resolve(readme_path);
-    file = FS.readFileSync(real_path);
-    new_file = file.toString().replace(current_version, new_version);
-    return FS.writeFileSync(real_path, new_file, 'utf8');
-  };
+  readVersionFromPackage = require('./lib/readVersionFromPackage');
 
-  writeNewVersionPackage = function(package_path, current_version, new_version) {
-    var pack, pack_string, real_path;
-    real_path = Path.resolve(package_path);
-    pack = require(real_path);
-    pack.version = new_version;
-    pack_string = JSON.stringify(pack, null, 2);
-    pack_string += '\n';
-    return FS.writeFileSync(real_path, pack_string, 'utf8');
-  };
+  writeNewPackage = require('./lib/writeNewPackage');
 
-  preGitCommands = function(new_version) {
-    var opts;
-    opts = {
-      env: process.env
-    };
-    Exec('git fetch', opts);
-    Exec('git checkout develop', opts);
-    Exec('git pull origin develop --rebase', opts);
-    Exec('git checkout master', opts);
-    Exec('git reset --hard origin/master', opts);
-    Exec('git checkout develop', opts);
-    return Exec("git flow release start " + new_version, opts);
-  };
+  writeNewReadme = require('./lib/writeNewReadme');
 
-  postGitCommands = function(new_version) {
-    var opts;
-    opts = {
-      env: process.env
-    };
-    opts.env.GIT_MERGE_AUTOEDIT = 'no';
-    Exec('git add README.md package.json', opts);
-    Exec("git commit -am \"Release " + new_version + "\"", opts);
-    Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts);
-    Exec('git push origin develop', opts);
-    Exec('git push origin master', opts);
-    return Exec('git push origin --tags', opts);
-  };
+  GitCommands = require('./lib/GitCommands');
 
   module.exports = function(args) {
-    var bump_type, current_version, new_version, options;
-    current_version = '0.0.0';
-    new_version = '9.9.9';
-    bump_type = 'patch';
-    options = {};
+    var options;
+    options = new Options();
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(args) {
-      options = args;
-      if (options.p == null) {
-        options.p = './package.json';
-      }
-      if (options.m == null) {
-        return options.m = './README.md';
+      return options.parseArgs(args);
+    }).then(function() {
+      if (!options.release_type) {
+        return askReleaseType().then(function(release_type) {
+          return options.release_type = release_type;
+        });
       }
     }).then(function() {
-      return getCurrentVersion(options.p);
-    }).then(function(version) {
-      return current_version = version;
-    }).then(function() {
-      if (options.r != null) {
-        return options.r;
-      } else {
-        return getBumpType();
+      if (!options.current_version) {
+        options.current_version = readVersionFromPackage(options.package_file_location);
       }
-    }).then(function(type) {
-      return bump_type = type;
+      return options.next_version = incrementVersion(options.current_version, options.release_type);
     }).then(function() {
-      return bumpVersion(current_version, bump_type);
-    }).then(function(version) {
-      return new_version = version;
-    }).then(function() {
-      if (options.n != null) {
-        return true;
-      } else {
-        return confirmUpdate(current_version, new_version);
-      }
+      return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
     }).then(function(do_update) {
       if (!do_update) {
         throw new Error('Update Canceled');
       }
     }).then(function() {
-      return preGitCommands(new_version);
+      if (IS_DEBUG) {
+        console.log("Would have written to " + options.next_version + " to \n" + options.package_file_location + "\n" + options.readme_file_location);
+        throw new Error('But, your in debug mode so nothing actually happened');
+      }
     }).then(function() {
-      return writeNewVersionToReadme(options.m, current_version, new_version);
+      return GitCommands.preCommands(options.next_version);
     }).then(function() {
-      return writeNewVersionPackage(options.p, current_version, new_version);
+      return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return postGitCommands(new_version);
+      return writeNewPackage(options.package_file_location, options.current_version, options.next_version);
+    }).then(function() {
+      return GitCommands.postCommands(options.next_version);
     })["catch"](function(err) {
       console.log(err.message);
       return process.exit(1);
