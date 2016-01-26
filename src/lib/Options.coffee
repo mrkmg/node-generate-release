@@ -15,7 +15,6 @@ args =
   release_type: ['r', 'release']
   no_confirm: ['n', 'no-confirm']
 
-
 class Options
   readme_file_location: './README.md'
   package_file_location: './package.json'
