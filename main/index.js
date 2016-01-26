@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var Exec, FS, Inquirer, Minimist, Path, Promise, bumpVersion, confirmUpdate, getBumpType, getCurrentVersion, postGitCommands, preGitCommands, writeNewVersionPackage, writeNewVersionToReadme;
+  var Exec, FS, Inquirer, Minimist, Options, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, postGitCommands, preGitCommands, readVersionFromPackageFile, writeNewVersionPackage, writeNewVersionToReadme;
 
   Inquirer = require('inquirer');
 
@@ -21,68 +21,21 @@
 
   Minimist = require('minimist');
 
-  getCurrentVersion = function(package_path) {
+  Options = require('./lib/Options');
+
+  askReleaseType = require('./lib/askReleaseType');
+
+  incrementVersion = require('./lib/incrementVersion');
+
+  askConfirmUpdate = require('./lib/askConfirmUpdate');
+
+  readVersionFromPackageFile = function(package_file_location) {
     var version;
-    version = require(Path.resolve(package_path)).version;
+    version = require(Path.resolve(package_file_location)).version;
     if (!version) {
-      throw new Error('Could not read current version');
+      throw new Error("Could not read current version from package file: " + package_file_location);
     }
     return version;
-  };
-
-  getBumpType = function() {
-    var args;
-    args = {
-      type: 'list',
-      name: 'release',
-      message: 'Release Type?',
-      "default": 'patch',
-      choices: ['patch', 'minor', 'major']
-    };
-    return new Promise(function(resolve) {
-      return Inquirer.prompt([args], function(answers) {
-        return resolve(answers.release);
-      });
-    });
-  };
-
-  bumpVersion = function(version, bump) {
-    var version_split;
-    version_split = version.split('.').map(function(t) {
-      return parseInt(t);
-    });
-    switch (bump) {
-      case 'patch':
-        version_split[2]++;
-        break;
-      case 'minor':
-        version_split[1]++;
-        version_split[2] = 0;
-        break;
-      case 'major':
-        version_split[0]++;
-        version_split[1] = 0;
-        version_split[2] = 0;
-        break;
-      default:
-        console.log('Unknown Bump Type');
-        process.exit(1);
-    }
-    return version_split.join('.');
-  };
-
-  confirmUpdate = function(current_version, new_version) {
-    var args;
-    args = {
-      type: 'confirm',
-      name: 'confirm',
-      message: "Are you sure you want to update the release from " + current_version + " to " + new_version
-    };
-    return new Promise(function(resolve) {
-      return Inquirer.prompt(args, function(answers) {
-        return resolve(answers.confirm);
-      });
-    });
   };
 
   writeNewVersionToReadme = function(readme_path, current_version, new_version) {
@@ -94,13 +47,12 @@
   };
 
   writeNewVersionPackage = function(package_path, current_version, new_version) {
-    var pack, pack_string, real_path;
-    real_path = Path.resolve(package_path);
-    pack = require(real_path);
+    var pack, pack_string;
+    pack = require(package_path);
     pack.version = new_version;
     pack_string = JSON.stringify(pack, null, 2);
     pack_string += '\n';
-    return FS.writeFileSync(real_path, pack_string, 'utf8');
+    return FS.writeFileSync(package_path, pack_string, 'utf8');
   };
 
   preGitCommands = function(new_version) {
@@ -132,55 +84,37 @@
   };
 
   module.exports = function(args) {
-    var bump_type, current_version, new_version, options;
-    current_version = '0.0.0';
-    new_version = '9.9.9';
-    bump_type = 'patch';
-    options = {};
+    var options;
+    options = new Options();
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(args) {
-      options = args;
-      if (options.p == null) {
-        options.p = './package.json';
-      }
-      if (options.m == null) {
-        return options.m = './README.md';
+      return options.parseArgs(args);
+    }).then(function() {
+      if (!options.release_type) {
+        return askReleaseType().then(function(release_type) {
+          return options.release_type = release_type;
+        });
       }
     }).then(function() {
-      return getCurrentVersion(options.p);
-    }).then(function(version) {
-      return current_version = version;
-    }).then(function() {
-      if (options.r != null) {
-        return options.r;
-      } else {
-        return getBumpType();
+      if (!options.current_version) {
+        options.current_version = readVersionFromPackageFile(options.package_file_location);
       }
-    }).then(function(type) {
-      return bump_type = type;
+      return options.next_version = incrementVersion(options.current_version, options.release_type);
     }).then(function() {
-      return bumpVersion(current_version, bump_type);
-    }).then(function(version) {
-      return new_version = version;
-    }).then(function() {
-      if (options.n != null) {
-        return true;
-      } else {
-        return confirmUpdate(current_version, new_version);
-      }
+      return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
     }).then(function(do_update) {
       if (!do_update) {
         throw new Error('Update Canceled');
       }
     }).then(function() {
-      return preGitCommands(new_version);
+      return preGitCommands(options.next_version);
     }).then(function() {
-      return writeNewVersionToReadme(options.m, current_version, new_version);
+      return writeNewVersionToReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return writeNewVersionPackage(options.p, current_version, new_version);
+      return writeNewVersionPackage(options.package_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return postGitCommands(new_version);
+      return postGitCommands(options.next_version);
     })["catch"](function(err) {
       console.log(err.message);
       return process.exit(1);

@@ -11,53 +11,16 @@ Exec = require('child_process').execSync
 Path = require 'path'
 Minimist = require 'minimist'
 
-getCurrentVersion = (package_path) ->
-  version = require(Path.resolve(package_path)).version
+Options = require './lib/Options'
+askReleaseType = require './lib/askReleaseType'
+incrementVersion = require './lib/incrementVersion'
+askConfirmUpdate = require './lib/askConfirmUpdate'
+
+readVersionFromPackageFile = (package_file_location) ->
+  version = require(Path.resolve(package_file_location)).version
   unless version
-    throw new Error 'Could not read current version'
-
+    throw new Error "Could not read current version from package file: #{package_file_location}"
   version
-
-getBumpType = ->
-  args =
-    type: 'list'
-    name: 'release'
-    message: 'Release Type?'
-    default: 'patch'
-    choices: ['patch', 'minor', 'major']
-
-  new Promise (resolve) ->
-    Inquirer.prompt [args], (answers) ->
-      resolve answers.release
-
-bumpVersion = (version, bump) ->
-  version_split = version.split('.').map (t) -> parseInt t
-
-  switch bump
-    when 'patch'
-      version_split[2]++
-    when 'minor'
-      version_split[1]++
-      version_split[2] = 0
-    when 'major'
-      version_split[0]++
-      version_split[1] = 0
-      version_split[2] = 0
-    else
-      console.log 'Unknown Bump Type'
-      process.exit 1
-
-  version_split.join '.'
-
-confirmUpdate = (current_version, new_version) ->
-  args =
-    type: 'confirm'
-    name: 'confirm'
-    message: "Are you sure you want to update the release from #{current_version} to #{new_version}"
-
-  new Promise (resolve) ->
-    Inquirer.prompt args, (answers) ->
-      resolve answers.confirm
 
 writeNewVersionToReadme = (readme_path, current_version, new_version) ->
   real_path = Path.resolve readme_path
@@ -66,12 +29,11 @@ writeNewVersionToReadme = (readme_path, current_version, new_version) ->
   FS.writeFileSync real_path, new_file, 'utf8'
 
 writeNewVersionPackage = (package_path, current_version, new_version) ->
-  real_path = Path.resolve package_path
-  pack = require real_path
+  pack = require package_path
   pack.version = new_version
   pack_string = JSON.stringify pack, null, 2
   pack_string += '\n'
-  FS.writeFileSync real_path, pack_string, 'utf8'
+  FS.writeFileSync package_path, pack_string, 'utf8'
 
 preGitCommands = (new_version) ->
   opts =
@@ -99,53 +61,37 @@ postGitCommands = (new_version) ->
   Exec 'git push origin --tags', opts
 
 module.exports = (args) ->
-  current_version = '0.0.0'
-  new_version = '9.9.9'
-  bump_type = 'patch'
-
-  options = {}
+  options = new Options()
 
   Promise
   .try ->
     args.slice 2
   .then Minimist
   .then (args) ->
-    options = args
-    unless options.p?
-      options.p = './package.json'
-    unless options.m?
-      options.m = './README.md'
+    options.parseArgs args
+
   .then ->
-    getCurrentVersion options.p
-  .then (version) ->
-    current_version = version
+    unless options.release_type
+      askReleaseType()
+      .then (release_type) ->
+        options.release_type = release_type
   .then ->
-    if options.r?
-      options.r
-    else
-      getBumpType()
-  .then (type) ->
-    bump_type = type
+    unless options.current_version
+      options.current_version = readVersionFromPackageFile options.package_file_location
+    options.next_version = incrementVersion options.current_version, options.release_type
   .then ->
-    bumpVersion current_version, bump_type
-  .then (version) ->
-    new_version = version
-  .then ->
-    if options.n?
-      true
-    else
-      confirmUpdate current_version, new_version
+    options.no_confirm or (askConfirmUpdate options.current_version, options.next_version)
   .then (do_update) ->
     unless do_update
       throw new Error 'Update Canceled'
   .then ->
-    preGitCommands new_version
+    preGitCommands options.next_version
   .then ->
-    writeNewVersionToReadme options.m, current_version, new_version
+    writeNewVersionToReadme options.readme_file_location, options.current_version, options.next_version
   .then ->
-    writeNewVersionPackage options.p, current_version, new_version
+    writeNewVersionPackage options.package_file_location, options.current_version, options.next_version
   .then ->
-    postGitCommands new_version
+    postGitCommands options.next_version
   .catch (err) ->
     console.log err.message
     process.exit 1
