@@ -18,6 +18,13 @@ Thats it!
 What does it do?
 ----------------
 
+Assumptions:
+
+- You work on, and are currently on the develop branch
+- Your stable branch is master
+- Your tags are named without anything special. e.g 0.0.0
+
+
 This is the default process.
 
 1. Verify the working directory is clean
@@ -36,7 +43,7 @@ Many aspects of this process can be changes using the options below.
 Options
 --------
 
-run `generate-release --help`
+run `generate-release --help` to see this as well.
 
     -r --readme           Path to README.md file. Default: ./README.md
     -p --package          Path to package.json file. Default: ./package.json
