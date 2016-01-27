@@ -27,7 +27,8 @@ module.exports = (args) ->
   .then Minimist
   .then (args) ->
     options.parseArgs args
-
+  .then ->
+    GitCommands.checkForCleanWorkingDirectory()
   .then ->
     unless options.release_type
       askReleaseType()

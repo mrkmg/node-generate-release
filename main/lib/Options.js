@@ -53,8 +53,8 @@
         throw new HelpError;
       }
       this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
-      this.skip_git_push = (this.getArgumentValue('skip-git-push')) || this.skip_git_push;
-      this.skip_git_pull = (this.getArgumentValue('skip-git-pull')) || this.skip_git_pull;
+      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
+      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
       this.current_version = (this.getArgumentValue('current_version')) || this.current_version;

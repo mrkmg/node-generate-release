@@ -7,7 +7,9 @@
 Exec = require('child_process').execSync
 
 module.exports.checkForCleanWorkingDirectory = ->
-  # TODO
+  status_result = Exec 'git status', process.env
+  unless /^nothing to commit, working directory clean$/m.test status_result.toString()
+    throw new Error 'Working directory is not clean, not ready for release'
 
 module.exports.preCommands = (new_version, skip_pull) ->
   opts =

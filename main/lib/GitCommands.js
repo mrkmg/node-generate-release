@@ -11,7 +11,13 @@
 
   Exec = require('child_process').execSync;
 
-  module.exports.checkForCleanWorkingDirectory = function() {};
+  module.exports.checkForCleanWorkingDirectory = function() {
+    var status_result;
+    status_result = Exec('git status', process.env);
+    if (!/^nothing to commit, working directory clean$/m.test(status_result.toString())) {
+      throw new Error('Working directory is not clean, not ready for release');
+    }
+  };
 
   module.exports.preCommands = function(new_version, skip_pull) {
     var opts;

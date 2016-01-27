@@ -36,8 +36,8 @@ class Options
       throw new HelpError
 
     @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
-    @skip_git_push = (@getArgumentValue 'skip-git-push') or @skip_git_push
-    @skip_git_pull = (@getArgumentValue 'skip-git-pull') or @skip_git_pull
+    @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
+    @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @readme_file_location = Path.resolve( (@getArgumentValue 'readme_file_location') or @readme_file_location )
     @package_file_location = Path.resolve( (@getArgumentValue 'package_file_location') or @package_file_location )
     @current_version = (@getArgumentValue 'current_version') or @current_version
