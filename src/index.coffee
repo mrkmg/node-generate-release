@@ -57,5 +57,7 @@ module.exports = (args) ->
     files = [options.readme_file_location, options.package_file_location]
     GitCommands.postCommands options.next_version, file, options.skip_git_push
   .catch (err) ->
+    if IS_DEBUG
+      throw err
     console.log err.message
     process.exit 1
