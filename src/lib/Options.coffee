@@ -25,8 +25,8 @@ class Options
   no_confirm: false
   release_type: null
   current_version: null
-  skip_git_pull: true
-  skip_git_push: true
+  skip_git_pull: false
+  skip_git_push: false
 
   validation_error: '\n'
   parseArgs: (args) ->

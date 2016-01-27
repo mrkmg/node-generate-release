@@ -41,9 +41,9 @@
 
     Options.prototype.current_version = null;
 
-    Options.prototype.skip_git_pull = true;
+    Options.prototype.skip_git_pull = false;
 
-    Options.prototype.skip_git_push = true;
+    Options.prototype.skip_git_push = false;
 
     Options.prototype.validation_error = '\n';
 
