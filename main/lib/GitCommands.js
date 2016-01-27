@@ -7,23 +7,25 @@
  */
 
 (function() {
-  var Exec;
+  var Exec, opts;
 
   Exec = require('child_process').execSync;
 
+  opts = {
+    env: process.env
+  };
+
+  opts.env.GIT_MERGE_AUTOEDIT = 'no';
+
   module.exports.checkForCleanWorkingDirectory = function() {
     var status_result;
-    status_result = Exec('git status', process.env);
+    status_result = Exec('git status', opts);
     if (!/^nothing to commit, working directory clean$/m.test(status_result.toString())) {
       throw new Error('Working directory is not clean, not ready for release');
     }
   };
 
   module.exports.preCommands = function(new_version, skip_pull) {
-    var opts;
-    opts = {
-      env: process.env
-    };
     if (!skip_pull) {
       Exec('git fetch', opts);
       Exec('git checkout develop', opts);
@@ -36,14 +38,10 @@
   };
 
   module.exports.postCommands = function(new_version, files, skip_push) {
-    var file, i, len, opts;
-    opts = {
-      env: process.env
-    };
-    opts.env.GIT_MERGE_AUTOEDIT = 'no';
+    var file, i, len;
     for (i = 0, len = files.length; i < len; i++) {
       file = files[i];
-      Exec("git add " + file);
+      Exec("git add " + file, opts);
     }
     Exec("git commit -am \"Release " + new_version + "\"", opts);
     Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts);

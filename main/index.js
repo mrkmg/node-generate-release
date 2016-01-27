@@ -71,7 +71,7 @@
     }).then(function() {
       var files;
       files = [options.readme_file_location, options.package_file_location];
-      return GitCommands.postCommands(options.next_version, file, options.skip_git_push);
+      return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;
