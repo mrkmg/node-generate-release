@@ -14,6 +14,8 @@ class HelpError extends Error
       -c --current-version  Current Version. Default: read from package.json
       -t --release-type     Release Type: patch, minor, major. Default: prompt
       -n --no-confirm       Do not ask for confirmation. Default: prompt for confirmation
+      -l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull
+      -s --skip-git-push    Do not push to origin when complete. Default: Do push
       #{post or ''}"""
 
 module.exports = HelpError

@@ -23,7 +23,9 @@
     package_file_location: ['p', 'package'],
     current_version: ['c', 'current-version'],
     release_type: ['t', 'release-type'],
-    no_confirm: ['n', 'no-confirm']
+    no_confirm: ['n', 'no-confirm'],
+    skip_git_pull: ['l', 'skip-git-push'],
+    skip_git_push: ['s', 'skip-git-push']
   };
 
   Options = (function() {
@@ -39,6 +41,10 @@
 
     Options.prototype.current_version = null;
 
+    Options.prototype.skip_git_pull = true;
+
+    Options.prototype.skip_git_push = true;
+
     Options.prototype.validation_error = '\n';
 
     Options.prototype.parseArgs = function(args) {
@@ -47,6 +53,8 @@
         throw new HelpError;
       }
       this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
+      this.skip_git_push = (this.getArgumentValue('skip-git-push')) || this.skip_git_push;
+      this.skip_git_pull = (this.getArgumentValue('skip-git-pull')) || this.skip_git_pull;
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
       this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
@@ -61,6 +69,8 @@
       ret &= this.validatePackageFileLocation();
       ret &= this.validateReleaseType();
       ret &= this.validateNoConfirm();
+      ret &= this.validateSkipGitPull();
+      ret &= this.validateSkipGitPush();
       return ret || (function() {
         throw new HelpError(this.validation_error);
       }).call(this);
@@ -106,6 +116,24 @@
     Options.prototype.validateNoConfirm = function() {
       if (typeof this.no_confirm !== 'boolean') {
         this.validation_error += 'Invalid value for no-confirm\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateSkipGitPush = function() {
+      if (typeof this.skip_git_push !== 'boolean') {
+        this.validation_error += 'Invalid value for skip-git-push\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateSkipGitPull = function() {
+      if (typeof this.skip_git_pull !== 'boolean') {
+        this.validation_error += 'Invalid value for skip-git-pull\n';
         return false;
       } else {
         return true;

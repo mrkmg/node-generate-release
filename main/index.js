@@ -61,13 +61,15 @@
         throw new Error('But, your in debug mode so nothing actually happened');
       }
     }).then(function() {
-      return GitCommands.preCommands(options.next_version);
+      return GitCommands.preCommands(options.next_version, options.skip_git_pull);
     }).then(function() {
       return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
       return writeNewPackage(options.package_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return GitCommands.postCommands(options.next_version);
+      var files;
+      files = [options.readme_file_location, options.package_file_location];
+      return GitCommands.postCommands(options.next_version, file, options.skip_git_push);
     })["catch"](function(err) {
       console.log(err.message);
       return process.exit(1);

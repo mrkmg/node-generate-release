@@ -11,32 +11,41 @@
 
   Exec = require('child_process').execSync;
 
-  module.exports.preCommands = function(new_version) {
+  module.exports.checkForCleanWorkingDirectory = function() {};
+
+  module.exports.preCommands = function(new_version, skip_pull) {
     var opts;
     opts = {
       env: process.env
     };
-    Exec('git fetch', opts);
-    Exec('git checkout develop', opts);
-    Exec('git pull origin develop --rebase', opts);
-    Exec('git checkout master', opts);
-    Exec('git reset --hard origin/master', opts);
+    if (!skip_pull) {
+      Exec('git fetch', opts);
+      Exec('git checkout develop', opts);
+      Exec('git pull origin develop --rebase', opts);
+      Exec('git checkout master', opts);
+      Exec('git reset --hard origin/master', opts);
+    }
     Exec('git checkout develop', opts);
     return Exec("git flow release start " + new_version, opts);
   };
 
-  module.exports.postCommands = function(new_version) {
-    var opts;
+  module.exports.postCommands = function(new_version, files, skip_push) {
+    var file, i, len, opts;
     opts = {
       env: process.env
     };
     opts.env.GIT_MERGE_AUTOEDIT = 'no';
-    Exec('git add README.md package.json', opts);
+    for (i = 0, len = files.length; i < len; i++) {
+      file = files[i];
+      Exec("git add " + file);
+    }
     Exec("git commit -am \"Release " + new_version + "\"", opts);
     Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts);
-    Exec('git push origin develop', opts);
-    Exec('git push origin master', opts);
-    return Exec('git push origin --tags', opts);
+    if (!skip_push) {
+      Exec('git push origin develop', opts);
+      Exec('git push origin master', opts);
+      return Exec('git push origin --tags', opts);
+    }
   };
 
 }).call(this);

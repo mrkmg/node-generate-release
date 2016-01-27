@@ -16,6 +16,8 @@ args =
   current_version: ['c', 'current-version']
   release_type: ['t', 'release-type']
   no_confirm: ['n', 'no-confirm']
+  skip_git_pull: ['l', 'skip-git-push']
+  skip_git_push: ['s', 'skip-git-push']
 
 class Options
   readme_file_location: './README.md'
@@ -23,6 +25,9 @@ class Options
   no_confirm: false
   release_type: null
   current_version: null
+  skip_git_pull: true
+  skip_git_push: true
+
   validation_error: '\n'
   parseArgs: (args) ->
     @args = args
@@ -31,6 +36,8 @@ class Options
       throw new HelpError
 
     @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
+    @skip_git_push = (@getArgumentValue 'skip-git-push') or @skip_git_push
+    @skip_git_pull = (@getArgumentValue 'skip-git-pull') or @skip_git_pull
     @readme_file_location = Path.resolve( (@getArgumentValue 'readme_file_location') or @readme_file_location )
     @package_file_location = Path.resolve( (@getArgumentValue 'package_file_location') or @package_file_location )
     @current_version = (@getArgumentValue 'current_version') or @current_version
@@ -42,6 +49,8 @@ class Options
     ret &= @validatePackageFileLocation()
     ret &= @validateReleaseType()
     ret &= @validateNoConfirm()
+    ret &= @validateSkipGitPull()
+    ret &= @validateSkipGitPush()
     ret or throw new HelpError(@validation_error)
   validateReadmeFileLocation: ->
     unless existsSync @readme_file_location
@@ -70,6 +79,18 @@ class Options
   validateNoConfirm: ->
     unless typeof @no_confirm is 'boolean'
       @validation_error += 'Invalid value for no-confirm\n'
+      false
+    else
+      true
+  validateSkipGitPush: ->
+    unless typeof @skip_git_push is 'boolean'
+      @validation_error += 'Invalid value for skip-git-push\n'
+      false
+    else
+      true
+  validateSkipGitPull: ->
+    unless typeof @skip_git_pull is 'boolean'
+      @validation_error += 'Invalid value for skip-git-pull\n'
       false
     else
       true

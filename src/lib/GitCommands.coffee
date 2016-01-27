@@ -6,27 +6,34 @@
 
 Exec = require('child_process').execSync
 
-module.exports.preCommands = (new_version) ->
+module.exports.checkForCleanWorkingDirectory = ->
+  # TODO
+
+module.exports.preCommands = (new_version, skip_pull) ->
   opts =
     env: process.env
 
-  Exec 'git fetch', opts
-  Exec 'git checkout develop', opts
-  Exec 'git pull origin develop --rebase', opts
-  Exec 'git checkout master', opts
-  Exec 'git reset --hard origin/master', opts
+  unless skip_pull
+    Exec 'git fetch', opts
+    Exec 'git checkout develop', opts
+    Exec 'git pull origin develop --rebase', opts
+    Exec 'git checkout master', opts
+    Exec 'git reset --hard origin/master', opts
+
   Exec 'git checkout develop', opts
   Exec "git flow release start #{new_version}", opts
 
-module.exports.postCommands = (new_version) ->
+module.exports.postCommands = (new_version, files, skip_push) ->
   opts =
     env: process.env
 
   opts.env.GIT_MERGE_AUTOEDIT = 'no'
 
-  Exec 'git add README.md package.json', opts
+  Exec "git add #{file}" for file in files
   Exec "git commit -am \"Release #{new_version}\"", opts
   Exec "git flow release finish -m \"#{new_version}\" #{new_version}", opts
-  Exec 'git push origin develop', opts
-  Exec 'git push origin master', opts
-  Exec 'git push origin --tags', opts
+
+  unless skip_push
+    Exec 'git push origin develop', opts
+    Exec 'git push origin master', opts
+    Exec 'git push origin --tags', opts
