@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var Options, Path, args, bool, existsSync;
+  var HelpError, Options, Path, args, bool, existsSync;
 
   existsSync = require('exists-sync');
 
@@ -15,12 +15,17 @@
 
   bool = require('@nkcmr/bool');
 
+  HelpError = require('./HelpError');
+
   args = {
-    readme_file_location: ['m', 'readme'],
+    show_help: ['h', 'help'],
+    readme_file_location: ['r', 'readme'],
     package_file_location: ['p', 'package'],
     current_version: ['c', 'current-version'],
-    release_type: ['r', 'release'],
-    no_confirm: ['n', 'no-confirm']
+    release_type: ['t', 'release-type'],
+    no_confirm: ['n', 'no-confirm'],
+    skip_git_pull: ['l', 'skip-git-push'],
+    skip_git_push: ['s', 'skip-git-push']
   };
 
   Options = (function() {
@@ -36,9 +41,20 @@
 
     Options.prototype.current_version = null;
 
+    Options.prototype.skip_git_pull = true;
+
+    Options.prototype.skip_git_push = true;
+
+    Options.prototype.validation_error = '\n';
+
     Options.prototype.parseArgs = function(args) {
       this.args = args;
-      this.no_confirm = bool(this.getArgumentValue('no_confirm'));
+      if (this.getArgumentValue('show_help')) {
+        throw new HelpError;
+      }
+      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
+      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
+      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
       this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
@@ -47,28 +63,81 @@
     };
 
     Options.prototype.validateArguments = function() {
-      return this.validateReadmeFileLocation() || this.validatePackageFileLocation() || this.validateReleaseType() || this.validateNoConfirm();
+      var ret;
+      ret = true;
+      ret &= this.validateReadmeFileLocation();
+      ret &= this.validatePackageFileLocation();
+      ret &= this.validateReleaseType();
+      ret &= this.validateNoConfirm();
+      ret &= this.validateSkipGitPull();
+      ret &= this.validateSkipGitPush();
+      return ret || (function() {
+        throw new HelpError(this.validation_error);
+      }).call(this);
     };
 
     Options.prototype.validateReadmeFileLocation = function() {
-      return existsSync(this.readme_file_location);
+      if (!existsSync(this.readme_file_location)) {
+        this.validation_error += "Readme does not exist: " + this.readme_file_location + "\n";
+        return false;
+      } else {
+        return true;
+      }
     };
 
     Options.prototype.validatePackageFileLocation = function() {
-      return existsSync(this.package_file_location);
+      if (!existsSync(this.package_file_location)) {
+        this.validation_error += "Package file does not exist: " + this.package_file_location + "\n";
+        return false;
+      } else {
+        return true;
+      }
     };
 
     Options.prototype.validateCurrentVersion = function() {
-      return (!this.current_version) || (this.current_version.test(/(\d+\.){2}\d+/));
+      if (!((!this.current_version) || (this.current_version.test(/(\d+\.){2}\d+/)))) {
+        this.validation_error += "Invalid current version: " + this.current_version + "\n";
+        return false;
+      } else {
+        return true;
+      }
     };
 
     Options.prototype.validateReleaseType = function() {
       var ref;
-      return (!this.release_type) || ((ref = this.release_type) === 'patch' || ref === 'minor' || ref === 'major');
+      if (!((!this.release_type) || ((ref = this.release_type) === 'patch' || ref === 'minor' || ref === 'major'))) {
+        this.validation_error += "Unknown release type: " + this.release_type + "\n";
+        return false;
+      } else {
+        return true;
+      }
     };
 
     Options.prototype.validateNoConfirm = function() {
-      return typeof this.no_confirm === 'boolean';
+      if (typeof this.no_confirm !== 'boolean') {
+        this.validation_error += 'Invalid value for no-confirm\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateSkipGitPush = function() {
+      if (typeof this.skip_git_push !== 'boolean') {
+        this.validation_error += 'Invalid value for skip-git-push\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateSkipGitPull = function() {
+      if (typeof this.skip_git_pull !== 'boolean') {
+        this.validation_error += 'Invalid value for skip-git-pull\n';
+        return false;
+      } else {
+        return true;
+      }
     };
 
     Options.prototype.getArgumentValue = function(argument) {

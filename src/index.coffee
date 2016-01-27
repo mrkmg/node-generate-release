@@ -27,7 +27,8 @@ module.exports = (args) ->
   .then Minimist
   .then (args) ->
     options.parseArgs args
-
+  .then ->
+    GitCommands.checkForCleanWorkingDirectory()
   .then ->
     unless options.release_type
       askReleaseType()
@@ -47,13 +48,16 @@ module.exports = (args) ->
       console.log "Would have written to #{options.next_version} to \n#{options.package_file_location}\n#{options.readme_file_location}"
       throw new Error 'But, your in debug mode so nothing actually happened'
   .then ->
-    GitCommands.preCommands options.next_version
+    GitCommands.preCommands options.next_version, options.skip_git_pull
   .then ->
     writeNewReadme options.readme_file_location, options.current_version, options.next_version
   .then ->
     writeNewPackage options.package_file_location, options.current_version, options.next_version
   .then ->
-    GitCommands.postCommands options.next_version
+    files = [options.readme_file_location, options.package_file_location]
+    GitCommands.postCommands options.next_version, files, options.skip_git_push
   .catch (err) ->
+    if IS_DEBUG
+      throw err
     console.log err.message
     process.exit 1

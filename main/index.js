@@ -39,6 +39,8 @@
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
     }).then(function() {
+      return GitCommands.checkForCleanWorkingDirectory();
+    }).then(function() {
       if (!options.release_type) {
         return askReleaseType().then(function(release_type) {
           return options.release_type = release_type;
@@ -61,14 +63,19 @@
         throw new Error('But, your in debug mode so nothing actually happened');
       }
     }).then(function() {
-      return GitCommands.preCommands(options.next_version);
+      return GitCommands.preCommands(options.next_version, options.skip_git_pull);
     }).then(function() {
       return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
       return writeNewPackage(options.package_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return GitCommands.postCommands(options.next_version);
+      var files;
+      files = [options.readme_file_location, options.package_file_location];
+      return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
     })["catch"](function(err) {
+      if (IS_DEBUG) {
+        throw err;
+      }
       console.log(err.message);
       return process.exit(1);
     });
