@@ -55,7 +55,7 @@ module.exports = (args) ->
     writeNewPackage options.package_file_location, options.current_version, options.next_version
   .then ->
     files = [options.readme_file_location, options.package_file_location]
-    GitCommands.postCommands options.next_version, file, options.skip_git_push
+    GitCommands.postCommands options.next_version, files, options.skip_git_push
   .catch (err) ->
     if IS_DEBUG
       throw err
