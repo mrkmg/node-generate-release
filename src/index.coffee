@@ -10,16 +10,17 @@ Promise = require 'bluebird'
 Minimist = require 'minimist'
 
 Options = require './lib/Options'
+GitCommands = require './lib/GitCommands'
+PackageFile = require './lib/PackageFile'
+
 askReleaseType = require './lib/askReleaseType'
 incrementVersion = require './lib/incrementVersion'
 askConfirmUpdate = require './lib/askConfirmUpdate'
-readVersionFromPackage = require './lib/readVersionFromPackage'
-writeNewPackage = require './lib/writeNewPackage'
 writeNewReadme = require './lib/writeNewReadme'
-GitCommands = require './lib/GitCommands'
 
 module.exports = (args) ->
   options = new Options()
+  package_file = new PackageFile()
 
   Promise
   .try ->
@@ -35,8 +36,10 @@ module.exports = (args) ->
       .then (release_type) ->
         options.release_type = release_type
   .then ->
+    package_file.load options.package_file_location
+  .then ->
     unless options.current_version
-      options.current_version = readVersionFromPackage options.package_file_location
+      options.current_version = package_file.get 'version'
     options.next_version = incrementVersion options.current_version, options.release_type
   .then ->
     options.no_confirm or (askConfirmUpdate options.current_version, options.next_version)
@@ -52,7 +55,8 @@ module.exports = (args) ->
   .then ->
     writeNewReadme options.readme_file_location, options.current_version, options.next_version
   .then ->
-    writeNewPackage options.package_file_location, options.current_version, options.next_version
+    package_file.set 'version', options.next_version
+    package_file.save()
   .then ->
     files = [options.readme_file_location, options.package_file_location]
     GitCommands.postCommands options.next_version, files, options.skip_git_push

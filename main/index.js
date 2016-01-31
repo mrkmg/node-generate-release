@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, IS_DEBUG, Minimist, Options, Promise, askConfirmUpdate, askReleaseType, incrementVersion, readVersionFromPackage, writeNewPackage, writeNewReadme;
+  var GitCommands, IS_DEBUG, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -17,23 +17,22 @@
 
   Options = require('./lib/Options');
 
+  GitCommands = require('./lib/GitCommands');
+
+  PackageFile = require('./lib/PackageFile');
+
   askReleaseType = require('./lib/askReleaseType');
 
   incrementVersion = require('./lib/incrementVersion');
 
   askConfirmUpdate = require('./lib/askConfirmUpdate');
 
-  readVersionFromPackage = require('./lib/readVersionFromPackage');
-
-  writeNewPackage = require('./lib/writeNewPackage');
-
   writeNewReadme = require('./lib/writeNewReadme');
 
-  GitCommands = require('./lib/GitCommands');
-
   module.exports = function(args) {
-    var options;
+    var options, package_file;
     options = new Options();
+    package_file = new PackageFile();
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(args) {
@@ -47,8 +46,10 @@
         });
       }
     }).then(function() {
+      return package_file.load(options.package_file_location);
+    }).then(function() {
       if (!options.current_version) {
-        options.current_version = readVersionFromPackage(options.package_file_location);
+        options.current_version = package_file.get('version');
       }
       return options.next_version = incrementVersion(options.current_version, options.release_type);
     }).then(function() {
@@ -67,7 +68,8 @@
     }).then(function() {
       return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
-      return writeNewPackage(options.package_file_location, options.current_version, options.next_version);
+      package_file.set('version', options.next_version);
+      return package_file.save();
     }).then(function() {
       var files;
       files = [options.readme_file_location, options.package_file_location];
