@@ -44,7 +44,7 @@ class Options
     @release_type = (@getArgumentValue 'release_type') or @release_type
     @validateArguments()
   validateArguments: ->
-    ret = true;
+    ret = true
     ret &= @validateReadmeFileLocation()
     ret &= @validatePackageFileLocation()
     ret &= @validateReleaseType()
