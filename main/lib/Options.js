@@ -42,7 +42,7 @@
 
     Options.prototype.package_file_location = './package.json';
 
-    Options.prototype.dot_release_file_location = './release';
+    Options.prototype.dot_release_file_location = './release.json';
 
     Options.prototype.no_confirm = false;
 

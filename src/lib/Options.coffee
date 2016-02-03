@@ -33,7 +33,7 @@ release_file_allowed_keys = [
 class Options
   readme_file_location: './README.md'
   package_file_location: './package.json'
-  dot_release_file_location: './release'
+  dot_release_file_location: './release.json'
   no_confirm: false
   release_type: null
   current_version: null
