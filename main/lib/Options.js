@@ -58,9 +58,10 @@
 
     Options.prototype.readArgsFromFile = function() {
       var file_properties;
-      file_properties = require(this.package_file_location);
-      extend(this, pick(file_properties, release_file_allowed_keys));
-      return this.validateArguments();
+      if (existsSync(this.dot_release_file_location)) {
+        file_properties = require(this.package_file_location);
+        return extend(this, pick(file_properties, release_file_allowed_keys));
+      }
     };
 
     Options.prototype.parseArgs = function(args) {
@@ -68,13 +69,15 @@
       if (this.getArgumentValue('show_help')) {
         throw new HelpError;
       }
-      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
-      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
-      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
-      this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
+      this.dot_release_file_location = Path.resolve((this.getArgumentValue('dot_release_file_location')) || this.dot_release_file_location);
       this.release_type = (this.getArgumentValue('release_type')) || this.release_type;
+      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
+      this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
+      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
+      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
+      this.readArgsFromFile();
       return this.validateArguments();
     };
 

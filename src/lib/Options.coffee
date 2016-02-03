@@ -42,21 +42,24 @@ class Options
   validation_error: '\n'
 
   readArgsFromFile: ->
-    file_properties = require @package_file_location
-    extend @, pick file_properties, release_file_allowed_keys
-    @validateArguments()
+    if existsSync @dot_release_file_location
+      file_properties = require @package_file_location
+      extend @, pick file_properties, release_file_allowed_keys
 
   parseArgs: (args) ->
     @args = args
     if @getArgumentValue 'show_help'
       throw new HelpError
-    @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
-    @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
-    @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @readme_file_location = Path.resolve((@getArgumentValue 'readme_file_location') or @readme_file_location)
     @package_file_location = Path.resolve((@getArgumentValue 'package_file_location') or @package_file_location)
-    @current_version = (@getArgumentValue 'current_version') or @current_version
+    @dot_release_file_location = Path.resolve((@getArgumentValue 'dot_release_file_location') or @dot_release_file_location)
     @release_type = (@getArgumentValue 'release_type') or @release_type
+    @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
+    @current_version = (@getArgumentValue 'current_version') or @current_version
+    @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
+    @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
+
+    @readArgsFromFile()
     @validateArguments()
 
   validateArguments: ->
