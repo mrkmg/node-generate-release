@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var HelpError, Options, Path, args, bool, existsSync;
+  var HelpError, Options, Path, args, bool, existsSync, extend, pick, release_file_allowed_keys;
 
   existsSync = require('exists-sync');
 
@@ -15,12 +15,17 @@
 
   bool = require('@nkcmr/bool');
 
+  pick = require('object-pick');
+
+  extend = require('extend');
+
   HelpError = require('./HelpError');
 
   args = {
     show_help: ['h', 'help'],
     readme_file_location: ['r', 'readme'],
     package_file_location: ['p', 'package'],
+    dot_release_file_location: ['d', 'release-file'],
     current_version: ['c', 'current-version'],
     release_type: ['t', 'release-type'],
     no_confirm: ['n', 'no-confirm'],
@@ -28,12 +33,16 @@
     skip_git_push: ['s', 'skip-git-push']
   };
 
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push'];
+
   Options = (function() {
     function Options() {}
 
     Options.prototype.readme_file_location = './README.md';
 
     Options.prototype.package_file_location = './package.json';
+
+    Options.prototype.dot_release_file_location = './release';
 
     Options.prototype.no_confirm = false;
 
@@ -46,6 +55,13 @@
     Options.prototype.skip_git_push = false;
 
     Options.prototype.validation_error = '\n';
+
+    Options.prototype.readArgsFromFile = function() {
+      var file_properties;
+      file_properties = require(this.package_file_location);
+      extend(this, pick(file_properties, release_file_allowed_keys));
+      return this.validateArguments();
+    };
 
     Options.prototype.parseArgs = function(args) {
       this.args = args;

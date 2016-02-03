@@ -7,27 +7,44 @@
 existsSync = require 'exists-sync'
 Path = require 'path'
 bool = require '@nkcmr/bool'
+pick = require 'object-pick'
+extend = require 'extend'
 HelpError = require './HelpError'
 
 args =
   show_help: ['h', 'help']
   readme_file_location: ['r', 'readme']
   package_file_location: ['p', 'package']
+  dot_release_file_location: ['d', 'release-file']
   current_version: ['c', 'current-version']
   release_type: ['t', 'release-type']
   no_confirm: ['n', 'no-confirm']
   skip_git_pull: ['l', 'skip-git-push']
   skip_git_push: ['s', 'skip-git-push']
 
+release_file_allowed_keys = [
+  'readme_file_location'
+  'package_file_location'
+  'no_confirm'
+  'skip_git_pull'
+  'skip_git_push'
+]
+
 class Options
   readme_file_location: './README.md'
   package_file_location: './package.json'
+  dot_release_file_location: './release'
   no_confirm: false
   release_type: null
   current_version: null
   skip_git_pull: false
   skip_git_push: false
   validation_error: '\n'
+
+  readArgsFromFile: ->
+    file_properties = require @package_file_location
+    extend @, pick file_properties, release_file_allowed_keys
+    @validateArguments()
 
   parseArgs: (args) ->
     @args = args
