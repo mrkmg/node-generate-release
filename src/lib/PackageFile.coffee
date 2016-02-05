@@ -34,6 +34,7 @@ class PackageFile
     s = @package_file_data
     while i < len
       s = s[option_arr[i]]
+      i++
     s
 
 module.exports = PackageFile

@@ -53,6 +53,7 @@ MIT License
       s = this.package_file_data;
       while (i < len) {
         s = s[option_arr[i]];
+        i++;
       }
       return s;
     };

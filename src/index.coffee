@@ -29,7 +29,7 @@ module.exports = (args) ->
   .then (args) ->
     options.parseArgs args
   .then ->
-    GitCommands.checkForCleanWorkingDirectory()
+    IS_DEBUG or GitCommands.checkForCleanWorkingDirectory()
   .then ->
     unless options.release_type
       askReleaseType()

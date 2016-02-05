@@ -38,7 +38,7 @@
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
     }).then(function() {
-      return GitCommands.checkForCleanWorkingDirectory();
+      return IS_DEBUG || GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
       if (!options.release_type) {
         return askReleaseType().then(function(release_type) {
