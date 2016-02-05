@@ -26,6 +26,7 @@ class PackageFile
         s[option_arr[i]] = value
       else
         s = s[option_arr[i]]
+      i++
 
   get: (option) ->
     option_arr = option.split '.'
