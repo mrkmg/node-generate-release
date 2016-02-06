@@ -23,9 +23,9 @@ MIT License
 
     PackageFile.prototype.save = function() {
       var pack_string;
-      pack_string = JSON.stringify(pack, null, 2);
+      pack_string = JSON.stringify(this.package_file_data, null, 2);
       pack_string += '\n';
-      return FS.writeFileSync(this.package_file_location, this.package_file_data, 'utf8');
+      return FS.writeFileSync(this.package_file_location, pack_string, 'utf8');
     };
 
     PackageFile.prototype.setVersion = function(value) {
