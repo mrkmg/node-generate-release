@@ -1,4 +1,8 @@
-
+###
+  Generate Release
+  Kevin Gravier
+  MIT License
+###
 
 module.exports = (version, type) ->
   version_split = version.split('.').map (t) -> parseInt t

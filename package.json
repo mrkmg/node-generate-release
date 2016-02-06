@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Generate a release for a project following semver using nodejs and gitflow",
   "bin": {
     "generate-release": "./bin/generate-release"
@@ -29,7 +29,9 @@
     "@nkcmr/bool": "github:nkcmr/bool",
     "bluebird": "^3.1.2",
     "exists-sync": "0.0.3",
-    "inquirer": "^0.11.3"
+    "extend": "^3.0.0",
+    "inquirer": "^0.11.3",
+    "object-pick": "^0.1.1"
   },
   "devDependencies": {
     "chai": "^3.4.1",

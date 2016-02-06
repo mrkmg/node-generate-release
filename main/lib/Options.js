@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var HelpError, Options, Path, args, bool, existsSync;
+  var HelpError, Options, Path, args, bool, existsSync, extend, pick, release_file_allowed_keys;
 
   existsSync = require('exists-sync');
 
@@ -15,12 +15,17 @@
 
   bool = require('@nkcmr/bool');
 
+  pick = require('object-pick');
+
+  extend = require('extend');
+
   HelpError = require('./HelpError');
 
   args = {
     show_help: ['h', 'help'],
     readme_file_location: ['r', 'readme'],
     package_file_location: ['p', 'package'],
+    dot_release_file_location: ['d', 'release-file'],
     current_version: ['c', 'current-version'],
     release_type: ['t', 'release-type'],
     no_confirm: ['n', 'no-confirm'],
@@ -28,12 +33,16 @@
     skip_git_push: ['s', 'skip-git-push']
   };
 
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push'];
+
   Options = (function() {
     function Options() {}
 
     Options.prototype.readme_file_location = './README.md';
 
     Options.prototype.package_file_location = './package.json';
+
+    Options.prototype.dot_release_file_location = './release.json';
 
     Options.prototype.no_confirm = false;
 
@@ -47,18 +56,28 @@
 
     Options.prototype.validation_error = '\n';
 
+    Options.prototype.readArgsFromFile = function() {
+      var file_properties;
+      if (existsSync(this.dot_release_file_location)) {
+        file_properties = require(this.package_file_location);
+        return extend(this, pick(file_properties, release_file_allowed_keys));
+      }
+    };
+
     Options.prototype.parseArgs = function(args) {
       this.args = args;
       if (this.getArgumentValue('show_help')) {
         throw new HelpError;
       }
-      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
-      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
-      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
-      this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
+      this.dot_release_file_location = Path.resolve((this.getArgumentValue('dot_release_file_location')) || this.dot_release_file_location);
       this.release_type = (this.getArgumentValue('release_type')) || this.release_type;
+      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
+      this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
+      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
+      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
+      this.readArgsFromFile();
       return this.validateArguments();
     };
 
