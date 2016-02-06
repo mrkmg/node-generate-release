@@ -40,7 +40,7 @@ module.exports = (args) ->
     package_file.load options.package_file_location
   .then ->
     unless options.current_version
-      options.current_version = package_file.getVersion
+      options.current_version = package_file.getVersion()
     options.next_version = incrementVersion options.current_version, options.release_type
   .then ->
     options.no_confirm or (askConfirmUpdate options.current_version, options.next_version)

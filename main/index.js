@@ -51,7 +51,7 @@
       return package_file.load(options.package_file_location);
     }).then(function() {
       if (!options.current_version) {
-        options.current_version = package_file.getVersion;
+        options.current_version = package_file.getVersion();
       }
       return options.next_version = incrementVersion(options.current_version, options.release_type);
     }).then(function() {
