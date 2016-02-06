@@ -7,9 +7,11 @@
  */
 
 (function() {
-  var GitCommands, IS_DEBUG, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
+
+  IS_TEST = process.env.IS_TEST != null;
 
   Promise = require('bluebird');
 
@@ -38,7 +40,7 @@
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
     }).then(function() {
-      return IS_DEBUG || GitCommands.checkForCleanWorkingDirectory();
+      return IS_TEST || GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
       if (!options.release_type) {
         return askReleaseType().then(function(release_type) {
@@ -49,7 +51,7 @@
       return package_file.load(options.package_file_location);
     }).then(function() {
       if (!options.current_version) {
-        options.current_version = package_file.get('version');
+        options.current_version = package_file.getVersion;
       }
       return options.next_version = incrementVersion(options.current_version, options.release_type);
     }).then(function() {
@@ -59,7 +61,7 @@
         throw new Error('Update Canceled');
       }
     }).then(function() {
-      if (IS_DEBUG) {
+      if (IS_TEST) {
         console.log("Would have written to " + options.next_version + " to \n" + options.package_file_location + "\n" + options.readme_file_location);
         throw new Error('But, your in debug mode so nothing actually happened');
       }
@@ -68,7 +70,7 @@
     }).then(function() {
       return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
-      package_file.set('version', options.next_version);
+      package_file.setVersion(options.next_version);
       return package_file.save();
     }).then(function() {
       var files;

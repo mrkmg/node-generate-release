@@ -28,34 +28,12 @@ MIT License
       return FS.writeFileSync(this.package_file_location, this.package_file_data, 'utf8');
     };
 
-    PackageFile.prototype.set = function(option, value) {
-      var i, len, option_arr, results, s;
-      option_arr = option.split('.');
-      len = option_arr.length;
-      i = 0;
-      s = this.package_file_data;
-      results = [];
-      while (i < len) {
-        if (i !== len - 1) {
-          results.push(s[option_arr[i]] = value);
-        } else {
-          results.push(s = s[option_arr[i]]);
-        }
-      }
-      return results;
+    PackageFile.prototype.setVersion = function(value) {
+      return this.package_file_data.version = value;
     };
 
-    PackageFile.prototype.get = function(option) {
-      var i, len, option_arr, s;
-      option_arr = option.split('.');
-      len = option_arr.length;
-      i = 0;
-      s = this.package_file_data;
-      while (i < len) {
-        s = s[option_arr[i]];
-        i++;
-      }
-      return s;
+    PackageFile.prototype.getVersion = function() {
+      return this.package_file_data.version;
     };
 
     return PackageFile;

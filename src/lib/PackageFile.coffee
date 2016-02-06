@@ -16,26 +16,10 @@ class PackageFile
     pack_string += '\n'
     FS.writeFileSync @package_file_location, @package_file_data, 'utf8'
 
-  set: (option, value) ->
-    option_arr = option.split '.'
-    len = option_arr.length
-    i = 0
-    s = @package_file_data
-    while i < len
-      unless i is len - 1
-        s[option_arr[i]] = value
-      else
-        s = s[option_arr[i]]
-      i++
+  setVersion: (value) ->
+    @package_file_data.version = value
 
-  get: (option) ->
-    option_arr = option.split '.'
-    len = option_arr.length
-    i = 0
-    s = @package_file_data
-    while i < len
-      s = s[option_arr[i]]
-      i++
-    s
+  getVersion: ->
+    @package_file_data.version
 
 module.exports = PackageFile
