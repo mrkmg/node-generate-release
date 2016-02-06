@@ -5,6 +5,7 @@
 ###
 
 IS_DEBUG = process.env.IS_DEBUG?
+IS_TEST = process.env.IS_TEST?
 
 Promise = require 'bluebird'
 Minimist = require 'minimist'
@@ -29,7 +30,7 @@ module.exports = (args) ->
   .then (args) ->
     options.parseArgs args
   .then ->
-    IS_DEBUG or GitCommands.checkForCleanWorkingDirectory()
+    IS_TEST or GitCommands.checkForCleanWorkingDirectory()
   .then ->
     unless options.release_type
       askReleaseType()
@@ -47,7 +48,7 @@ module.exports = (args) ->
     unless do_update
       throw new Error 'Update Canceled'
   .then ->
-    if IS_DEBUG
+    if IS_TEST
       console.log "Would have written to #{options.next_version} to \n#{options.package_file_location}\n#{options.readme_file_location}"
       throw new Error 'But, your in debug mode so nothing actually happened'
   .then ->
