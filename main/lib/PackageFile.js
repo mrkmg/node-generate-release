@@ -7,7 +7,9 @@ MIT License
  */
 
 (function() {
-  var PackageFile;
+  var FS, PackageFile;
+
+  FS = require('fs');
 
   PackageFile = (function() {
     function PackageFile() {}

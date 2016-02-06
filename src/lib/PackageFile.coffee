@@ -4,6 +4,8 @@ Kevin Gravier
 MIT License
 ###
 
+FS = require 'fs'
+
 class PackageFile
   package_file_location: null
   package_file_data: {}
