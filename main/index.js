@@ -119,6 +119,32 @@
       } else {
         return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push);
       }
+    }).then(function() {
+      var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;
+      if (!IS_TEST) {
+        ref = options.post_commit_commands;
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          command_string = ref[i];
+          command_array = ParseSpawnArgs.parse(command_string);
+          command = command_array.shift();
+          ret = ChildProcess.spawnSync(command, command_array);
+          if (!ret) {
+            throw ret.error;
+          } else {
+            results.push(void 0);
+          }
+        }
+        return results;
+      } else {
+        ref1 = options.post_commit_commands;
+        results1 = [];
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          command = ref1[j];
+          results1.push(console.info("TEST: EXEC: " + command));
+        }
+        return results1;
+      }
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;

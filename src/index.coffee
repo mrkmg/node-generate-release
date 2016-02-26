@@ -103,6 +103,19 @@ module.exports = (args) ->
     else
       console.info "TEST: GitCommands.postCommands #{options.next_version}, #{files}, #{options.skip_git_push}"
 
+  #Run post_commit_commands
+  .then ->
+    unless IS_TEST
+      for command_string in options.post_commit_commands
+        command_array = ParseSpawnArgs.parse command_string
+        command = command_array.shift()
+        ret = ChildProcess.spawnSync command, command_array
+
+        unless ret
+          throw ret.error
+    else
+      console.info "TEST: EXEC: #{command}" for command in options.post_commit_commands
+
   #Print the errors
   .catch (err) ->
     if IS_DEBUG
