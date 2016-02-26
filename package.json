@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Generate a release for a project following semver using nodejs and gitflow",
   "bin": {
     "generate-release": "./bin/generate-release"
@@ -8,7 +8,6 @@
   "scripts": {
     "compile": "coffee --compile --output main/ src/",
     "compile-watch": "coffee --compile --watch --output main/ src/",
-    "make-dist": "uglifyjs --compress --mangle --screw-ie8 main/index.js main/lib/* --output main/index.min.js",
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register ./test/specs --timeout 10000",
