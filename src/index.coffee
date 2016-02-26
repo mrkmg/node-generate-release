@@ -10,6 +10,7 @@ IS_TEST = process.env.IS_TEST?
 Promise = require 'bluebird'
 Minimist = require 'minimist'
 ChildProcess = require 'child_process'
+ParseSpawnArgs = require 'parse-spawn-args'
 
 Options = require './lib/Options'
 GitCommands = require './lib/GitCommands'
@@ -84,7 +85,13 @@ module.exports = (args) ->
   #Run any pre_commit_commands
   .then ->
     unless IS_TEST
-      ChildProcess.spawnSync(command, [], {cwd: process.cwd()}) for command in options.pre_commit_commands
+      for command_string in options.pre_commit_commands
+        command_array = ParseSpawnArgs.parse command_string
+        command = command_array.shift()
+        ret = ChildProcess.spawnSync command, command_array
+
+        unless ret
+          throw ret.error
     else
       console.info "TEST: EXEC: #{command}" for command in options.pre_commit_commands
 

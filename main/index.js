@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var ChildProcess, GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var ChildProcess, GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -18,6 +18,8 @@
   Minimist = require('minimist');
 
   ChildProcess = require('child_process');
+
+  ParseSpawnArgs = require('parse-spawn-args');
 
   Options = require('./lib/Options');
 
@@ -84,15 +86,20 @@
         return console.info("TEST: package_file.setVersion " + options.next_version + " && package_file.save()");
       }
     }).then(function() {
-      var command, i, j, len, len1, ref, ref1, results, results1;
+      var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;
       if (!IS_TEST) {
         ref = options.pre_commit_commands;
         results = [];
         for (i = 0, len = ref.length; i < len; i++) {
-          command = ref[i];
-          results.push(ChildProcess.spawnSync(command, [], {
-            cwd: process.cwd()
-          }));
+          command_string = ref[i];
+          command_array = ParseSpawnArgs.parse(command_string);
+          command = command_array.shift();
+          ret = ChildProcess.spawnSync(command, command_array);
+          if (!ret) {
+            throw ret.error;
+          } else {
+            results.push(void 0);
+          }
         }
         return results;
       } else {
