@@ -1,3 +1,9 @@
 {
-  "no_confirm": true
+  "no_confirm": true,
+  "pre_commit_commands": [
+    "npm run compile-dist"
+  ],
+  "additional_files_to_commit": [
+    "main/index.min.js"
+  ]
 }

@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var ChildProcess, GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -16,6 +16,8 @@
   Promise = require('bluebird');
 
   Minimist = require('minimist');
+
+  ChildProcess = require('child_process');
 
   Options = require('./lib/Options');
 
@@ -61,21 +63,53 @@
         throw new Error('Update Canceled');
       }
     }).then(function() {
-      if (IS_TEST) {
-        console.log("Would have written to " + options.next_version + " to \n" + options.package_file_location + "\n" + options.readme_file_location);
-        throw new Error('But, your in debug mode so nothing actually happened');
+      if (!IS_TEST) {
+        return GitCommands.preCommands(options.next_version, options.skip_git_pull);
+      } else {
+        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull);
       }
     }).then(function() {
-      return GitCommands.preCommands(options.next_version, options.skip_git_pull);
+      if (!IS_TEST) {
+        return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
+      } else {
+        return console.info("TEST: writeNewReadme " + options.readme_file_location + ", " + options.current_version + ", " + options.next_version);
+      }
     }).then(function() {
-      return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
+      if (!IS_TEST) {
+        package_file.setVersion(options.next_version);
+        return package_file.save();
+      } else {
+        return console.info("TEST: package_file.setVersion " + options.next_version + " && package_file.save()");
+      }
     }).then(function() {
-      package_file.setVersion(options.next_version);
-      return package_file.save();
+      var command, i, j, len, len1, ref, ref1, results, results1;
+      if (!IS_TEST) {
+        ref = options.pre_commit_commands;
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          command = ref[i];
+          results.push(ChildProcess.spawnSync(command, [], {
+            cwd: process.cwd()
+          }));
+        }
+        return results;
+      } else {
+        ref1 = options.pre_commit_commands;
+        results1 = [];
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          command = ref1[j];
+          results1.push(console.info("TEST: EXEC: " + command));
+        }
+        return results1;
+      }
     }).then(function() {
       var files;
-      files = [options.readme_file_location, options.package_file_location];
-      return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
+      files = [options.readme_file_location, options.package_file_location].concat(options.additional_files_to_commit);
+      if (!IS_TEST) {
+        return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
+      } else {
+        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push);
+      }
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;
