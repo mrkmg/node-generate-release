@@ -34,7 +34,8 @@ module.exports = (args) ->
 
   #Check for Clean Working Dir
   .then ->
-    IS_TEST or GitCommands.checkForCleanWorkingDirectory()
+    unless IS_TEST
+      GitCommands.checkForCleanWorkingDirectory()
 
   #Get Release Type from options or by asking
   .then ->

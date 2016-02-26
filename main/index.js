@@ -42,7 +42,9 @@
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
     }).then(function() {
-      return IS_TEST || GitCommands.checkForCleanWorkingDirectory();
+      if (!IS_TEST) {
+        return GitCommands.checkForCleanWorkingDirectory();
+      }
     }).then(function() {
       if (!options.release_type) {
         return askReleaseType().then(function(release_type) {
