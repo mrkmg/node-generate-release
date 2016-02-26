@@ -19,7 +19,7 @@ args =
   current_version: ['c', 'current-version']
   release_type: ['t', 'release-type']
   no_confirm: ['n', 'no-confirm']
-  skip_git_pull: ['l', 'skip-git-push']
+  skip_git_pull: ['l', 'skip-git-pull']
   skip_git_push: ['s', 'skip-git-push']
 
 release_file_allowed_keys = [
@@ -28,22 +28,26 @@ release_file_allowed_keys = [
   'no_confirm'
   'skip_git_pull'
   'skip_git_push'
+  'pre_commit_commands'
+  'additional_files_to_commit'
 ]
 
 class Options
   readme_file_location: './README.md'
   package_file_location: './package.json'
-  dot_release_file_location: './release.json'
+  dot_release_file_location: './.release.json'
   no_confirm: false
   release_type: null
   current_version: null
   skip_git_pull: false
   skip_git_push: false
+  pre_commit_commands: []
+  additional_files_to_commit: []
   validation_error: '\n'
 
   readArgsFromFile: ->
     if existsSync @dot_release_file_location
-      file_properties = require @package_file_location
+      file_properties = require @dot_release_file_location
       extend @, pick file_properties, release_file_allowed_keys
 
   parseArgs: (args) ->
@@ -63,14 +67,16 @@ class Options
     @validateArguments()
 
   validateArguments: ->
-    ret = true
-    ret &= @validateReadmeFileLocation()
-    ret &= @validatePackageFileLocation()
-    ret &= @validateReleaseType()
-    ret &= @validateNoConfirm()
-    ret &= @validateSkipGitPull()
-    ret &= @validateSkipGitPush()
-    ret or throw new HelpError(@validation_error)
+    (
+      @validateReadmeFileLocation() and
+      @validatePackageFileLocation() and
+      @validateReleaseType() and
+      @validateNoConfirm() and
+      @validateSkipGitPull() and
+      @validateSkipGitPush() and
+      @validatePreCommitCommands() and
+      @validateAdditionalFilesToCommit()
+    ) or throw new HelpError @validation_error
 
   validateReadmeFileLocation: ->
     unless existsSync @readme_file_location
@@ -117,6 +123,20 @@ class Options
   validateSkipGitPull: ->
     unless typeof @skip_git_pull is 'boolean'
       @validation_error += 'Invalid value for skip-git-pull\n'
+      false
+    else
+      true
+
+  validatePreCommitCommands: ->
+    unless Array.isArray @pre_commit_commands
+      @validation_error += 'Pre Git Commands must be an array'
+      false
+    else
+      true
+
+  validateAdditionalFilesToCommit: ->
+    unless Array.isArray @additional_files_to_commit
+      @validation_error += 'Additional Files to Commit must be an array'
       false
     else
       true

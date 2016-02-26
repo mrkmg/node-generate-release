@@ -6,8 +6,9 @@
     "generate-release": "./bin/generate-release"
   },
   "scripts": {
-    "compile": "coffee -c -o main/ src/",
-    "compile-watch": "coffee -cw -o main/ src/",
+    "compile": "coffeebar --output main/ src/",
+    "compile-watch": "coffeebar --watch --output main/ src/",
+    "compile-dist": "coffeebar --minify --output main/index.min.js src/",
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register ./test/specs --timeout 10000",
@@ -38,6 +39,7 @@
     "chai-as-promised": "^5.2.0",
     "coffee-coverage": "^1.0.1",
     "coffee-script": "^1.10.0",
+    "coffeebar": "^1.0.0",
     "coffeelint": "^1.14.2",
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
