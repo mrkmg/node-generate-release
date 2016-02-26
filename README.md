@@ -35,8 +35,10 @@ This is the default process.
 1. Starts a git-flow release named the new version number
 1. Changes the version number in your README.md file and package.json file
 1. Commits the changes to the README.md and package.json file
+1. Runs all `pre_commit_commands`
 1. Run the git-flow finish release command
 1. Pushes master, develop, and tags to origin
+1. Run all `post_commit_commands`
 
 Many aspects of this process can be changes using the options below.
 
@@ -52,6 +54,26 @@ run `generate-release --help` to see this as well.
     -n --no-confirm       Do not ask for confirmation. Default: prompt for confirmation
     -l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull
     -s --skip-git-push    Do not push to origin when complete. Default: Do push
+    -d --release-file     Path to your .release.json file. Default: ./.release.json
+
+Release File
+------------
+
+By default, the follow defaults and options can be set in a `.release.json` file. The following
+is an example with all files set.
+
+      {
+          "readme_file_location": "./README.md",
+          "package_file_location": "./package.json",
+          "no_confirm": false,
+          "skip_git_pull": false,
+          "skip_git_push": false,
+          "pre_commit_commands": [],
+          "post_commit_commands": [],
+          "additional_files_to_commit": []
+      }
+      
+For examples of how to use the commit options, look at the .release.json file in this repo.
 
 
 Roadmap
@@ -60,8 +82,8 @@ Roadmap
 - Write tests
 - Code coverage for tests
 - Change remote (not origin)
-- Allow for custom hook (like running gulp or grunt during release to prepare assets)
+- ~~Allow for custom hook (like running gulp or grunt during release to prepare assets)~~
 - Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)
-- Use and parse a .release file to parse defaults (instead of using cli switches)
+- ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - Implement an API to use inside node applications (why? because all the cool kids are doing it)
 - Custom release message
