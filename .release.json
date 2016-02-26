@@ -1,12 +1,3 @@
 {
-  "no_confirm": true,
-  "pre_commit_commands": [
-    "npm run make-dist"
-  ],
-  "additional_files_to_commit": [
-    "main/index.min.js"
-  ],
-  "post_commit_commands": [
-    "echo \"Everything went well, I think\""
-  ]
+  "no_confirm": true
 }
