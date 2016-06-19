@@ -13,7 +13,7 @@ First, install generate-release globally.
 
 Navigate to your project and execute `generate-release`.
 
-Thats it!
+That's it!
 
 What does it do?
 ----------------
@@ -40,7 +40,7 @@ This is the default process.
 1. Pushes master, develop, and tags to origin
 1. Run all `post_commit_commands`
 
-Many aspects of this process can be changes using the options below.
+Many aspects of this process can be changed using the options below.
 
 Options
 --------
@@ -59,7 +59,7 @@ run `generate-release --help` to see this as well.
 Release File
 ------------
 
-By default, the follow defaults and options can be set in a `.release.json` file. The following
+By default, the following options can be set in a `.release.json` file. The following
 is an example with all files set.
 
       {
