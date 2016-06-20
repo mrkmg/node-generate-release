@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var ChildProcess, GitCommands, GitFlowSettings, Glob, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -16,10 +16,6 @@
   Promise = require('bluebird');
 
   Minimist = require('minimist');
-
-  ChildProcess = require('child_process');
-
-  ParseSpawnArgs = require('parse-spawn-args');
 
   Glob = require('glob');
 
@@ -41,15 +37,21 @@
 
   writeNewReadme = require('./lib/writeNewReadme');
 
+  runArbitraryCommand = require('./lib/runArbitraryCommand');
+
   module.exports = function(args) {
     var git_flow_settings, options, package_file;
-    options = new Options();
-    package_file = new PackageFile();
-    git_flow_settings = new GitFlowSettings('./');
+    options = void 0;
+    package_file = void 0;
+    git_flow_settings = void 0;
     return Promise["try"](function() {
       return args.slice(2);
-    }).then(Minimist).then(function(args) {
-      return options.parseArgs(args);
+    }).then(Minimist).then(function(mArgs) {
+      return options = new Options(mArgs);
+    }).then(function() {
+      return options.parse();
+    }).then(function() {
+      return git_flow_settings = new GitFlowSettings(Path.resolve('./'));
     }).then(function() {
       return git_flow_settings.parseIni();
     }).then(function() {
@@ -63,11 +65,14 @@
         });
       }
     }).then(function() {
-      return package_file.load(options.package_file_location);
+      return package_file = new PackageFile(options.package_file_location);
+    }).then(function() {
+      return package_file.load();
     }).then(function() {
       if (!options.current_version) {
-        options.current_version = package_file.getVersion();
+        return options.current_version = package_file.getVersion();
       }
+    }).then(function() {
       return options.next_version = incrementVersion(options.current_version, options.release_type, git_flow_settings.version_tag_prefix);
     }).then(function() {
       return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
@@ -95,35 +100,29 @@
         return console.info("TEST: package_file.setVersion " + options.next_version + " && package_file.save()");
       }
     }).then(function() {
-      var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;
+      var command, i, len, ref, results;
       if (!IS_TEST) {
+        return Promise["try"](function() {
+          var command, i, len, ref, results;
+          ref = options.pre_commit_commands;
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            command = ref[i];
+            results.push(runArbitraryCommand(command));
+          }
+          return results;
+        })["catch"](function(err) {
+          GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
+          throw err;
+        });
+      } else {
         ref = options.pre_commit_commands;
         results = [];
         for (i = 0, len = ref.length; i < len; i++) {
-          command_string = ref[i];
-          command_array = ParseSpawnArgs.parse(command_string);
-          command = command_array.shift();
-          ret = ChildProcess.spawnSync(command, command_array);
-          if (ret.error) {
-            GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
-            throw ret.error;
-          }
-          if (ret.status !== 0) {
-            GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
-            throw new Error("`" + command_string + "` returned " + ret.status + ". \n\n " + (ret.output.toString()));
-          } else {
-            results.push(void 0);
-          }
+          command = ref[i];
+          results.push(console.info("TEST: EXEC: " + command));
         }
         return results;
-      } else {
-        ref1 = options.pre_commit_commands;
-        results1 = [];
-        for (j = 0, len1 = ref1.length; j < len1; j++) {
-          command = ref1[j];
-          results1.push(console.info("TEST: EXEC: " + command));
-        }
-        return results1;
       }
     }).then(function() {
       var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
@@ -143,30 +142,29 @@
         return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
       }
     }).then(function() {
-      var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;
+      var command, i, len, promises, ref, results;
       if (!IS_TEST) {
+        promises = (function() {
+          var i, len, ref, results;
+          ref = options.post_commit_commands;
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            command = ref[i];
+            results.push(Promise["try"](function() {
+              return runArbitraryCommand(command);
+            })["catch"](function() {}));
+          }
+          return results;
+        })();
+        return Promise.all(promises);
+      } else {
         ref = options.post_commit_commands;
         results = [];
         for (i = 0, len = ref.length; i < len; i++) {
-          command_string = ref[i];
-          command_array = ParseSpawnArgs.parse(command_string);
-          command = command_array.shift();
-          ret = ChildProcess.spawnSync(command, command_array);
-          if (!ret) {
-            throw ret.error;
-          } else {
-            results.push(void 0);
-          }
+          command = ref[i];
+          results.push(console.info("TEST: EXEC: " + command));
         }
         return results;
-      } else {
-        ref1 = options.post_commit_commands;
-        results1 = [];
-        for (j = 0, len1 = ref1.length; j < len1; j++) {
-          command = ref1[j];
-          results1.push(console.info("TEST: EXEC: " + command));
-        }
-        return results1;
       }
     })["catch"](function(err) {
       if (IS_DEBUG) {

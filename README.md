@@ -1,19 +1,36 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
-Current Version: 0.2.1
+Current Version: 0.2.2
 
 
 Usage
 -----
 
-First, install generate-release globally.
+You can either install `generate-release` globally or for a single project
+
+__Globally__
+
+Install package
 
     npm install -g generate-release
 
-Navigate to your project and execute `generate-release`.
+Navigate to your project and execute `generate-release`
 
-That's it!
+__Locally__
+
+    cd your/project
+    npm install --save-dev generate-release
+    
+Then add the following to your `package.json` file:
+
+    {
+        "scripts": {
+            "release": "generate-release"
+        }
+    }
+
+Then you can run `npm run-script release` in order to generate a release.
 
 What does it do?
 ----------------

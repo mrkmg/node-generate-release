@@ -47,13 +47,14 @@ class Options
   additional_files_to_commit: []
   validation_error: '\n'
 
+  constructor: (@args) ->
+
   readArgsFromFile: ->
     if existsSync @dot_release_file_location
       file_properties = require @dot_release_file_location
       extend @, pick file_properties, release_file_allowed_keys
 
-  parseArgs: (args) ->
-    @args = args
+  parse: ->
     if @getArgumentValue 'show_help'
       throw new HelpError
 

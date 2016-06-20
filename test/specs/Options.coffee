@@ -21,16 +21,16 @@ describe 'Options', ->
   temp_dir = Temp.path()
 
   before ->
-    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}"
+    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'inherit'
     process.chdir temp_dir
 
-  after ->
-    rmdir temp_dir
+  after (cb) ->
     process.chdir starting_dir
+    rmdir temp_dir, cb
 
   it 'should have default options set properly', ->
-    options = new Options()
-    options.parseArgs {}
+    options = new Options {}
+    options.parse()
 
     assert.equal options.readme_file_location, Path.resolve './README.md'
     assert.equal options.package_file_location, Path.resolve './package.json'
@@ -43,9 +43,7 @@ describe 'Options', ->
 
 
   it 'should parse cli options properly', ->
-    options = new Options()
-
-    options.parseArgs Minimist [
+    options = new Options Minimist [
       '-r',
       './alt.README.md',
       '-p',
@@ -61,6 +59,8 @@ describe 'Options', ->
       './alt.release.json'
     ]
 
+    options.parse()
+
     assert.equal options.readme_file_location, Path.resolve './alt.README.md'
     assert.equal options.package_file_location, Path.resolve './alt.package.json'
     assert.equal options.dot_release_file_location, Path.resolve './alt.release.json'
@@ -71,9 +71,8 @@ describe 'Options', ->
     assert.equal options.skip_git_push, true
 
   it 'should parse release file options correctly', ->
-    options = new Options()
-
-    options.parseArgs Minimist ['-d', './all.release.json']
+    options = new Options Minimist ['-d', './all.release.json']
+    options.parse()
 
     assert.equal options.readme_file_location, Path.resolve './alt.README.md'
     assert.equal options.package_file_location, Path.resolve './alt.package.json'
