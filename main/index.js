@@ -73,9 +73,9 @@
       }
     }).then(function() {
       if (!IS_TEST) {
-        return GitCommands.preCommands(options.next_version, options.skip_git_pull);
+        return GitCommands.preCommands(options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop);
       } else {
-        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull);
+        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
       }
     }).then(function() {
       if (!IS_TEST) {
@@ -120,9 +120,9 @@
       var files;
       files = [options.readme_file_location, options.package_file_location].concat(options.additional_files_to_commit);
       if (!IS_TEST) {
-        return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
+        return GitCommands.postCommands(options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop);
       } else {
-        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push);
+        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
       }
     }).then(function() {
       var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;

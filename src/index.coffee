@@ -69,9 +69,10 @@ module.exports = (args) ->
   #Start the Git-Flow release
   .then ->
     unless IS_TEST
-      GitCommands.preCommands options.next_version, options.skip_git_pull
+      GitCommands.preCommands options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop
     else
-      console.info "TEST: GitCommands.preCommands #{options.next_version}, #{options.skip_git_pull}"
+      console.info "TEST: GitCommands.preCommands
+        #{options.next_version}, #{options.skip_git_pull}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
 
   #Write the new version to the readme file
   .then ->
@@ -105,9 +106,10 @@ module.exports = (args) ->
   .then ->
     files = [options.readme_file_location, options.package_file_location].concat options.additional_files_to_commit
     unless IS_TEST
-      GitCommands.postCommands options.next_version, files, options.skip_git_push
+      GitCommands.postCommands options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop
     else
-      console.info "TEST: GitCommands.postCommands #{options.next_version}, #{files}, #{options.skip_git_push}"
+      console.info "TEST: GitCommands.postCommands
+        #{options.next_version}, #{files}, #{options.skip_git_push}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
 
   #Run post_commit_commands
   .then ->
