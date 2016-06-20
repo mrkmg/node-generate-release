@@ -39,6 +39,12 @@
     return Exec("git flow release start " + new_version, opts);
   };
 
+  module.exports.reset = function(new_version, master_branch, develop_branch) {
+    Exec("git checkout " + develop_branch);
+    Exec('git reset --hard HEAD');
+    return Exec("git branch -D release/" + new_version);
+  };
+
   module.exports.postCommands = function(new_version, files, skip_push, master_branch, develop_branch) {
     var file, i, len;
     for (i = 0, len = files.length; i < len; i++) {

@@ -11,22 +11,26 @@ assert = Chai.assert
 
 Path = require 'path'
 Minimist = require 'minimist'
+Temp = require 'temp'
+Exec = require('child_process').execSync
+rmdir = require 'rmdir'
 Options = require '../../src/lib/Options'
 
 describe 'Options', ->
   starting_dir = process.cwd()
+  temp_dir = Temp.path()
 
   before ->
-    process.chdir './test/fake_repo'
+    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}"
+    process.chdir temp_dir
 
   after ->
+    rmdir temp_dir
     process.chdir starting_dir
 
   it 'should have default options set properly', ->
     options = new Options()
     options.parseArgs {}
-
-    console.log options
 
     assert.equal options.readme_file_location, Path.resolve './README.md'
     assert.equal options.package_file_location, Path.resolve './package.json'
@@ -43,9 +47,9 @@ describe 'Options', ->
 
     options.parseArgs Minimist [
       '-r',
-      './ALTREADME.md',
+      './alt.README.md',
       '-p',
-      './altpackage.json',
+      './alt.package.json',
       '-c',
       '1.2.3',
       '-t',
@@ -57,8 +61,8 @@ describe 'Options', ->
       './alt.release.json'
     ]
 
-    assert.equal options.readme_file_location, Path.resolve './ALTREADME.md'
-    assert.equal options.package_file_location, Path.resolve './altpackage.json'
+    assert.equal options.readme_file_location, Path.resolve './alt.README.md'
+    assert.equal options.package_file_location, Path.resolve './alt.package.json'
     assert.equal options.dot_release_file_location, Path.resolve './alt.release.json'
     assert.equal options.current_version, '1.2.3'
     assert.equal options.release_type, 'patch'
@@ -71,8 +75,8 @@ describe 'Options', ->
 
     options.parseArgs Minimist ['-d', './all.release.json']
 
-    assert.equal options.readme_file_location, Path.resolve './ALTREADME.md'
-    assert.equal options.package_file_location, Path.resolve './altpackage.json'
+    assert.equal options.readme_file_location, Path.resolve './alt.README.md'
+    assert.equal options.package_file_location, Path.resolve './alt.package.json'
     assert.equal options.no_confirm, true
     assert.equal options.skip_git_pull, true
     assert.equal options.skip_git_push, true

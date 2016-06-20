@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Generate a release for a project following semver using nodejs and gitflow",
   "bin": {
     "generate-release": "./bin/generate-release"
@@ -30,11 +30,13 @@
     "bluebird": "^3.1.2",
     "exists-sync": "0.0.3",
     "extend": "^3.0.0",
+    "glob": "^7.0.4",
     "iniparser": "^1.0.5",
     "inquirer": "^1.0.3",
     "minimist": "^1.2.0",
     "object-pick": "^0.1.1",
-    "parse-spawn-args": "^1.0.2"
+    "parse-spawn-args": "^1.0.2",
+    "rmdir": "^1.2.0"
   },
   "devDependencies": {
     "chai": "^3.4.1",

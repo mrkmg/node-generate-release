@@ -29,6 +29,11 @@ module.exports.preCommands = (new_version, skip_pull, master_branch, develop_bra
   Exec "git checkout #{develop_branch}", opts
   Exec "git flow release start #{new_version}", opts
 
+module.exports.reset = (new_version, master_branch, develop_branch) ->
+  Exec "git checkout #{develop_branch}"
+  Exec 'git reset --hard HEAD'
+  Exec "git branch -D release/#{new_version}"
+
 module.exports.postCommands = (new_version, files, skip_push, master_branch, develop_branch) ->
   Exec "git add #{file}", opts for file in files
   Exec "git commit -am \"Release #{new_version}\"", opts
