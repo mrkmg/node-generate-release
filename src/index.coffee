@@ -15,6 +15,7 @@ ParseSpawnArgs = require 'parse-spawn-args'
 Options = require './lib/Options'
 GitCommands = require './lib/GitCommands'
 PackageFile = require './lib/PackageFile'
+GitFlowSettings = require './lib/GitFlowSettings'
 
 askReleaseType = require './lib/askReleaseType'
 incrementVersion = require './lib/incrementVersion'
@@ -24,6 +25,7 @@ writeNewReadme = require './lib/writeNewReadme'
 module.exports = (args) ->
   options = new Options()
   package_file = new PackageFile()
+  git_flow_settings = new GitFlowSettings('./')
 
   Promise
   #Get Commands
@@ -32,6 +34,10 @@ module.exports = (args) ->
   .then Minimist
   .then (args) ->
     options.parseArgs args
+
+  #Retreive Git Flow Settings
+  .then ->
+    git_flow_settings.parseIni()
 
   #Check for Clean Working Dir
   .then ->
@@ -51,7 +57,7 @@ module.exports = (args) ->
   .then ->
     unless options.current_version
       options.current_version = package_file.getVersion()
-    options.next_version = incrementVersion options.current_version, options.release_type
+    options.next_version = incrementVersion options.current_version, options.release_type, git_flow_settings.version_tag_prefix
 
   #Confirm the Release
   .then ->
@@ -63,9 +69,10 @@ module.exports = (args) ->
   #Start the Git-Flow release
   .then ->
     unless IS_TEST
-      GitCommands.preCommands options.next_version, options.skip_git_pull
+      GitCommands.preCommands options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop
     else
-      console.info "TEST: GitCommands.preCommands #{options.next_version}, #{options.skip_git_pull}"
+      console.info "TEST: GitCommands.preCommands
+        #{options.next_version}, #{options.skip_git_pull}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
 
   #Write the new version to the readme file
   .then ->
@@ -99,9 +106,10 @@ module.exports = (args) ->
   .then ->
     files = [options.readme_file_location, options.package_file_location].concat options.additional_files_to_commit
     unless IS_TEST
-      GitCommands.postCommands options.next_version, files, options.skip_git_push
+      GitCommands.postCommands options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop
     else
-      console.info "TEST: GitCommands.postCommands #{options.next_version}, #{files}, #{options.skip_git_push}"
+      console.info "TEST: GitCommands.postCommands
+        #{options.next_version}, #{files}, #{options.skip_git_push}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
 
   #Run post_commit_commands
   .then ->

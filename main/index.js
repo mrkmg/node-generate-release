@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var ChildProcess, GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var ChildProcess, GitCommands, GitFlowSettings, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -27,6 +27,8 @@
 
   PackageFile = require('./lib/PackageFile');
 
+  GitFlowSettings = require('./lib/GitFlowSettings');
+
   askReleaseType = require('./lib/askReleaseType');
 
   incrementVersion = require('./lib/incrementVersion');
@@ -36,13 +38,16 @@
   writeNewReadme = require('./lib/writeNewReadme');
 
   module.exports = function(args) {
-    var options, package_file;
+    var git_flow_settings, options, package_file;
     options = new Options();
     package_file = new PackageFile();
+    git_flow_settings = new GitFlowSettings('./');
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
+    }).then(function() {
+      return git_flow_settings.parseIni();
     }).then(function() {
       if (!IS_TEST) {
         return GitCommands.checkForCleanWorkingDirectory();
@@ -59,7 +64,7 @@
       if (!options.current_version) {
         options.current_version = package_file.getVersion();
       }
-      return options.next_version = incrementVersion(options.current_version, options.release_type);
+      return options.next_version = incrementVersion(options.current_version, options.release_type, git_flow_settings.version_tag_prefix);
     }).then(function() {
       return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
     }).then(function(do_update) {
@@ -68,9 +73,9 @@
       }
     }).then(function() {
       if (!IS_TEST) {
-        return GitCommands.preCommands(options.next_version, options.skip_git_pull);
+        return GitCommands.preCommands(options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop);
       } else {
-        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull);
+        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
       }
     }).then(function() {
       if (!IS_TEST) {
@@ -115,9 +120,9 @@
       var files;
       files = [options.readme_file_location, options.package_file_location].concat(options.additional_files_to_commit);
       if (!IS_TEST) {
-        return GitCommands.postCommands(options.next_version, files, options.skip_git_push);
+        return GitCommands.postCommands(options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop);
       } else {
-        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push);
+        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
       }
     }).then(function() {
       var command, command_array, command_string, i, j, len, len1, ref, ref1, results, results1, ret;

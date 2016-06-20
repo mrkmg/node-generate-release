@@ -4,9 +4,13 @@
   MIT License
 ###
 
-module.exports = (version, type) ->
-  version_split = version.split('.').map (t) -> parseInt t
+VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/
 
+module.exports = (version, type, prefix = '') ->
+  unless VERSION_REGEX.test version
+    throw new Error "Version does not batch semver: #{version}"
+
+  version_split = version.match(VERSION_REGEX)[0].split('.').map (t) -> parseInt(t)
   switch type
     when 'patch'
       version_split[2]++
@@ -18,7 +22,6 @@ module.exports = (version, type) ->
       version_split[1] = 0
       version_split[2] = 0
     else
-      console.log 'Unknown Bump Type'
-      process.exit 1
+      throw new Error "Unknown Bump Type: #{type}"
 
-  version_split.join '.'
+  prefix + version_split.join '.'

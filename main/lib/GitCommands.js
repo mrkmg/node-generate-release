@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var Exec, opts;
+  var Exec, GIT_CLEAN_REGEX, opts;
 
   Exec = require('child_process').execSync;
 
@@ -17,27 +17,29 @@
 
   opts.env.GIT_MERGE_AUTOEDIT = 'no';
 
+  GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m;
+
   module.exports.checkForCleanWorkingDirectory = function() {
     var status_result;
     status_result = Exec('git status', opts);
-    if (!/^nothing to commit, working directory clean$/m.test(status_result.toString())) {
+    if (!GIT_CLEAN_REGEX.test(status_result.toString())) {
       throw new Error('Working directory is not clean, not ready for release');
     }
   };
 
-  module.exports.preCommands = function(new_version, skip_pull) {
+  module.exports.preCommands = function(new_version, skip_pull, master_branch, develop_branch) {
     if (!skip_pull) {
       Exec('git fetch', opts);
-      Exec('git checkout develop', opts);
-      Exec('git pull origin develop --rebase', opts);
-      Exec('git checkout master', opts);
-      Exec('git reset --hard origin/master', opts);
+      Exec("git checkout " + develop_branch, opts);
+      Exec("git pull origin " + develop_branch + " --rebase", opts);
+      Exec("git checkout " + master_branch, opts);
+      Exec("git reset --hard origin/" + master_branch, opts);
     }
-    Exec('git checkout develop', opts);
+    Exec("git checkout " + develop_branch, opts);
     return Exec("git flow release start " + new_version, opts);
   };
 
-  module.exports.postCommands = function(new_version, files, skip_push) {
+  module.exports.postCommands = function(new_version, files, skip_push, master_branch, develop_branch) {
     var file, i, len;
     for (i = 0, len = files.length; i < len; i++) {
       file = files[i];
@@ -46,8 +48,8 @@
     Exec("git commit -am \"Release " + new_version + "\"", opts);
     Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts);
     if (!skip_push) {
-      Exec('git push origin develop', opts);
-      Exec('git push origin master', opts);
+      Exec("git push origin " + develop_branch, opts);
+      Exec("git push origin " + master_branch, opts);
       return Exec('git push origin --tags', opts);
     }
   };

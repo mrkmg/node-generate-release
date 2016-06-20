@@ -7,9 +7,19 @@
  */
 
 (function() {
-  module.exports = function(version, type) {
+  var VERSION_REGEX;
+
+  VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/;
+
+  module.exports = function(version, type, prefix) {
     var version_split;
-    version_split = version.split('.').map(function(t) {
+    if (prefix == null) {
+      prefix = '';
+    }
+    if (!VERSION_REGEX.test(version)) {
+      throw new Error("Version does not batch semver: " + version);
+    }
+    version_split = version.match(VERSION_REGEX)[0].split('.').map(function(t) {
       return parseInt(t);
     });
     switch (type) {
@@ -26,10 +36,9 @@
         version_split[2] = 0;
         break;
       default:
-        console.log('Unknown Bump Type');
-        process.exit(1);
+        throw new Error("Unknown Bump Type: " + type);
     }
-    return version_split.join('.');
+    return prefix + version_split.join('.');
   };
 
 }).call(this);

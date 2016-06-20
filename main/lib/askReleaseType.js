@@ -7,11 +7,9 @@
  */
 
 (function() {
-  var Inquirer, Promise;
+  var Inquirer;
 
   Inquirer = require('inquirer');
-
-  Promise = require('bluebird');
 
   module.exports = function() {
     var args;
@@ -22,10 +20,8 @@
       "default": 'patch',
       choices: ['patch', 'minor', 'major']
     };
-    return new Promise(function(resolve) {
-      return Inquirer.prompt([args], function(answers) {
-        return resolve(answers.release);
-      });
+    return Inquirer.prompt([args]).then(function(result) {
+      return result.release;
     });
   };
 

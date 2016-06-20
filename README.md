@@ -1,7 +1,7 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
-Current Version: 0.1.8
+Current Version: 0.2.0
 
 
 Usage
@@ -13,21 +13,15 @@ First, install generate-release globally.
 
 Navigate to your project and execute `generate-release`.
 
-Thats it!
+That's it!
 
 What does it do?
 ----------------
 
-Assumptions:
-
-- You work on, and are currently on the develop branch
-- Your stable branch is master
-- Your tags are named without anything special. e.g 0.0.0
-
-
 This is the default process.
 
 1. Verify the working directory is clean
+1. Reads git-flow settings from repo config file
 1. Reads Current version from package.json file and generates the new version
 1. Fetchs from origin
 1. Rebases origin/develop into develop
@@ -40,7 +34,7 @@ This is the default process.
 1. Pushes master, develop, and tags to origin
 1. Run all `post_commit_commands`
 
-Many aspects of this process can be changes using the options below.
+Many aspects of this process can be changed using the options below.
 
 Options
 --------
@@ -59,7 +53,7 @@ run `generate-release --help` to see this as well.
 Release File
 ------------
 
-By default, the follow defaults and options can be set in a `.release.json` file. The following
+By default, the following options can be set in a `.release.json` file. The following
 is an example with all files set.
 
       {
@@ -87,3 +81,4 @@ Roadmap
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - Implement an API to use inside node applications (why? because all the cool kids are doing it)
 - Custom release message
+- ~~Read git-flow configuration from .git folder~~
