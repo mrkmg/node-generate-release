@@ -1,3 +1,6 @@
 {
-  "no_confirm": true
+  "no_confirm": true,
+  "pre_commit_commands": [
+    "npm test"
+  ]
 }

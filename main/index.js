@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var ChildProcess, GitCommands, GitFlowSettings, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var ChildProcess, GitCommands, GitFlowSettings, Glob, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -20,6 +20,10 @@
   ChildProcess = require('child_process');
 
   ParseSpawnArgs = require('parse-spawn-args');
+
+  Glob = require('glob');
+
+  Path = require('path');
 
   Options = require('./lib/Options');
 
@@ -100,8 +104,13 @@
           command_array = ParseSpawnArgs.parse(command_string);
           command = command_array.shift();
           ret = ChildProcess.spawnSync(command, command_array);
-          if (!ret) {
+          if (ret.error) {
+            GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
             throw ret.error;
+          }
+          if (ret.status !== 0) {
+            GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
+            throw new Error("`" + command_string + "` returned " + ret.status + ". \n\n " + (ret.output.toString()));
           } else {
             results.push(void 0);
           }
@@ -117,8 +126,17 @@
         return results1;
       }
     }).then(function() {
-      var files;
-      files = [options.readme_file_location, options.package_file_location].concat(options.additional_files_to_commit);
+      var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
+      files = [options.readme_file_location, options.package_file_location];
+      ref = options.additional_files_to_commit;
+      for (i = 0, len = ref.length; i < len; i++) {
+        file = ref[i];
+        tmp_files = Glob.sync(file);
+        for (j = 0, len1 = tmp_files.length; j < len1; j++) {
+          tmp_file = tmp_files[j];
+          files.push(Path.resolve(tmp_file));
+        }
+      }
       if (!IS_TEST) {
         return GitCommands.postCommands(options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop);
       } else {

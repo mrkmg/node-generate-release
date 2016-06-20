@@ -23,16 +23,17 @@ This is the default process.
 1. Verify the working directory is clean
 1. Reads git-flow settings from repo config file
 1. Reads Current version from package.json file and generates the new version
-1. Fetchs from origin
+1. Fetches from origin
 1. Rebases origin/develop into develop
 1. Resets master to origin/master
 1. Starts a git-flow release named the new version number
 1. Changes the version number in your README.md file and package.json file
 1. Commits the changes to the README.md and package.json file
-1. Runs all `pre_commit_commands`
+1. Runs all `pre_commit_commands`, if any of those commands fail, the release is canceled and 
+    everything is reset.
 1. Run the git-flow finish release command
 1. Pushes master, develop, and tags to origin
-1. Run all `post_commit_commands`
+1. Run all `post_commit_commands`. These commands can fail without affecting the release
 
 Many aspects of this process can be changed using the options below.
 
@@ -67,8 +68,30 @@ is an example with all files set.
           "additional_files_to_commit": []
       }
       
-For examples of how to use the commit options, look at the .release.json file in this repo.
+The `additional_files_to_commit` use [node-glob](https://github.com/isaacs/node-glob). See the
+documentation located there on how to format those options
 
+Building Assets and Running Tests
+--------------------------------
+
+If you wish to build assets or run tests before finishing the release automatically, you can use
+`pre_commit_commands`. This assumes you have an npm script set called `build-assets`,
+your tests are run via `npm test`, and all your built assets are in `./build/`.
+
+.release.json
+
+    {
+        "pre_commit_commands": [
+            "npm run-script build-assets",
+            "npm test"
+        ],
+        "additional_files_to_commit": [
+            "./build/**/*"
+        ]
+    }
+
+With that set, assets will be built, tests run, and all the built assets committed in the 
+release.
 
 Roadmap
 -------

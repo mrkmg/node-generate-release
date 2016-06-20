@@ -11,6 +11,8 @@ Promise = require 'bluebird'
 Minimist = require 'minimist'
 ChildProcess = require 'child_process'
 ParseSpawnArgs = require 'parse-spawn-args'
+Glob = require 'glob'
+Path = require 'path'
 
 Options = require './lib/Options'
 GitCommands = require './lib/GitCommands'
@@ -97,14 +99,24 @@ module.exports = (args) ->
         command = command_array.shift()
         ret = ChildProcess.spawnSync command, command_array
 
-        unless ret
+        if ret.error
+          GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
           throw ret.error
+        if ret.status isnt 0
+          GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
+          throw new Error "`#{command_string}` returned #{ret.status}. \n\n #{ret.output.toString()}"
+
     else
       console.info "TEST: EXEC: #{command}" for command in options.pre_commit_commands
 
   #Commit all applicable files
   .then ->
-    files = [options.readme_file_location, options.package_file_location].concat options.additional_files_to_commit
+    files = [options.readme_file_location, options.package_file_location]
+    for file in options.additional_files_to_commit
+      tmp_files = Glob.sync file
+      for tmp_file in tmp_files
+        files.push Path.resolve tmp_file
+
     unless IS_TEST
       GitCommands.postCommands options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop
     else
