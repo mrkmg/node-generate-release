@@ -10,7 +10,9 @@ class PackageFile
   package_file_location: null
   package_file_data: {}
 
-  load: (@package_file_location) ->
+  constructor: (@package_file_location) ->
+
+  load: ->
     @package_file_data = require @package_file_location
 
   save: ->

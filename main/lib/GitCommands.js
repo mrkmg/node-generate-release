@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var Exec, GIT_CLEAN_REGEX, opts;
+  var Exec, GIT_CLEAN_REGEX, opts, opts_run;
 
   Exec = require('child_process').execSync;
 
@@ -16,6 +16,13 @@
   };
 
   opts.env.GIT_MERGE_AUTOEDIT = 'no';
+
+  opts_run = {
+    env: process.env,
+    stdio: 'inherit'
+  };
+
+  opts_run.env.GIT_MERGE_AUTOEDIT = 'no';
 
   GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m;
 
@@ -29,34 +36,34 @@
 
   module.exports.preCommands = function(new_version, skip_pull, master_branch, develop_branch) {
     if (!skip_pull) {
-      Exec('git fetch', opts);
-      Exec("git checkout " + develop_branch, opts);
-      Exec("git pull origin " + develop_branch + " --rebase", opts);
-      Exec("git checkout " + master_branch, opts);
-      Exec("git reset --hard origin/" + master_branch, opts);
+      Exec('git fetch', opts_run);
+      Exec("git checkout " + develop_branch, opts_run);
+      Exec("git pull origin " + develop_branch + " --rebase", opts_run);
+      Exec("git checkout " + master_branch, opts_run);
+      Exec("git reset --hard origin/" + master_branch, opts_run);
     }
-    Exec("git checkout " + develop_branch, opts);
-    return Exec("git flow release start " + new_version, opts);
+    Exec("git checkout " + develop_branch, opts_run);
+    return Exec("git flow release start " + new_version, opts_run);
   };
 
   module.exports.reset = function(new_version, master_branch, develop_branch) {
-    Exec("git checkout " + develop_branch);
-    Exec('git reset --hard HEAD');
-    return Exec("git branch -D release/" + new_version);
+    Exec("git checkout " + develop_branch, opts_run);
+    Exec('git reset --hard HEAD', opts_run);
+    return Exec("git branch -D release/" + new_version, opts_run);
   };
 
   module.exports.postCommands = function(new_version, files, skip_push, master_branch, develop_branch) {
     var file, i, len;
     for (i = 0, len = files.length; i < len; i++) {
       file = files[i];
-      Exec("git add " + file, opts);
+      Exec("git add " + file, opts_run);
     }
-    Exec("git commit -am \"Release " + new_version + "\"", opts);
-    Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts);
+    Exec("git commit -am \"Release " + new_version + "\"", opts_run);
+    Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts_run);
     if (!skip_push) {
-      Exec("git push origin " + develop_branch, opts);
-      Exec("git push origin " + master_branch, opts);
-      return Exec('git push origin --tags', opts);
+      Exec("git push origin " + develop_branch, opts_run);
+      Exec("git push origin " + master_branch, opts_run);
+      return Exec('git push origin --tags', opts_run);
     }
   };
 

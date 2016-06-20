@@ -12,14 +12,15 @@ MIT License
   FS = require('fs');
 
   PackageFile = (function() {
-    function PackageFile() {}
-
     PackageFile.prototype.package_file_location = null;
 
     PackageFile.prototype.package_file_data = {};
 
-    PackageFile.prototype.load = function(package_file_location) {
+    function PackageFile(package_file_location) {
       this.package_file_location = package_file_location;
+    }
+
+    PackageFile.prototype.load = function() {
       return this.package_file_data = require(this.package_file_location);
     };
 

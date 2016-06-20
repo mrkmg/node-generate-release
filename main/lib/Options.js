@@ -36,8 +36,6 @@
   release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'additional_files_to_commit'];
 
   Options = (function() {
-    function Options() {}
-
     Options.prototype.readme_file_location = './README.md';
 
     Options.prototype.package_file_location = './package.json';
@@ -62,6 +60,10 @@
 
     Options.prototype.validation_error = '\n';
 
+    function Options(args1) {
+      this.args = args1;
+    }
+
     Options.prototype.readArgsFromFile = function() {
       var file_properties;
       if (existsSync(this.dot_release_file_location)) {
@@ -70,8 +72,7 @@
       }
     };
 
-    Options.prototype.parseArgs = function(args) {
-      this.args = args;
+    Options.prototype.parse = function() {
       if (this.getArgumentValue('show_help')) {
         throw new HelpError;
       }

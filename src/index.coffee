@@ -9,8 +9,6 @@ IS_TEST = process.env.IS_TEST?
 
 Promise = require 'bluebird'
 Minimist = require 'minimist'
-ChildProcess = require 'child_process'
-ParseSpawnArgs = require 'parse-spawn-args'
 Glob = require 'glob'
 Path = require 'path'
 
@@ -23,21 +21,26 @@ askReleaseType = require './lib/askReleaseType'
 incrementVersion = require './lib/incrementVersion'
 askConfirmUpdate = require './lib/askConfirmUpdate'
 writeNewReadme = require './lib/writeNewReadme'
+runArbitraryCommand = require './lib/runArbitraryCommand'
 
 module.exports = (args) ->
-  options = new Options()
-  package_file = new PackageFile()
-  git_flow_settings = new GitFlowSettings('./')
+  options = undefined
+  package_file = undefined
+  git_flow_settings = undefined
 
   Promise
-  #Get Commands
+  #Parse Arguments
   .try ->
     args.slice 2
   .then Minimist
-  .then (args) ->
-    options.parseArgs args
+  .then (mArgs) ->
+    options = new Options mArgs
+  .then ->
+    options.parse()
 
   #Retreive Git Flow Settings
+  .then ->
+    git_flow_settings = new GitFlowSettings Path.resolve './'
   .then ->
     git_flow_settings.parseIni()
 
@@ -55,10 +58,15 @@ module.exports = (args) ->
 
   #Get Current Version
   .then ->
-    package_file.load options.package_file_location
+    package_file = new PackageFile options.package_file_location
+  .then ->
+    package_file.load()
   .then ->
     unless options.current_version
       options.current_version = package_file.getVersion()
+
+  #Bump Version
+  .then ->
     options.next_version = incrementVersion options.current_version, options.release_type, git_flow_settings.version_tag_prefix
 
   #Confirm the Release
@@ -94,18 +102,12 @@ module.exports = (args) ->
   #Run any pre_commit_commands
   .then ->
     unless IS_TEST
-      for command_string in options.pre_commit_commands
-        command_array = ParseSpawnArgs.parse command_string
-        command = command_array.shift()
-        ret = ChildProcess.spawnSync command, command_array
-
-        if ret.error
-          GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
-          throw ret.error
-        if ret.status isnt 0
-          GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
-          throw new Error "`#{command_string}` returned #{ret.status}. \n\n #{ret.output.toString()}"
-
+      Promise
+      .try ->
+        runArbitraryCommand command for command in options.pre_commit_commands
+      .catch (err) ->
+        GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
+        throw err
     else
       console.info "TEST: EXEC: #{command}" for command in options.pre_commit_commands
 
@@ -126,13 +128,10 @@ module.exports = (args) ->
   #Run post_commit_commands
   .then ->
     unless IS_TEST
-      for command_string in options.post_commit_commands
-        command_array = ParseSpawnArgs.parse command_string
-        command = command_array.shift()
-        ret = ChildProcess.spawnSync command, command_array
+      #Run all post commit commands, ignoring any errors as it's too late to go back now. (We already pushed)
+      promises = (Promise.try( -> runArbitraryCommand(command)).catch(->) for command in options.post_commit_commands)
 
-        unless ret
-          throw ret.error
+      Promise.all promises
     else
       console.info "TEST: EXEC: #{command}" for command in options.post_commit_commands
 
