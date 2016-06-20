@@ -45,5 +45,11 @@ describe 'run', ->
     tag_check_result = Exec 'git tag -l 1.2.4'
     assert.equal tag_check_result.toString(), '1.2.4\n'
 
+  it 'should have created "pre_command" file', ->
+    assert FS.existsSync "#{temp_dir}/pre_command"
+
+  it 'should have created "post_command" file', ->
+    assert FS.existsSync "#{temp_dir}/post_command"
+
 
 
