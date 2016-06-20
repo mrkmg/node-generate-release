@@ -30,6 +30,7 @@
     "bluebird": "^3.1.2",
     "exists-sync": "0.0.3",
     "extend": "^3.0.0",
+    "iniparser": "^1.0.5",
     "inquirer": "^0.11.3",
     "minimist": "^1.2.0",
     "object-pick": "^0.1.1",
@@ -44,6 +45,8 @@
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^2.3.4",
+    "sinon": "^1.17.4",
+    "temp": "^0.8.3",
     "uglify-js": "^2.6.2"
   }
 }

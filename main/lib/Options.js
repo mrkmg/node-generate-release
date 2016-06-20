@@ -75,15 +75,15 @@
       if (this.getArgumentValue('show_help')) {
         throw new HelpError;
       }
+      this.dot_release_file_location = Path.resolve((this.getArgumentValue('dot_release_file_location')) || this.dot_release_file_location);
+      this.readArgsFromFile();
       this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
       this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
-      this.dot_release_file_location = Path.resolve((this.getArgumentValue('dot_release_file_location')) || this.dot_release_file_location);
       this.release_type = (this.getArgumentValue('release_type')) || this.release_type;
       this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
       this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
       this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
-      this.readArgsFromFile();
       return this.validateArguments();
     };
 

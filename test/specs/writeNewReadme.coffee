@@ -1,0 +1,31 @@
+###
+  Generate Release
+  Kevin Gravier
+  MIT License
+###
+
+Chai = require 'chai'
+
+Chai.use require 'chai-as-promised'
+assert = Chai.assert
+
+Temp = require 'temp'
+FS = require 'fs'
+writeNewReadme = require '../../src/lib/writeNewReadme'
+
+describe 'writeNewReadme', ->
+  file_path = undefined
+
+  before ->
+    file_path = Temp.path '.md'
+
+  beforeEach ->
+    FS.writeFileSync file_path, 'abc 1.2.3 abc'
+
+  afterEach ->
+    FS.unlink file_path
+
+  it 'should write new version to readme correctly', ->
+    writeNewReadme file_path, '1.2.3', '1.2.4'
+    message = FS.readFileSync file_path
+    assert.equal message.toString(), 'abc 1.2.4 abc'

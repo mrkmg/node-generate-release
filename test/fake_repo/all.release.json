@@ -1,0 +1,10 @@
+{
+  "readme_file_location": "./ALTREADME.md",
+  "package_file_location": "./altpackage.json",
+  "no_confirm": true,
+  "skip_git_pull": true,
+  "skip_git_push": true,
+  "pre_commit_commands": ["test1"],
+  "post_commit_commands": ["test2"],
+  "additional_files_to_commit": ["test3"]
+}

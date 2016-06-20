@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var ChildProcess, GitCommands, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
+  var ChildProcess, GitCommands, GitFlowSettings, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, ParseSpawnArgs, Promise, askConfirmUpdate, askReleaseType, incrementVersion, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -27,6 +27,8 @@
 
   PackageFile = require('./lib/PackageFile');
 
+  GitFlowSettings = require('./lib/GitFlowSettings');
+
   askReleaseType = require('./lib/askReleaseType');
 
   incrementVersion = require('./lib/incrementVersion');
@@ -36,13 +38,16 @@
   writeNewReadme = require('./lib/writeNewReadme');
 
   module.exports = function(args) {
-    var options, package_file;
+    var git_flow_settings, options, package_file;
     options = new Options();
     package_file = new PackageFile();
+    git_flow_settings = new GitFlowSettings('./');
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(args) {
       return options.parseArgs(args);
+    }).then(function() {
+      return git_flow_settings.parseIni();
     }).then(function() {
       if (!IS_TEST) {
         return GitCommands.checkForCleanWorkingDirectory();
@@ -59,7 +64,7 @@
       if (!options.current_version) {
         options.current_version = package_file.getVersion();
       }
-      return options.next_version = incrementVersion(options.current_version, options.release_type);
+      return options.next_version = incrementVersion(options.current_version, options.release_type, git_flow_settings.version_tag_prefix);
     }).then(function() {
       return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
     }).then(function(do_update) {

@@ -56,16 +56,19 @@ class Options
     @args = args
     if @getArgumentValue 'show_help'
       throw new HelpError
+
+    @dot_release_file_location = Path.resolve((@getArgumentValue 'dot_release_file_location') or @dot_release_file_location)
+
+    @readArgsFromFile()
+
     @readme_file_location = Path.resolve((@getArgumentValue 'readme_file_location') or @readme_file_location)
     @package_file_location = Path.resolve((@getArgumentValue 'package_file_location') or @package_file_location)
-    @dot_release_file_location = Path.resolve((@getArgumentValue 'dot_release_file_location') or @dot_release_file_location)
     @release_type = (@getArgumentValue 'release_type') or @release_type
     @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
     @current_version = (@getArgumentValue 'current_version') or @current_version
     @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
 
-    @readArgsFromFile()
     @validateArguments()
 
   validateArguments: ->
