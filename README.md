@@ -81,4 +81,4 @@ Roadmap
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - Implement an API to use inside node applications (why? because all the cool kids are doing it)
 - Custom release message
-- Read git-flow configuration from .git folder
+- ~~Read git-flow configuration from .git folder~~
