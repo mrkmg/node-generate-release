@@ -80,7 +80,7 @@ module.exports = (args) ->
   .then ->
     Observatory.settings
       prefix: '[Generate Release] '
-  
+
     observatory_tasks =
       git_pull: Observatory.add('GIT: Pull from Origin')
       git_start: Observatory.add('GIT: Start Release')
@@ -108,21 +108,25 @@ module.exports = (args) ->
     else
       observatory_tasks.git_pull.done('Skipped')
 
+  #Git Start
   .then ->
     observatory_tasks.git_start.status('Starting')
     git_commands.start()
     observatory_tasks.git_start.done('Complete')
 
+  #Write Readme
   .then ->
     observatory_tasks.write_files.status('readme')
     writeNewReadme options.readme_file_location, options.current_version, options.next_version
 
+  #Write package
   .then ->
     observatory_tasks.write_files.status('package')
     package_file.setVersion options.next_version
     package_file.save()
     observatory_tasks.write_files.done('Complete')
 
+  #Run pre commit commands
   .then ->
     Promise
     .try ->
@@ -135,17 +139,17 @@ module.exports = (args) ->
       git_commands.reset()
       throw err
 
+  #Commit files
   .then ->
-    files = [options.readme_file_location, options.package_file_location]
-    for file in options.additional_files_to_commit
-      tmp_files = Glob.sync file
-      for tmp_file in tmp_files
-        files.push Path.resolve tmp_file
-    files
-
-  .then (files) ->
     Promise
     .try ->
+      files = [options.readme_file_location, options.package_file_location]
+
+      for file in options.additional_files_to_commit
+        tmp_files = Glob.sync file
+        for tmp_file in tmp_files
+          files.push Path.resolve tmp_file
+
       observatory_tasks.git_commit.status('Committing')
       git_commands.commit files
       observatory_tasks.git_commit.done('Complete')
@@ -153,8 +157,9 @@ module.exports = (args) ->
       git_commands.reset()
       throw err
 
+  #Run post commit commands
   .then ->
-    observatory_tasks.pre_commit_commands.status('Running')
+    observatory_tasks.post_commit_commands.status('Running')
 
     for command in options.post_commit_commands
       try
@@ -163,8 +168,9 @@ module.exports = (args) ->
       catch error
         console.error error.message
 
-    observatory_tasks.pre_commit_commands.done('Complete')
+    observatory_tasks.post_commit_commands.done('Complete')
 
+  #Git Finish
   .then ->
     Promise
     .try ->
@@ -175,6 +181,7 @@ module.exports = (args) ->
       git_commands.reset()
       throw err
 
+  #Git Push
   .then ->
     unless options.skip_git_push
       observatory_tasks.git_push.status('Pushing')

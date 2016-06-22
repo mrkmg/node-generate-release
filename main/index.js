@@ -141,20 +141,18 @@
         throw err;
       });
     }).then(function() {
-      var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
-      files = [options.readme_file_location, options.package_file_location];
-      ref = options.additional_files_to_commit;
-      for (i = 0, len = ref.length; i < len; i++) {
-        file = ref[i];
-        tmp_files = Glob.sync(file);
-        for (j = 0, len1 = tmp_files.length; j < len1; j++) {
-          tmp_file = tmp_files[j];
-          files.push(Path.resolve(tmp_file));
-        }
-      }
-      return files;
-    }).then(function(files) {
       return Promise["try"](function() {
+        var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
+        files = [options.readme_file_location, options.package_file_location];
+        ref = options.additional_files_to_commit;
+        for (i = 0, len = ref.length; i < len; i++) {
+          file = ref[i];
+          tmp_files = Glob.sync(file);
+          for (j = 0, len1 = tmp_files.length; j < len1; j++) {
+            tmp_file = tmp_files[j];
+            files.push(Path.resolve(tmp_file));
+          }
+        }
         observatory_tasks.git_commit.status('Committing');
         git_commands.commit(files);
         return observatory_tasks.git_commit.done('Complete');
@@ -164,7 +162,7 @@
       });
     }).then(function() {
       var command, error, error1, i, len, ref;
-      observatory_tasks.pre_commit_commands.status('Running');
+      observatory_tasks.post_commit_commands.status('Running');
       ref = options.post_commit_commands;
       for (i = 0, len = ref.length; i < len; i++) {
         command = ref[i];
@@ -176,7 +174,7 @@
           console.error(error.message);
         }
       }
-      return observatory_tasks.pre_commit_commands.done('Complete');
+      return observatory_tasks.post_commit_commands.done('Complete');
     }).then(function() {
       return Promise["try"](function() {
         observatory_tasks.git_finish.status('Finishing');
