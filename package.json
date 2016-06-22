@@ -1,7 +1,10 @@
 {
   "name": "generate-release",
   "version": "0.4.0",
-  "description": "Generate a release for a project following semver using nodejs and gitflow",
+  "description": "Generate a release using git-glow",
+  "keywords":[
+    "release", "git", "git-flow", "generate", "automation"
+  ],
   "bin": {
     "generate-release": "./bin/generate-release"
   },
@@ -13,11 +16,15 @@
     "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
     "release": "./bin/generate-release"
   },
+  "files": [
+    "bin",
+    "main"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mrkmg/node-generate-release.git"
   },
-  "author": "Kevin Gravier <kevin@mrkmg.com>",
+  "author": "Kevin Gravier <kevin@mrkmg.com> (https://mrkmg.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mrkmg/node-generate-release/issues"
