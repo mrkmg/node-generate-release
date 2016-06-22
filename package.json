@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate a release for a project following semver using nodejs and gitflow",
   "bin": {
     "generate-release": "./bin/generate-release"
