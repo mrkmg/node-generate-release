@@ -52,5 +52,8 @@ describe 'run', ->
   it 'should have created "post_command" file', ->
     assert FS.existsSync "#{temp_dir}/post_command"
 
+  it 'should have created "post_complete" file', ->
+    assert FS.existsSync "#{temp_dir}/post_complete"
+
 
 

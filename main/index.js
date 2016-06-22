@@ -92,7 +92,8 @@
         git_commit: Observatory.add('GIT: Commit Files'),
         post_commit_commands: Observatory.add('Commands: Post Commit'),
         git_finish: Observatory.add('GIT: Finish Release'),
-        git_push: Observatory.add('GIT: Push to Origin')
+        git_push: Observatory.add('GIT: Push to Origin'),
+        post_complete_commands: Observatory.add('Commands: Post Complete')
       };
     }).then(function() {
       return git_commands = new GitCommands({
@@ -167,7 +168,7 @@
       for (i = 0, len = ref.length; i < len; i++) {
         command = ref[i];
         try {
-          observatory_tasks.pre_commit_commands.status(command);
+          observatory_tasks.post_commit_commands.status(command);
           runArbitraryCommand(command);
         } catch (error1) {
           error = error1;
@@ -192,6 +193,21 @@
       } else {
         return observatory_tasks.git_push.done('Skipped');
       }
+    }).then(function() {
+      var command, error, error1, i, len, ref;
+      observatory_tasks.post_complete_commands.status('Running');
+      ref = options.post_complete_commands;
+      for (i = 0, len = ref.length; i < len; i++) {
+        command = ref[i];
+        try {
+          observatory_tasks.post_complete_commands.status(command);
+          runArbitraryCommand(command);
+        } catch (error1) {
+          error = error1;
+          console.error(error.message);
+        }
+      }
+      return observatory_tasks.post_complete_commands.done('Complete');
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;

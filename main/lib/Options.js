@@ -31,7 +31,7 @@
     skip_git_push: ['s', 'skip-git-push']
   };
 
-  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'additional_files_to_commit'];
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit'];
 
   Options = (function() {
     Options.prototype.readme_file_location = './README.md';
@@ -53,6 +53,8 @@
     Options.prototype.pre_commit_commands = [];
 
     Options.prototype.post_commit_commands = [];
+
+    Options.prototype.post_complete_commands = [];
 
     Options.prototype.additional_files_to_commit = [];
 
@@ -87,7 +89,7 @@
     };
 
     Options.prototype.validateArguments = function() {
-      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validateAdditionalFilesToCommit()) || (function() {
+      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit()) || (function() {
         throw new HelpError(this.validation_error);
       }).call(this);
     };
@@ -168,6 +170,15 @@
     Options.prototype.validatePostCommitCommands = function() {
       if (!Array.isArray(this.post_commit_commands)) {
         this.validation_error += 'Post Git Commands must be an array';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validatePostCompleteCommands = function() {
+      if (!Array.isArray(this.post_complete_commands)) {
+        this.validation_error += 'Post Complete Commands must be an array';
         return false;
       } else {
         return true;

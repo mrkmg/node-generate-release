@@ -1,7 +1,7 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
-Current Version: 0.3.2
+Current Version: 0.4.0
 
 
 Usage
@@ -47,10 +47,13 @@ This is the default process.
 1. Changes the version number in your README.md file and package.json file
 1. Commits the changes to the README.md and package.json file
 1. Runs all `pre_commit_commands`, if any of those commands fail, the release is canceled and 
-    everything is reset.
-1. Run the git-flow finish release command
+     everything is reset.
+1. Commits Files
+1. Runs all `post_commit_commands`, if any of those commands fail, the release is canceled and 
+     everything is reset.
+1. Runs the git-flow finish release command
 1. Pushes master, develop, and tags to origin
-1. Run all `post_commit_commands`. These commands can fail without affecting the release
+1. Runs all the `post_complete_commands`. These commands can fail without affecting the release
 
 Many aspects of this process can be changed using the options below.
 
@@ -82,33 +85,41 @@ is an example with all files set.
           "skip_git_push": false,
           "pre_commit_commands": [],
           "post_commit_commands": [],
+          "post_complete_commands": [],
           "additional_files_to_commit": []
       }
       
 The `additional_files_to_commit` use [node-glob](https://github.com/isaacs/node-glob). See the
 documentation located there on how to format those options
 
-Building Assets and Running Tests
+Building Assets, Running Tests, and Publishing Package
 --------------------------------
 
-If you wish to build assets or run tests before finishing the release automatically, you can use
-`pre_commit_commands`. This assumes you have an npm script set called `build-assets`,
-your tests are run via `npm test`, and all your built assets are in `./build/`.
+If you wish to build assets, run test, and/or publish your project automatically when the
+release is being generated you can use the example `.release.json` file below. The
+following assumptions are made:
+
+- You have a script in your package file to build your assets named `build-assets`
+- All your built assets are saved to `./build`
+- You run your tests via the `npm test` command
+- You publish your package via the `npm publish` command
 
 .release.json
 
     {
         "pre_commit_commands": [
-            "npm run-script build-assets",
+            "npm run-script build-assets"
+        ],
+        "post_commit_commands": [
             "npm test"
+        ],
+        "post_complete_commands": [
+            "npm publish"
         ],
         "additional_files_to_commit": [
             "./build/**/*"
         ]
     }
-
-With that set, assets will be built, tests run, and all the built assets committed in the 
-release.
 
 Roadmap
 -------
