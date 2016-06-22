@@ -5,12 +5,12 @@
 ###
 
 IS_DEBUG = process.env.IS_DEBUG?
-IS_TEST = process.env.IS_TEST?
 
 Promise = require 'bluebird'
 Minimist = require 'minimist'
 Glob = require 'glob'
 Path = require 'path'
+Observatory = require 'observatory'
 
 Options = require './lib/Options'
 GitCommands = require './lib/GitCommands'
@@ -27,6 +27,21 @@ module.exports = (args) ->
   options = undefined
   package_file = undefined
   git_flow_settings = undefined
+  git_commands = undefined
+
+  Observatory.settings
+    prefix: '[Generate Release] '
+
+  observatory_tasks =
+    git_pull: Observatory.add('GIT: Pull from Origin')
+    git_start: Observatory.add('GIT: Start Release')
+    write_files: Observatory.add('Files: Write New Version')
+    pre_commit_commands: Observatory.add('Commands: Pre Commit')
+    git_commit: Observatory.add('GIT: Commit Files')
+    post_commit_commands: Observatory.add('Commands: Post Commit')
+    git_finish: Observatory.add('GIT: Finish Release')
+    git_push: Observatory.add('GIT: Push to Origin')
+
 
   Promise
   #Parse Arguments
@@ -46,8 +61,7 @@ module.exports = (args) ->
 
   #Check for Clean Working Dir
   .then ->
-    unless IS_TEST
-      GitCommands.checkForCleanWorkingDirectory()
+    GitCommands.checkForCleanWorkingDirectory()
 
   #Get Release Type from options or by asking
   .then ->
@@ -76,64 +90,97 @@ module.exports = (args) ->
     unless do_update
       throw new Error 'Update Canceled'
 
-  #Start the Git-Flow release
+  #Setup the Git Commands
   .then ->
-    unless IS_TEST
-      GitCommands.preCommands options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop
-    else
-      console.info "TEST: GitCommands.preCommands
-        #{options.next_version}, #{options.skip_git_pull}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
+    git_commands = new GitCommands
+      master_branch: git_flow_settings.master
+      develop_branch: git_flow_settings.develop
+      current_version: options.current_version
+      next_version: options.next_version
 
-  #Write the new version to the readme file
+  #Git Pull
   .then ->
-    unless IS_TEST
-      writeNewReadme options.readme_file_location, options.current_version, options.next_version
+    unless options.skip_git_pull
+      observatory_tasks.git_pull.status('Pulling')
+      git_commands.pull()
+      observatory_tasks.git_pull.done('Complete')
     else
-      console.info "TEST: writeNewReadme #{options.readme_file_location}, #{options.current_version}, #{options.next_version}"
+      observatory_tasks.git_pull.done('Skipped')
 
-  #Write the new version to the package file
   .then ->
-    unless IS_TEST
-      package_file.setVersion options.next_version
-      package_file.save()
-    else
-      console.info "TEST: package_file.setVersion #{options.next_version} && package_file.save()"
+    observatory_tasks.git_start.status('Starting')
+    git_commands.start()
+    observatory_tasks.git_start.done('Complete')
 
-  #Run any pre_commit_commands
   .then ->
-    unless IS_TEST
-      Promise
-      .try ->
+    observatory_tasks.write_files.status('readme')
+    writeNewReadme options.readme_file_location, options.current_version, options.next_version
+
+  .then ->
+    observatory_tasks.write_files.status('package')
+    package_file.setVersion options.next_version
+    package_file.save()
+    observatory_tasks.write_files.done('Complete')
+
+  .then ->
+    Promise
+    .try ->
+      observatory_tasks.pre_commit_commands.status('Running')
+      for command in options.pre_commit_commands
+        observatory_tasks.pre_commit_commands.status command
         runArbitraryCommand command for command in options.pre_commit_commands
-      .catch (err) ->
-        GitCommands.reset options.next_version, git_flow_settings.master, git_flow_settings.develop
-        throw err
-    else
-      console.info "TEST: EXEC: #{command}" for command in options.pre_commit_commands
+      observatory_tasks.pre_commit_commands.done('Complete')
+    .catch (err) ->
+      git_commands.reset()
+      throw err
 
-  #Commit all applicable files
   .then ->
     files = [options.readme_file_location, options.package_file_location]
     for file in options.additional_files_to_commit
       tmp_files = Glob.sync file
       for tmp_file in tmp_files
         files.push Path.resolve tmp_file
+    files
 
-    unless IS_TEST
-      GitCommands.postCommands options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop
-    else
-      console.info "TEST: GitCommands.postCommands
-        #{options.next_version}, #{files}, #{options.skip_git_push}, #{git_flow_settings.master}, #{git_flow_settings.develop}"
+  .then (files) ->
+    Promise
+    .try ->
+      observatory_tasks.git_commit.status('Committing')
+      git_commands.commit files
+      observatory_tasks.git_commit.done('Complete')
+    .catch (err) ->
+      git_commands.reset()
+      throw err
 
-  #Run post_commit_commands
   .then ->
-    unless IS_TEST
-      #Run all post commit commands, ignoring any errors as it's too late to go back now. (We already pushed)
-      promises = (Promise.try( -> runArbitraryCommand(command)).catch(->) for command in options.post_commit_commands)
+    observatory_tasks.pre_commit_commands.status('Running')
 
-      Promise.all promises
+    for command in options.post_commit_commands
+      try
+        observatory_tasks.pre_commit_commands.status command
+        runArbitraryCommand command
+      catch error
+        console.error error.message
+
+    observatory_tasks.pre_commit_commands.done('Complete')
+
+  .then ->
+    Promise
+    .try ->
+      observatory_tasks.git_finish.status('Finishing')
+      git_commands.finish()
+      observatory_tasks.git_finish.done('Complete')
+    .catch (err) ->
+      git_commands.reset()
+      throw err
+
+  .then ->
+    unless options.skip_git_push
+      observatory_tasks.git_push.status('Pushing')
+      git_commands.push()
+      observatory_tasks.git_push.done('Complete')
     else
-      console.info "TEST: EXEC: #{command}" for command in options.post_commit_commands
+      observatory_tasks.git_push.done('Skipped')
 
   #Print the errors
   .catch (err) ->

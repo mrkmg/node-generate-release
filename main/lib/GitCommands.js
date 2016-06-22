@@ -7,64 +7,122 @@
  */
 
 (function() {
-  var Exec, GIT_CLEAN_REGEX, opts, opts_run;
+  var Exec, GIT_CLEAN_REGEX, GitCommands, ParseSpawnArgs, SpawnSync, env,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  ParseSpawnArgs = require('parse-spawn-args');
+
+  SpawnSync = require('child_process').spawnSync;
 
   Exec = require('child_process').execSync;
 
-  opts = {
-    env: process.env
-  };
+  env = process.env;
 
-  opts.env.GIT_MERGE_AUTOEDIT = 'no';
-
-  opts_run = {
-    env: process.env,
-    stdio: 'inherit'
-  };
-
-  opts_run.env.GIT_MERGE_AUTOEDIT = 'no';
+  env.GIT_MERGE_AUTOEDIT = 'no';
 
   GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m;
 
-  module.exports.checkForCleanWorkingDirectory = function() {
-    var status_result;
-    status_result = Exec('git status', opts);
-    if (!GIT_CLEAN_REGEX.test(status_result.toString())) {
-      throw new Error('Working directory is not clean, not ready for release');
-    }
-  };
+  GitCommands = (function() {
+    GitCommands.checkForCleanWorkingDirectory = function() {
+      var status_result;
+      status_result = Exec('git status', {
+        env: env
+      });
+      if (!GIT_CLEAN_REGEX.test(status_result.toString())) {
+        throw new Error('Working directory is not clean, not ready for release');
+      }
+    };
 
-  module.exports.preCommands = function(new_version, skip_pull, master_branch, develop_branch) {
-    if (!skip_pull) {
-      Exec('git fetch', opts_run);
-      Exec("git checkout " + develop_branch, opts_run);
-      Exec("git pull origin " + develop_branch + " --rebase", opts_run);
-      Exec("git checkout " + master_branch, opts_run);
-      Exec("git reset --hard origin/" + master_branch, opts_run);
-    }
-    Exec("git checkout " + develop_branch, opts_run);
-    return Exec("git flow release start " + new_version, opts_run);
-  };
+    GitCommands.prototype.master_branch = 'master';
 
-  module.exports.reset = function(new_version, master_branch, develop_branch) {
-    Exec("git checkout " + develop_branch, opts_run);
-    Exec('git reset --hard HEAD', opts_run);
-    return Exec("git branch -D release/" + new_version, opts_run);
-  };
+    GitCommands.prototype.develop_branch = 'develop';
 
-  module.exports.postCommands = function(new_version, files, skip_push, master_branch, develop_branch) {
-    var file, i, len;
-    for (i = 0, len = files.length; i < len; i++) {
-      file = files[i];
-      Exec("git add " + file, opts_run);
+    GitCommands.prototype.current_version = void 0;
+
+    GitCommands.prototype.next_version = void 0;
+
+    function GitCommands(opts) {
+      this.finish = bind(this.finish, this);
+      this.commit = bind(this.commit, this);
+      this.start = bind(this.start, this);
+      this.reset = bind(this.reset, this);
+      this.push = bind(this.push, this);
+      this.pull = bind(this.pull, this);
+      if (opts.master_branch != null) {
+        this.master_branch = opts.master_branch;
+      }
+      if (opts.develop_branch != null) {
+        this.develop_branch = opts.develop_branch;
+      }
+      if (opts.current_version != null) {
+        this.current_version = opts.current_version;
+      }
+      if (opts.next_version != null) {
+        this.next_version = opts.next_version;
+      }
+      if (!this.current_version) {
+        throw new Error('Current Version is not set');
+      }
+      if (!this.next_version) {
+        throw new Error('New Version is not set');
+      }
     }
-    Exec("git commit -am \"Release " + new_version + "\"", opts_run);
-    Exec("git flow release finish -m \"" + new_version + "\" " + new_version, opts_run);
-    if (!skip_push) {
-      Exec("git push origin " + develop_branch, opts_run);
-      Exec("git push origin " + master_branch, opts_run);
-      return Exec('git push origin --tags', opts_run);
-    }
-  };
+
+    GitCommands.prototype.exec = function(full_command) {
+      var command, command_array, result;
+      command_array = ParseSpawnArgs.parse(full_command);
+      command = command_array.shift();
+      result = SpawnSync(command, command_array, {
+        env: env,
+        stdio: 'pipe'
+      });
+      if (result.status !== 0) {
+        throw new Error(full_command + " returned " + result.status + ". \n\n Output: \n\n " + result.stderr);
+      }
+    };
+
+    GitCommands.prototype.pull = function() {
+      this.exec('git fetch');
+      this.exec("git checkout " + this.develop_branch);
+      this.exec("git pull origin " + this.develop_branch + " --rebase");
+      this.exec("git checkout " + this.master_branch);
+      return this.exec("git reset --hard origin/" + this.master_branch);
+    };
+
+    GitCommands.prototype.push = function() {
+      this.exec("git push origin " + this.develop_branch);
+      this.exec("git push origin " + this.master_branch);
+      return this.exec('git push origin --tags');
+    };
+
+    GitCommands.prototype.reset = function() {
+      this.exec("git checkout " + this.develop_branch);
+      this.exec('git reset --hard HEAD');
+      return this.exec("git branch -D release/" + this.next_version);
+    };
+
+    GitCommands.prototype.start = function() {
+      this.exec("git checkout " + this.develop_branch);
+      return this.exec("git flow release start " + this.next_version);
+    };
+
+    GitCommands.prototype.commit = function(files) {
+      var file, i, len;
+      for (i = 0, len = files.length; i < len; i++) {
+        file = files[i];
+        this.exec("git add " + file);
+      }
+      return this.exec("git commit -am \"Release " + this.next_version + "\"");
+    };
+
+    GitCommands.prototype.finish = function() {
+      return this.exec("git flow release finish -m \"" + this.next_version + "\" " + this.next_version);
+    };
+
+    return GitCommands;
+
+  })();
+
+  module.exports = GitCommands;
 
 }).call(this);
