@@ -10,7 +10,8 @@
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
-    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs"
+    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
+    "release": "./bin/generate-release"
   },
   "repository": {
     "type": "git",
