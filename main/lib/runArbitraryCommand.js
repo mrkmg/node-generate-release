@@ -15,13 +15,11 @@
 
   module.exports = function(command_string) {
     var command, command_array, ret;
-    console.log("Running: " + command_string + "\n");
     command_array = ParseSpawnArgs.parse(command_string);
     command = command_array.shift();
     ret = SpawnSync(command, command_array, {
-      stdio: 'inherit'
+      stdio: 'pipe'
     });
-    console.log('\n');
     if (ret.error) {
       throw ret.error;
     }

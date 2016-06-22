@@ -9,8 +9,8 @@
     "compile": "coffee --compile --output main/ src/",
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
-    "unit": "mocha --recursive --compilers --timeout 10000 coffee:coffee-script/register ./test/specs",
-    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --timeout 10000 --require coffee-coverage/register-istanbul ./test/specs"
+    "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
+    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "inquirer": "^1.0.3",
     "minimist": "^1.2.0",
     "object-pick": "^0.1.1",
+    "observatory": "^1.0.0",
     "parse-spawn-args": "^1.0.2",
     "rmdir": "^1.2.0"
   },

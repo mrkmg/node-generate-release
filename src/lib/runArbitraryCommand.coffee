@@ -8,13 +8,9 @@ ParseSpawnArgs = require 'parse-spawn-args'
 SpawnSync = require('child_process').spawnSync
 
 module.exports = (command_string) ->
-  console.log "Running: #{command_string}\n"
-
   command_array = ParseSpawnArgs.parse command_string
   command = command_array.shift()
-  ret = SpawnSync command, command_array, stdio: 'inherit'
-
-  console.log '\n'
+  ret = SpawnSync command, command_array, stdio: 'pipe'
 
   if ret.error
     throw ret.error

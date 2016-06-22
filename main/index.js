@@ -7,11 +7,9 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, IS_TEST, Minimist, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
-
-  IS_TEST = process.env.IS_TEST != null;
 
   Promise = require('bluebird');
 
@@ -20,6 +18,8 @@
   Glob = require('glob');
 
   Path = require('path');
+
+  Observatory = require('observatory');
 
   Options = require('./lib/Options');
 
@@ -40,10 +40,24 @@
   runArbitraryCommand = require('./lib/runArbitraryCommand');
 
   module.exports = function(args) {
-    var git_flow_settings, options, package_file;
+    var git_commands, git_flow_settings, observatory_tasks, options, package_file;
     options = void 0;
     package_file = void 0;
     git_flow_settings = void 0;
+    git_commands = void 0;
+    Observatory.settings({
+      prefix: '[Generate Release] '
+    });
+    observatory_tasks = {
+      git_pull: Observatory.add('GIT: Pull from Origin'),
+      git_start: Observatory.add('GIT: Start Release'),
+      write_files: Observatory.add('Files: Write New Version'),
+      pre_commit_commands: Observatory.add('Commands: Pre Commit'),
+      git_commit: Observatory.add('GIT: Commit Files'),
+      post_commit_commands: Observatory.add('Commands: Post Commit'),
+      git_finish: Observatory.add('GIT: Finish Release'),
+      git_push: Observatory.add('GIT: Push to Origin')
+    };
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(mArgs) {
@@ -55,9 +69,7 @@
     }).then(function() {
       return git_flow_settings.parseIni();
     }).then(function() {
-      if (!IS_TEST) {
-        return GitCommands.checkForCleanWorkingDirectory();
-      }
+      return GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
       if (!options.release_type) {
         return askReleaseType().then(function(release_type) {
@@ -81,49 +93,51 @@
         throw new Error('Update Canceled');
       }
     }).then(function() {
-      if (!IS_TEST) {
-        return GitCommands.preCommands(options.next_version, options.skip_git_pull, git_flow_settings.master, git_flow_settings.develop);
+      return git_commands = new GitCommands({
+        master_branch: git_flow_settings.master,
+        develop_branch: git_flow_settings.develop,
+        current_version: options.current_version,
+        next_version: options.next_version
+      });
+    }).then(function() {
+      if (!options.skip_git_pull) {
+        observatory_tasks.git_pull.status('Pulling');
+        git_commands.pull();
+        return observatory_tasks.git_pull.done('Complete');
       } else {
-        return console.info("TEST: GitCommands.preCommands " + options.next_version + ", " + options.skip_git_pull + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
+        return observatory_tasks.git_pull.done('Skipped');
       }
     }).then(function() {
-      if (!IS_TEST) {
-        return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
-      } else {
-        return console.info("TEST: writeNewReadme " + options.readme_file_location + ", " + options.current_version + ", " + options.next_version);
-      }
+      observatory_tasks.git_start.status('Starting');
+      git_commands.start();
+      return observatory_tasks.git_start.done('Complete');
     }).then(function() {
-      if (!IS_TEST) {
-        package_file.setVersion(options.next_version);
-        return package_file.save();
-      } else {
-        return console.info("TEST: package_file.setVersion " + options.next_version + " && package_file.save()");
-      }
+      observatory_tasks.write_files.status('readme');
+      return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
     }).then(function() {
-      var command, i, len, ref, results;
-      if (!IS_TEST) {
-        return Promise["try"](function() {
-          var command, i, len, ref, results;
-          ref = options.pre_commit_commands;
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            command = ref[i];
-            results.push(runArbitraryCommand(command));
-          }
-          return results;
-        })["catch"](function(err) {
-          GitCommands.reset(options.next_version, git_flow_settings.master, git_flow_settings.develop);
-          throw err;
-        });
-      } else {
+      observatory_tasks.write_files.status('package');
+      package_file.setVersion(options.next_version);
+      package_file.save();
+      return observatory_tasks.write_files.done('Complete');
+    }).then(function() {
+      return Promise["try"](function() {
+        var command, i, j, len, len1, ref, ref1;
+        observatory_tasks.pre_commit_commands.status('Running');
         ref = options.pre_commit_commands;
-        results = [];
         for (i = 0, len = ref.length; i < len; i++) {
           command = ref[i];
-          results.push(console.info("TEST: EXEC: " + command));
+          observatory_tasks.pre_commit_commands.status(command);
+          ref1 = options.pre_commit_commands;
+          for (j = 0, len1 = ref1.length; j < len1; j++) {
+            command = ref1[j];
+            runArbitraryCommand(command);
+          }
         }
-        return results;
-      }
+        return observatory_tasks.pre_commit_commands.done('Complete');
+      })["catch"](function(err) {
+        git_commands.reset();
+        throw err;
+      });
     }).then(function() {
       var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
       files = [options.readme_file_location, options.package_file_location];
@@ -136,35 +150,47 @@
           files.push(Path.resolve(tmp_file));
         }
       }
-      if (!IS_TEST) {
-        return GitCommands.postCommands(options.next_version, files, options.skip_git_push, git_flow_settings.master, git_flow_settings.develop);
-      } else {
-        return console.info("TEST: GitCommands.postCommands " + options.next_version + ", " + files + ", " + options.skip_git_push + ", " + git_flow_settings.master + ", " + git_flow_settings.develop);
-      }
+      return files;
+    }).then(function(files) {
+      return Promise["try"](function() {
+        observatory_tasks.git_commit.status('Committing');
+        git_commands.commit(files);
+        return observatory_tasks.git_commit.done('Complete');
+      })["catch"](function(err) {
+        git_commands.reset();
+        throw err;
+      });
     }).then(function() {
-      var command, i, len, promises, ref, results;
-      if (!IS_TEST) {
-        promises = (function() {
-          var i, len, ref, results;
-          ref = options.post_commit_commands;
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            command = ref[i];
-            results.push(Promise["try"](function() {
-              return runArbitraryCommand(command);
-            })["catch"](function() {}));
-          }
-          return results;
-        })();
-        return Promise.all(promises);
-      } else {
-        ref = options.post_commit_commands;
-        results = [];
-        for (i = 0, len = ref.length; i < len; i++) {
-          command = ref[i];
-          results.push(console.info("TEST: EXEC: " + command));
+      var command, error, error1, i, len, ref;
+      observatory_tasks.pre_commit_commands.status('Running');
+      ref = options.post_commit_commands;
+      for (i = 0, len = ref.length; i < len; i++) {
+        command = ref[i];
+        try {
+          observatory_tasks.pre_commit_commands.status(command);
+          runArbitraryCommand(command);
+        } catch (error1) {
+          error = error1;
+          console.error(error.message);
         }
-        return results;
+      }
+      return observatory_tasks.pre_commit_commands.done('Complete');
+    }).then(function() {
+      return Promise["try"](function() {
+        observatory_tasks.git_finish.status('Finishing');
+        git_commands.finish();
+        return observatory_tasks.git_finish.done('Complete');
+      })["catch"](function(err) {
+        git_commands.reset();
+        throw err;
+      });
+    }).then(function() {
+      if (!options.skip_git_push) {
+        observatory_tasks.git_push.status('Pushing');
+        git_commands.push();
+        return observatory_tasks.git_push.done('Complete');
+      } else {
+        return observatory_tasks.git_push.done('Skipped');
       }
     })["catch"](function(err) {
       if (IS_DEBUG) {

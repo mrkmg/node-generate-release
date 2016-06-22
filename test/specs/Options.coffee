@@ -21,7 +21,7 @@ describe 'Options', ->
   temp_dir = Temp.path()
 
   before ->
-    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'inherit'
+    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'pipe'
     process.chdir temp_dir
 
   after (cb) ->

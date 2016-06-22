@@ -21,11 +21,12 @@ describe 'run', ->
   temp_dir = Temp.path()
 
   before (cb) ->
-    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'inherit'
+    Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'pipe'
     process.chdir temp_dir
-    Exec "git flow init -d", stdio: 'inherit'
+    Exec "git flow init -d", stdio: 'pipe'
     Promise
     .try ->
+      process.env.IS_DEBUG = true
       main ['node', 'script', '-t', 'patch', '-n', '-l', '-s']
     .then -> cb()
 
