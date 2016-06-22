@@ -1,9 +1,0 @@
-sudo: false
-git:
-  depth: 2
-language: node_js
-node_js:
-  - stable
-  - 4.1
-script: npm test
-after_success: npm run cover
