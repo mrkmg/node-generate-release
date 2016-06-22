@@ -45,19 +45,7 @@
     package_file = void 0;
     git_flow_settings = void 0;
     git_commands = void 0;
-    Observatory.settings({
-      prefix: '[Generate Release] '
-    });
-    observatory_tasks = {
-      git_pull: Observatory.add('GIT: Pull from Origin'),
-      git_start: Observatory.add('GIT: Start Release'),
-      write_files: Observatory.add('Files: Write New Version'),
-      pre_commit_commands: Observatory.add('Commands: Pre Commit'),
-      git_commit: Observatory.add('GIT: Commit Files'),
-      post_commit_commands: Observatory.add('Commands: Post Commit'),
-      git_finish: Observatory.add('GIT: Finish Release'),
-      git_push: Observatory.add('GIT: Push to Origin')
-    };
+    observatory_tasks = void 0;
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(mArgs) {
@@ -92,6 +80,20 @@
       if (!do_update) {
         throw new Error('Update Canceled');
       }
+    }).then(function() {
+      Observatory.settings({
+        prefix: '[Generate Release] '
+      });
+      return observatory_tasks = {
+        git_pull: Observatory.add('GIT: Pull from Origin'),
+        git_start: Observatory.add('GIT: Start Release'),
+        write_files: Observatory.add('Files: Write New Version'),
+        pre_commit_commands: Observatory.add('Commands: Pre Commit'),
+        git_commit: Observatory.add('GIT: Commit Files'),
+        post_commit_commands: Observatory.add('Commands: Post Commit'),
+        git_finish: Observatory.add('GIT: Finish Release'),
+        git_push: Observatory.add('GIT: Push to Origin')
+      };
     }).then(function() {
       return git_commands = new GitCommands({
         master_branch: git_flow_settings.master,
