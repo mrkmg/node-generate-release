@@ -29,6 +29,7 @@ release_file_allowed_keys = [
   'skip_git_push'
   'pre_commit_commands'
   'post_commit_commands'
+  'post_complete_commands'
   'additional_files_to_commit'
 ]
 
@@ -43,6 +44,7 @@ class Options
   skip_git_push: false
   pre_commit_commands: []
   post_commit_commands: []
+  post_complete_commands: []
   additional_files_to_commit: []
   validation_error: '\n'
 
@@ -81,6 +83,7 @@ class Options
       @validateSkipGitPush() and
       @validatePreCommitCommands() and
       @validatePostCommitCommands() and
+      @validatePostCompleteCommands() and
       @validateAdditionalFilesToCommit()
     ) or throw new HelpError @validation_error
 
@@ -143,6 +146,13 @@ class Options
   validatePostCommitCommands: ->
     unless Array.isArray @post_commit_commands
       @validation_error += 'Post Git Commands must be an array'
+      false
+    else
+      true
+
+  validatePostCompleteCommands: ->
+    unless Array.isArray @post_complete_commands
+      @validation_error += 'Post Complete Commands must be an array'
       false
     else
       true

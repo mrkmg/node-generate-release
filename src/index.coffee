@@ -90,6 +90,7 @@ module.exports = (args) ->
       post_commit_commands: Observatory.add('Commands: Post Commit')
       git_finish: Observatory.add('GIT: Finish Release')
       git_push: Observatory.add('GIT: Push to Origin')
+      post_complete_commands: Observatory.add('Commands: Post Complete')
 
   #Setup the Git Commands
   .then ->
@@ -163,7 +164,7 @@ module.exports = (args) ->
 
     for command in options.post_commit_commands
       try
-        observatory_tasks.pre_commit_commands.status command
+        observatory_tasks.post_commit_commands.status command
         runArbitraryCommand command
       catch error
         console.error error.message
@@ -189,6 +190,19 @@ module.exports = (args) ->
       observatory_tasks.git_push.done('Complete')
     else
       observatory_tasks.git_push.done('Skipped')
+
+  #Run post commit commands
+  .then ->
+    observatory_tasks.post_complete_commands.status('Running')
+
+    for command in options.post_complete_commands
+      try
+        observatory_tasks.post_complete_commands.status command
+        runArbitraryCommand command
+      catch error
+        console.error error.message
+
+    observatory_tasks.post_complete_commands.done('Complete')
 
   #Print the errors
   .catch (err) ->
