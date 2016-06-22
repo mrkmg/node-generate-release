@@ -7,13 +7,10 @@
   },
   "scripts": {
     "compile": "coffee --compile --output main/ src/",
-    "compile-watch": "coffee --compile --watch --output main/ src/",
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
-    "unit": "mocha --recursive --compilers coffee:coffee-script/register ./test/specs --timeout 10000",
-    "cover": "npm run cover-local && npm run coveralls",
-    "cover-local": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul ./test/specs --timeout 10000",
-    "coveralls": "istanbul-coveralls"
+    "unit": "mocha --recursive --compilers --timeout 10000 coffee:coffee-script/register ./test/specs",
+    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --timeout 10000 --require coffee-coverage/register-istanbul ./test/specs"
   },
   "repository": {
     "type": "git",
@@ -26,7 +23,6 @@
   },
   "homepage": "https://github.com/mrkmg/node-generate-release#readme",
   "dependencies": {
-    "@nkcmr/bool": "github:nkcmr/bool",
     "bluebird": "^3.1.2",
     "exists-sync": "0.0.3",
     "extend": "^3.0.0",

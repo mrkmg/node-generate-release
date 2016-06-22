@@ -7,13 +7,11 @@
  */
 
 (function() {
-  var HelpError, Options, Path, args, bool, existsSync, extend, pick, release_file_allowed_keys;
+  var HelpError, Options, Path, args, existsSync, extend, pick, release_file_allowed_keys;
 
   existsSync = require('exists-sync');
 
   Path = require('path');
-
-  bool = require('@nkcmr/bool');
 
   pick = require('object-pick');
 

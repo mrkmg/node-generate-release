@@ -6,7 +6,6 @@
 
 existsSync = require 'exists-sync'
 Path = require 'path'
-bool = require '@nkcmr/bool'
 pick = require 'object-pick'
 extend = require 'extend'
 HelpError = require './HelpError'
