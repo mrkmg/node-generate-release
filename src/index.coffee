@@ -28,20 +28,7 @@ module.exports = (args) ->
   package_file = undefined
   git_flow_settings = undefined
   git_commands = undefined
-
-  Observatory.settings
-    prefix: '[Generate Release] '
-
-  observatory_tasks =
-    git_pull: Observatory.add('GIT: Pull from Origin')
-    git_start: Observatory.add('GIT: Start Release')
-    write_files: Observatory.add('Files: Write New Version')
-    pre_commit_commands: Observatory.add('Commands: Pre Commit')
-    git_commit: Observatory.add('GIT: Commit Files')
-    post_commit_commands: Observatory.add('Commands: Post Commit')
-    git_finish: Observatory.add('GIT: Finish Release')
-    git_push: Observatory.add('GIT: Push to Origin')
-
+  observatory_tasks = undefined
 
   Promise
   #Parse Arguments
@@ -89,6 +76,20 @@ module.exports = (args) ->
   .then (do_update) ->
     unless do_update
       throw new Error 'Update Canceled'
+
+  .then ->
+    Observatory.settings
+      prefix: '[Generate Release] '
+  
+    observatory_tasks =
+      git_pull: Observatory.add('GIT: Pull from Origin')
+      git_start: Observatory.add('GIT: Start Release')
+      write_files: Observatory.add('Files: Write New Version')
+      pre_commit_commands: Observatory.add('Commands: Pre Commit')
+      git_commit: Observatory.add('GIT: Commit Files')
+      post_commit_commands: Observatory.add('Commands: Post Commit')
+      git_finish: Observatory.add('GIT: Finish Release')
+      git_push: Observatory.add('GIT: Push to Origin')
 
   #Setup the Git Commands
   .then ->
