@@ -1,9 +1,13 @@
 {
   "name": "generate-release",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Generate a release using git-glow",
-  "keywords":[
-    "release", "git", "git-flow", "generate", "automation"
+  "keywords": [
+    "release",
+    "git",
+    "git-flow",
+    "generate",
+    "automation"
   ],
   "bin": {
     "generate-release": "./bin/generate-release"
