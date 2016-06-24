@@ -6,7 +6,7 @@
 
 existsSync = require 'exists-sync'
 Path = require 'path'
-pick = require 'object-pick'
+pick = require 'object.pick'
 extend = require 'extend'
 HelpError = require './HelpError'
 

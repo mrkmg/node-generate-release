@@ -42,7 +42,7 @@
     "iniparser": "^1.0.5",
     "inquirer": "^1.0.3",
     "minimist": "^1.2.0",
-    "object-pick": "^0.1.1",
+    "object.pick": "^1.1.2",
     "observatory": "^1.0.0",
     "parse-spawn-args": "^1.0.2",
     "rmdir": "^1.2.0"
