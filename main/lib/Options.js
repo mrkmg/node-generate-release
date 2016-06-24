@@ -13,7 +13,7 @@
 
   Path = require('path');
 
-  pick = require('object-pick');
+  pick = require('object.pick');
 
   extend = require('extend');
 
