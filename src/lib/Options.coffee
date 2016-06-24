@@ -20,6 +20,7 @@ args =
   no_confirm: ['n', 'no-confirm']
   skip_git_pull: ['l', 'skip-git-pull']
   skip_git_push: ['s', 'skip-git-push']
+  release_message: ['m', 'message']
 
 release_file_allowed_keys = [
   'readme_file_location'
@@ -47,6 +48,7 @@ class Options
   post_complete_commands: []
   additional_files_to_commit: []
   validation_error: '\n'
+  release_message: 'Release {version}'
 
   constructor: (@args) ->
 
@@ -70,6 +72,7 @@ class Options
     @current_version = (@getArgumentValue 'current_version') or @current_version
     @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
+    @release_message = (@getArgumentValue 'release_message') or @release_message
 
     @validateArguments()
 
@@ -84,7 +87,8 @@ class Options
       @validatePreCommitCommands() and
       @validatePostCommitCommands() and
       @validatePostCompleteCommands() and
-      @validateAdditionalFilesToCommit()
+      @validateAdditionalFilesToCommit() and
+      @validateReleaseMessage()
     ) or throw new HelpError @validation_error
 
   validateReadmeFileLocation: ->
@@ -160,6 +164,13 @@ class Options
   validateAdditionalFilesToCommit: ->
     unless Array.isArray @additional_files_to_commit
       @validation_error += 'Additional Files to Commit must be an array'
+      false
+    else
+      true
+
+  validateReleaseMessage: ->
+    unless typeof @release_message is 'string' and @release_message.length > 0
+      @validation_error += 'Release Message must be a string greater than 0 length'
       false
     else
       true

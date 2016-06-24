@@ -54,6 +54,8 @@ describe 'run', ->
 
   it 'should have created "post_complete" file', ->
     assert FS.existsSync "#{temp_dir}/post_complete"
+    
+  it 'should have used the custom release message'
 
 
 

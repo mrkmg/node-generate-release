@@ -14,6 +14,9 @@ env.GIT_MERGE_AUTOEDIT = 'no'
 
 GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m
 
+cleanStringForConsole = (string) ->
+  string.replace /(["\s'$`\\])/g, '\\$1'
+
 class GitCommands
   @checkForCleanWorkingDirectory: ->
     status_result = Exec 'git status', {env: env}
@@ -24,12 +27,14 @@ class GitCommands
   develop_branch: 'develop'
   current_version: undefined
   next_version: undefined
+  release_message: "Release {version}"
 
   constructor: (opts) ->
     if opts.master_branch? then @master_branch = opts.master_branch
     if opts.develop_branch? then @develop_branch = opts.develop_branch
     if opts.current_version? then @current_version = opts.current_version
     if opts.next_version? then @next_version = opts.next_version
+    if opts.release_message? then @release_message = opts.release_message
 
     unless @current_version then throw new Error 'Current Version is not set'
     unless @next_version then throw new Error 'New Version is not set'
@@ -66,7 +71,7 @@ class GitCommands
 
   commit: (files) =>
     @exec "git add #{file}" for file in files
-    @exec "git commit -am \"Release #{@next_version}\""
+    @exec "git commit -am \"#{cleanStringForConsole(@release_message).replace('{version}', @next_version)}\""
 
   finish: =>
     @exec "git flow release finish -m \"#{@next_version}\" #{@next_version}"
