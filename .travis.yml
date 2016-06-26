@@ -1,14 +1,17 @@
-sudo: true
+sudo: false
 node_js:
   - 6
   - 5
   - 4
 language: node_js
-script: npm test
+script: PATH="$PATH:~/bin" npm test
 before_install:
   - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
   - chmod +x gitflow-installer.sh
-  - sudo ./gitflow-installer.sh
+  - mkdir ~/bin
+  - INSTALL_PREFIX=~/bin ./gitflow-installer.sh
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
+after_script:
+  - npm run coveralls
