@@ -124,12 +124,12 @@ following assumptions are made:
 Roadmap
 -------
 
-- Write tests
-- Code coverage for tests
+- Write tests **Partial**
+- Code coverage for tests 
 - Change remote (not origin)
 - ~~Allow for custom hook (like running gulp or grunt during release to prepare assets)~~
 - Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - Implement an API to use inside node applications (why? because all the cool kids are doing it)
-- Custom release message
+- ~~Custom release message~~
 - ~~Read git-flow configuration from .git folder~~
