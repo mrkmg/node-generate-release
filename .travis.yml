@@ -4,7 +4,7 @@ node_js:
   - 5
   - 4
 language: node_js
-script: PATH="$PATH:~/bin"npm test
+script: PATH="$PATH:~/bin" npm test
 before_install:
   - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
   - chmod +x gitflow-installer.sh
