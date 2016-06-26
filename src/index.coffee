@@ -18,8 +18,9 @@ PackageFile = require './lib/PackageFile'
 GitFlowSettings = require './lib/GitFlowSettings'
 
 askReleaseType = require './lib/askReleaseType'
-incrementVersion = require './lib/incrementVersion'
 askConfirmUpdate = require './lib/askConfirmUpdate'
+askReleaseMessage = require './lib/askReleaseMessage'
+incrementVersion = require './lib/incrementVersion'
 writeNewReadme = require './lib/writeNewReadme'
 runArbitraryCommand = require './lib/runArbitraryCommand'
 
@@ -29,6 +30,7 @@ module.exports = (args) ->
   git_flow_settings = undefined
   git_commands = undefined
   observatory_tasks = undefined
+  release_message = undefined
 
   Promise
   #Parse Arguments
@@ -70,6 +72,13 @@ module.exports = (args) ->
   .then ->
     options.next_version = incrementVersion options.current_version, options.release_type, git_flow_settings.version_tag_prefix
 
+  #Set/Get Release Message
+  .then ->
+    release_message = "Release #{options.next_version}"
+
+    if options.set_release_message
+      release_message = askReleaseMessage release_message
+
   #Confirm the Release
   .then ->
     options.no_confirm or (askConfirmUpdate options.current_version, options.next_version)
@@ -99,6 +108,8 @@ module.exports = (args) ->
       develop_branch: git_flow_settings.develop
       current_version: options.current_version
       next_version: options.next_version
+      release_message: release_message
+      remote: options.remote
 
   #Git Pull
   .then ->

@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -31,21 +31,24 @@
 
   askReleaseType = require('./lib/askReleaseType');
 
-  incrementVersion = require('./lib/incrementVersion');
-
   askConfirmUpdate = require('./lib/askConfirmUpdate');
+
+  askReleaseMessage = require('./lib/askReleaseMessage');
+
+  incrementVersion = require('./lib/incrementVersion');
 
   writeNewReadme = require('./lib/writeNewReadme');
 
   runArbitraryCommand = require('./lib/runArbitraryCommand');
 
   module.exports = function(args) {
-    var git_commands, git_flow_settings, observatory_tasks, options, package_file;
+    var git_commands, git_flow_settings, observatory_tasks, options, package_file, release_message;
     options = void 0;
     package_file = void 0;
     git_flow_settings = void 0;
     git_commands = void 0;
     observatory_tasks = void 0;
+    release_message = void 0;
     return Promise["try"](function() {
       return args.slice(2);
     }).then(Minimist).then(function(mArgs) {
@@ -75,6 +78,11 @@
     }).then(function() {
       return options.next_version = incrementVersion(options.current_version, options.release_type, git_flow_settings.version_tag_prefix);
     }).then(function() {
+      release_message = "Release " + options.next_version;
+      if (options.set_release_message) {
+        return release_message = askReleaseMessage(release_message);
+      }
+    }).then(function() {
       return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
     }).then(function(do_update) {
       if (!do_update) {
@@ -100,7 +108,9 @@
         master_branch: git_flow_settings.master,
         develop_branch: git_flow_settings.develop,
         current_version: options.current_version,
-        next_version: options.next_version
+        next_version: options.next_version,
+        release_message: release_message,
+        remote: options.remote
       });
     }).then(function() {
       if (!options.skip_git_pull) {

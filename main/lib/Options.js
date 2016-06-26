@@ -13,7 +13,7 @@
 
   Path = require('path');
 
-  pick = require('object-pick');
+  pick = require('object.pick');
 
   extend = require('extend');
 
@@ -28,10 +28,12 @@
     release_type: ['t', 'release-type'],
     no_confirm: ['n', 'no-confirm'],
     skip_git_pull: ['l', 'skip-git-pull'],
-    skip_git_push: ['s', 'skip-git-push']
+    skip_git_push: ['s', 'skip-git-push'],
+    set_release_message: ['m', 'set-release-message'],
+    remote: ['o', 'remote']
   };
 
-  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit'];
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit', 'set_release_message', 'remote'];
 
   Options = (function() {
     Options.prototype.readme_file_location = './README.md';
@@ -46,9 +48,13 @@
 
     Options.prototype.current_version = null;
 
+    Options.prototype.remote = 'origin';
+
     Options.prototype.skip_git_pull = false;
 
     Options.prototype.skip_git_push = false;
+
+    Options.prototype.set_release_message = false;
 
     Options.prototype.pre_commit_commands = [];
 
@@ -85,11 +91,13 @@
       this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
       this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
+      this.set_release_message = (this.getArgumentValue('set_release_message')) || this.set_release_message;
+      this.remote = (this.getArgumentValue('remote')) || this.remote;
       return this.validateArguments();
     };
 
     Options.prototype.validateArguments = function() {
-      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit()) || (function() {
+      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit() && this.validateSetReleaseMessage() && this.validateRemote()) || (function() {
         throw new HelpError(this.validation_error);
       }).call(this);
     };
@@ -140,6 +148,15 @@
       }
     };
 
+    Options.prototype.validateRemote = function() {
+      if (typeof this.remote !== 'string') {
+        this.validation_error += 'Invalid value for remote\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
     Options.prototype.validateSkipGitPush = function() {
       if (typeof this.skip_git_push !== 'boolean') {
         this.validation_error += 'Invalid value for skip-git-push\n';
@@ -160,7 +177,7 @@
 
     Options.prototype.validatePreCommitCommands = function() {
       if (!Array.isArray(this.pre_commit_commands)) {
-        this.validation_error += 'Pre Git Commands must be an array';
+        this.validation_error += 'Pre Git Commands must be an array\n';
         return false;
       } else {
         return true;
@@ -169,7 +186,7 @@
 
     Options.prototype.validatePostCommitCommands = function() {
       if (!Array.isArray(this.post_commit_commands)) {
-        this.validation_error += 'Post Git Commands must be an array';
+        this.validation_error += 'Post Git Commands must be an array\n';
         return false;
       } else {
         return true;
@@ -178,7 +195,7 @@
 
     Options.prototype.validatePostCompleteCommands = function() {
       if (!Array.isArray(this.post_complete_commands)) {
-        this.validation_error += 'Post Complete Commands must be an array';
+        this.validation_error += 'Post Complete Commands must be an array\n';
         return false;
       } else {
         return true;
@@ -187,7 +204,16 @@
 
     Options.prototype.validateAdditionalFilesToCommit = function() {
       if (!Array.isArray(this.additional_files_to_commit)) {
-        this.validation_error += 'Additional Files to Commit must be an array';
+        this.validation_error += 'Additional Files to Commit must be an array\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateSetReleaseMessage = function() {
+      if (typeof this.set_release_message !== 'boolean') {
+        this.validation_error += 'Invalid value for set-release-message\n';
         return false;
       } else {
         return true;

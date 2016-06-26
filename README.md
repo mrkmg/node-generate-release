@@ -1,7 +1,7 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
-Current Version: 0.4.1
+Current Version: 0.5.0
 
 
 Usage
@@ -62,14 +62,16 @@ Options
 
 run `generate-release --help` to see this as well.
 
-    -r --readme           Path to README.md file. Default: ./README.md
-    -p --package          Path to package.json file. Default: ./package.json
-    -c --current-version  Current Version. Default: read from package.json
-    -t --release-type     Release Type: patch, minor, major. Default: prompt
-    -n --no-confirm       Do not ask for confirmation. Default: prompt for confirmation
-    -l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull
-    -s --skip-git-push    Do not push to origin when complete. Default: Do push
-    -d --release-file     Path to your .release.json file. Default: ./.release.json
+    -r, --readme               Path to README.md file. Default: ./README.md
+    -p, --package              Path to package.json file. Default: ./package.json
+    -c, --current-version      Current Version. Default: read from package.json
+    -t, --release-type         Release Type: patch, minor, major. Default: prompt
+    -n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation
+    -l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull
+    -s, --skip-git-push        Do not push to origin when complete. Default: Do push
+    -d, --release-file         Path to your .release.json file. Default: ./.release.json
+    -m, --set-release-message  Prompt to write a release message. Default: Release {version}
+    -o, --remote               Change the remote. Default: origin
 
 Release File
 ------------
@@ -83,6 +85,8 @@ is an example with all files set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
+          "set_release_message": true,
+          "release": "origin",
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],
@@ -124,12 +128,12 @@ following assumptions are made:
 Roadmap
 -------
 
-- Write tests
-- Code coverage for tests
-- Change remote (not origin)
+- Write tests **Partial**
+- Code coverage for tests 
+- ~~Change remote (not origin)~~
 - ~~Allow for custom hook (like running gulp or grunt during release to prepare assets)~~
 - Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - Implement an API to use inside node applications (why? because all the cool kids are doing it)
-- Custom release message
+- ~~Custom release message~~
 - ~~Read git-flow configuration from .git folder~~

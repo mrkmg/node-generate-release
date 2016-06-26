@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Generate a release using git-glow",
   "keywords": [
     "release",
@@ -14,6 +14,7 @@
   },
   "scripts": {
     "compile": "coffee --compile --output main/ src/",
+    "compile-watch": "coffee --compile --watch --output main/ src",
     "test": "npm run lint && npm run unit",
     "lint": "coffeelint -f .coffeelint.json src",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
@@ -40,9 +41,9 @@
     "extend": "^3.0.0",
     "glob": "^7.0.4",
     "iniparser": "^1.0.5",
-    "inquirer": "^1.0.3",
+    "inquirer": "^1.1.0",
     "minimist": "^1.2.0",
-    "object-pick": "^0.1.1",
+    "object.pick": "^1.1.2",
     "observatory": "^1.0.0",
     "parse-spawn-args": "^1.0.2",
     "rmdir": "^1.2.0"

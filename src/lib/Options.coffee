@@ -6,7 +6,7 @@
 
 existsSync = require 'exists-sync'
 Path = require 'path'
-pick = require 'object-pick'
+pick = require 'object.pick'
 extend = require 'extend'
 HelpError = require './HelpError'
 
@@ -20,6 +20,8 @@ args =
   no_confirm: ['n', 'no-confirm']
   skip_git_pull: ['l', 'skip-git-pull']
   skip_git_push: ['s', 'skip-git-push']
+  set_release_message: ['m', 'set-release-message']
+  remote: ['o', 'remote']
 
 release_file_allowed_keys = [
   'readme_file_location'
@@ -31,6 +33,8 @@ release_file_allowed_keys = [
   'post_commit_commands'
   'post_complete_commands'
   'additional_files_to_commit'
+  'set_release_message'
+  'remote'
 ]
 
 class Options
@@ -40,8 +44,10 @@ class Options
   no_confirm: false
   release_type: null
   current_version: null
+  remote: 'origin'
   skip_git_pull: false
   skip_git_push: false
+  set_release_message: false
   pre_commit_commands: []
   post_commit_commands: []
   post_complete_commands: []
@@ -70,6 +76,8 @@ class Options
     @current_version = (@getArgumentValue 'current_version') or @current_version
     @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
+    @set_release_message = (@getArgumentValue 'set_release_message') or @set_release_message
+    @remote = (@getArgumentValue 'remote') or @remote
 
     @validateArguments()
 
@@ -84,7 +92,9 @@ class Options
       @validatePreCommitCommands() and
       @validatePostCommitCommands() and
       @validatePostCompleteCommands() and
-      @validateAdditionalFilesToCommit()
+      @validateAdditionalFilesToCommit() and
+      @validateSetReleaseMessage() and
+      @validateRemote()
     ) or throw new HelpError @validation_error
 
   validateReadmeFileLocation: ->
@@ -122,6 +132,13 @@ class Options
     else
       true
 
+  validateRemote: ->
+    unless typeof @remote is 'string'
+      @validation_error += 'Invalid value for remote\n'
+      false
+    else
+      true
+
   validateSkipGitPush: ->
     unless typeof @skip_git_push is 'boolean'
       @validation_error += 'Invalid value for skip-git-push\n'
@@ -138,28 +155,35 @@ class Options
 
   validatePreCommitCommands: ->
     unless Array.isArray @pre_commit_commands
-      @validation_error += 'Pre Git Commands must be an array'
+      @validation_error += 'Pre Git Commands must be an array\n'
       false
     else
       true
 
   validatePostCommitCommands: ->
     unless Array.isArray @post_commit_commands
-      @validation_error += 'Post Git Commands must be an array'
+      @validation_error += 'Post Git Commands must be an array\n'
       false
     else
       true
 
   validatePostCompleteCommands: ->
     unless Array.isArray @post_complete_commands
-      @validation_error += 'Post Complete Commands must be an array'
+      @validation_error += 'Post Complete Commands must be an array\n'
       false
     else
       true
 
   validateAdditionalFilesToCommit: ->
     unless Array.isArray @additional_files_to_commit
-      @validation_error += 'Additional Files to Commit must be an array'
+      @validation_error += 'Additional Files to Commit must be an array\n'
+      false
+    else
+      true
+
+  validateSetReleaseMessage: ->
+    unless typeof @set_release_message is 'boolean'
+      @validation_error += 'Invalid value for set-release-message\n'
       false
     else
       true
