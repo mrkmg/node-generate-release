@@ -109,7 +109,8 @@
         develop_branch: git_flow_settings.develop,
         current_version: options.current_version,
         next_version: options.next_version,
-        release_message: release_message
+        release_message: release_message,
+        remote: options.remote
       });
     }).then(function() {
       if (!options.skip_git_pull) {

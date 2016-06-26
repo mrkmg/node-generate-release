@@ -70,6 +70,7 @@ run `generate-release --help` to see this as well.
     -l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull
     -s --skip-git-push    Do not push to origin when complete. Default: Do push
     -d --release-file     Path to your .release.json file. Default: ./.release.json
+    -o --remote           Change the remote. Default: origin
 
 Release File
 ------------
@@ -126,7 +127,7 @@ Roadmap
 
 - Write tests **Partial**
 - Code coverage for tests 
-- Change remote (not origin)
+- ~~Change remote (not origin)~~
 - ~~Allow for custom hook (like running gulp or grunt during release to prepare assets)~~
 - Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~

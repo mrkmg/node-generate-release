@@ -109,6 +109,7 @@ module.exports = (args) ->
       current_version: options.current_version
       next_version: options.next_version
       release_message: release_message
+      remote: options.remote
 
   #Git Pull
   .then ->

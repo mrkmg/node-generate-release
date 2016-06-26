@@ -35,6 +35,8 @@
 
     GitCommands.prototype.develop_branch = 'develop';
 
+    GitCommands.prototype.remote = 'origin';
+
     GitCommands.prototype.current_version = void 0;
 
     GitCommands.prototype.next_version = void 0;
@@ -63,6 +65,9 @@
       if (opts.release_message != null) {
         this.release_message = opts.release_message;
       }
+      if (opts.remote != null) {
+        this.remote = opts.remote;
+      }
       if (!this.current_version) {
         throw new Error('Current Version is not set');
       }
@@ -83,17 +88,17 @@
     };
 
     GitCommands.prototype.pull = function() {
-      this.exec(['fetch']);
+      this.exec(['fetch', this.remote]);
       this.exec(['checkout', this.develop_branch]);
-      this.exec(['pull', 'origin', this.develop_branch, '--rebase']);
+      this.exec(['pull', this.remote, this.develop_branch, '--rebase']);
       this.exec(['checkout', this.master_branch]);
-      return this.exec(['reset', '--hard', "origin/" + master_branch]);
+      return this.exec(['reset', '--hard', remote + "/" + master_branch]);
     };
 
     GitCommands.prototype.push = function() {
-      this.exec(['push', 'origin', this.develop_branch]);
-      this.exec(['push', 'origin', this.master_branch]);
-      return this.exec(['push', 'origin', '--tags']);
+      this.exec(['push', this.remote, this.develop_branch]);
+      this.exec(['push', this.remote, this.master_branch]);
+      return this.exec(['push', this.remote, '--tags']);
     };
 
     GitCommands.prototype.reset = function() {

@@ -29,10 +29,11 @@
     no_confirm: ['n', 'no-confirm'],
     skip_git_pull: ['l', 'skip-git-pull'],
     skip_git_push: ['s', 'skip-git-push'],
-    set_release_message: ['m', 'set-release-message']
+    set_release_message: ['m', 'set-release-message'],
+    remote: ['o', 'remote']
   };
 
-  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit'];
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit', 'remote'];
 
   Options = (function() {
     Options.prototype.readme_file_location = './README.md';
@@ -46,6 +47,8 @@
     Options.prototype.release_type = null;
 
     Options.prototype.current_version = null;
+
+    Options.prototype.remote = 'origin';
 
     Options.prototype.skip_git_pull = false;
 
@@ -89,11 +92,12 @@
       this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
       this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
       this.set_release_message = (this.getArgumentValue('set_release_message')) || this.set_release_message;
+      this.remote = (this.getArgumentValue('remote')) || this.remote;
       return this.validateArguments();
     };
 
     Options.prototype.validateArguments = function() {
-      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit() && this.validateSetReleaseMessage()) || (function() {
+      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit() && this.validateSetReleaseMessage() && this.validateRemote()) || (function() {
         throw new HelpError(this.validation_error);
       }).call(this);
     };
@@ -138,6 +142,15 @@
     Options.prototype.validateNoConfirm = function() {
       if (typeof this.no_confirm !== 'boolean') {
         this.validation_error += 'Invalid value for no-confirm\n';
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    Options.prototype.validateRemote = function() {
+      if (typeof this.remote !== 'string') {
+        this.validation_error += 'Invalid value for remote\n';
         return false;
       } else {
         return true;

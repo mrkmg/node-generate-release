@@ -21,6 +21,7 @@ args =
   skip_git_pull: ['l', 'skip-git-pull']
   skip_git_push: ['s', 'skip-git-push']
   set_release_message: ['m', 'set-release-message']
+  remote: ['o', 'remote']
 
 release_file_allowed_keys = [
   'readme_file_location'
@@ -32,6 +33,7 @@ release_file_allowed_keys = [
   'post_commit_commands'
   'post_complete_commands'
   'additional_files_to_commit'
+  'remote'
 ]
 
 class Options
@@ -41,6 +43,7 @@ class Options
   no_confirm: false
   release_type: null
   current_version: null
+  remote: 'origin'
   skip_git_pull: false
   skip_git_push: false
   set_release_message: false
@@ -73,6 +76,7 @@ class Options
     @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
     @set_release_message = (@getArgumentValue 'set_release_message') or @set_release_message
+    @remote = (@getArgumentValue 'remote') or @remote
 
     @validateArguments()
 
@@ -88,7 +92,8 @@ class Options
       @validatePostCommitCommands() and
       @validatePostCompleteCommands() and
       @validateAdditionalFilesToCommit() and
-      @validateSetReleaseMessage()
+      @validateSetReleaseMessage() and
+      @validateRemote()
     ) or throw new HelpError @validation_error
 
   validateReadmeFileLocation: ->
@@ -122,6 +127,13 @@ class Options
   validateNoConfirm: ->
     unless typeof @no_confirm is 'boolean'
       @validation_error += 'Invalid value for no-confirm\n'
+      false
+    else
+      true
+
+  validateRemote: ->
+    unless typeof @remote is 'string'
+      @validation_error += 'Invalid value for remote\n'
       false
     else
       true

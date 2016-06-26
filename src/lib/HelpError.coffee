@@ -17,6 +17,7 @@ class HelpError extends Error
       -l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull
       -s --skip-git-push    Do not push to origin when complete. Default: Do push
       -d --release-file     Path to your .release.json file. Default: ./.release.json
+      -o --remote           Change the remote. Default: origin
 
       #{post or ''}"""
 

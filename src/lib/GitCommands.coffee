@@ -20,6 +20,7 @@ class GitCommands
 
   master_branch: 'master'
   develop_branch: 'develop'
+  remote: 'origin'
   current_version: undefined
   next_version: undefined
   release_message: undefined
@@ -30,6 +31,7 @@ class GitCommands
     if opts.current_version? then @current_version = opts.current_version
     if opts.next_version? then @next_version = opts.next_version
     if opts.release_message? then @release_message = opts.release_message
+    if opts.remote? then @remote = opts.remote
 
     unless @current_version then throw new Error 'Current Version is not set'
     unless @next_version then throw new Error 'New Version is not set'
@@ -42,16 +44,16 @@ class GitCommands
       throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
 
   pull: =>
-    @exec ['fetch']
+    @exec ['fetch', @remote]
     @exec ['checkout', @develop_branch]
-    @exec ['pull', 'origin', @develop_branch, '--rebase']
+    @exec ['pull', @remote, @develop_branch, '--rebase']
     @exec ['checkout', @master_branch]
-    @exec ['reset', '--hard', "origin/#{master_branch}"]
+    @exec ['reset', '--hard', "#{remote}/#{master_branch}"]
 
   push: =>
-    @exec ['push', 'origin', @develop_branch]
-    @exec ['push', 'origin', @master_branch]
-    @exec ['push', 'origin', '--tags']
+    @exec ['push', @remote, @develop_branch]
+    @exec ['push', @remote, @master_branch]
+    @exec ['push', @remote, '--tags']
 
   reset: =>
     @exec ['checkout', @develop_branch]
