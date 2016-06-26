@@ -20,15 +20,13 @@ describe 'run', ->
   starting_dir = process.cwd()
   temp_dir = Temp.path()
 
-  before (cb) ->
+  before () ->
     Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'pipe'
     process.chdir temp_dir
     Exec "git flow init -d", stdio: 'pipe'
     Promise
     .try ->
-      process.env.IS_DEBUG = true
       main ['node', 'script', '-t', 'patch', '-n', '-l', '-s']
-    .then -> cb()
 
   after (cb) ->
     process.chdir starting_dir
@@ -54,6 +52,5 @@ describe 'run', ->
 
   it 'should have created "post_complete" file', ->
     assert FS.existsSync "#{temp_dir}/post_complete"
-
 
 
