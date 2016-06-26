@@ -15,7 +15,7 @@
     extend(HelpError, superClass);
 
     function HelpError(post) {
-      this.message = "generate-release\n\n-r --readme           Path to README.md file. Default: ./README.md\n-p --package          Path to package.json file. Default: ./package.json\n-c --current-version  Current Version. Default: read from package.json\n-t --release-type     Release Type: patch, minor, major. Default: prompt\n-n --no-confirm       Do not ask for confirmation. Default: prompt for confirmation\n-l --skip-git-pull    Do not pull from origin and rebase master and dev. Default: Do pull\n-s --skip-git-push    Do not push to origin when complete. Default: Do push\n-d --release-file     Path to your .release.json file. Default: ./.release.json\n-o --remote           Change the remote. Default: origin\n\n" + (post || '');
+      this.message = "generate-release\n\n-r, --readme               Path to README.md file. Default: ./README.md\n-p, --package              Path to package.json file. Default: ./package.json\n-c, --current-version      Current Version. Default: read from package.json\n-t, --release-type         Release Type: patch, minor, major. Default: prompt\n-n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation\n-l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull\n-s, --skip-git-push        Do not push to origin when complete. Default: Do push\n-d, --release-file         Path to your .release.json file. Default: ./.release.json\n-m, --set-release-message  Prompt to write a release message. Default: Release {version}\n-o, --remote               Change the remote. Default: origin\n\n" + (post || '');
     }
 
     return HelpError;
