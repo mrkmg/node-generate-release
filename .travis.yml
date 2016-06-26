@@ -7,7 +7,7 @@ node_js:
   - .10
 language: node_js
 script: PATH="$PATH;$HOME/bin" npm test
-before_test:
+before_install:
   - git clone --recursive git://github.com/nvie/gitflow.git
   - cd gitflow
   - make install prefix=$HOME
