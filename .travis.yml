@@ -13,3 +13,5 @@ before_install:
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
+after_script:
+  - npm run coveralls
