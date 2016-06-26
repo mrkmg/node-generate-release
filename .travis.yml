@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 node_js:
   - 6
   - 5
@@ -6,8 +6,8 @@ node_js:
   - .12
   - .10
 language: node_js
-script: PATH="$PATH;$HOME/bin" npm test
+script: npm test
 before_install:
-  - git clone --recursive git://github.com/nvie/gitflow.git
-  - cd gitflow
-  - make install prefix=$HOME
+  - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
+  - chmod +x gitflow-installer.sh
+  - sudo ./gitflow-installer.sh
