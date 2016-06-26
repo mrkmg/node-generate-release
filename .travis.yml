@@ -11,3 +11,6 @@ before_install:
   - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
   - chmod +x gitflow-installer.sh
   - sudo ./gitflow-installer.sh
+before_script:
+  - git config --global user.email "test@test.com"
+  - git config --global user.name "Testing Tester"
