@@ -7,12 +7,10 @@
  */
 
 (function() {
-  var Exec, GIT_CLEAN_REGEX, GitCommands, SpawnSync, env,
+  var ChildProcess, GIT_CLEAN_REGEX, GitCommands, env,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  SpawnSync = require('child_process').spawnSync;
-
-  Exec = require('child_process').execSync;
+  ChildProcess = require('child_process');
 
   env = process.env;
 
@@ -23,7 +21,7 @@
   GitCommands = (function() {
     GitCommands.checkForCleanWorkingDirectory = function() {
       var status_result;
-      status_result = Exec('git status', {
+      status_result = ChildProcess.execSync('git status', {
         env: env
       });
       if (!GIT_CLEAN_REGEX.test(status_result.toString())) {
@@ -78,7 +76,7 @@
 
     GitCommands.prototype.exec = function(args) {
       var result;
-      result = SpawnSync('git', args, {
+      result = ChildProcess.spawnSync('git', args, {
         env: env,
         stdio: 'pipe'
       });
