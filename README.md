@@ -3,6 +3,8 @@ Generate a release for a project following semver using nodejs and gitflow
 
 Current Version: 0.5.0
 
+Requires NodeJS v4.0.0 or greater
+
 
 Usage
 -----
