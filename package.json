@@ -1,8 +1,10 @@
 {
   "name": "generate-release",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Generate a release using git-glow",
-  "engines" : { "node" : ">=4.0.0" },
+  "engines": {
+    "node": ">=4.0.0"
+  },
   "keywords": [
     "release",
     "git",
