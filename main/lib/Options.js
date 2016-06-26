@@ -33,7 +33,7 @@
     remote: ['o', 'remote']
   };
 
-  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit', 'remote'];
+  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit', 'set_release_message', 'remote'];
 
   Options = (function() {
     Options.prototype.readme_file_location = './README.md';

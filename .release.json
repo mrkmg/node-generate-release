@@ -1,4 +1,5 @@
 {
+  "set_release_message": true,
   "pre_commit_commands": [
     "npm test"
   ],

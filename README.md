@@ -85,6 +85,8 @@ is an example with all files set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
+          "set_release_message": true,
+          "release": "origin",
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],

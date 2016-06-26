@@ -33,6 +33,7 @@ release_file_allowed_keys = [
   'post_commit_commands'
   'post_complete_commands'
   'additional_files_to_commit'
+  'set_release_message'
   'remote'
 ]
 
