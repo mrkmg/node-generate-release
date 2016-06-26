@@ -42,6 +42,7 @@
     "glob": "^7.0.4",
     "iniparser": "^1.0.5",
     "inquirer": "^1.1.0",
+    "js-yaml": "^3.6.1",
     "minimist": "^1.2.0",
     "object.pick": "^1.1.2",
     "observatory": "^1.0.0",
