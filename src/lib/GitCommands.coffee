@@ -4,18 +4,13 @@
   MIT License
 ###
 
-ParseSpawnArgs = require 'parse-spawn-args'
 SpawnSync = require('child_process').spawnSync
 Exec = require('child_process').execSync
 
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
 
-
 GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m
-
-cleanStringForConsole = (string) ->
-  string.replace /(["\s'$`\\])/g, '\\$1'
 
 class GitCommands
   @checkForCleanWorkingDirectory: ->
@@ -27,7 +22,7 @@ class GitCommands
   develop_branch: 'develop'
   current_version: undefined
   next_version: undefined
-  release_message: "Release {version}"
+  release_message: undefined
 
   constructor: (opts) ->
     if opts.master_branch? then @master_branch = opts.master_branch
@@ -39,42 +34,40 @@ class GitCommands
     unless @current_version then throw new Error 'Current Version is not set'
     unless @next_version then throw new Error 'New Version is not set'
 
-  exec: (full_command) ->
-    command_array = ParseSpawnArgs.parse full_command
-    command = command_array.shift()
+  exec: (args) ->
 
-    result = SpawnSync command, command_array, {env: env, stdio: 'pipe'}
+    result = SpawnSync 'git', args, {env: env, stdio: 'pipe'}
 
     unless result.status is 0
-      throw new Error "#{full_command} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
+      throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
 
   pull: =>
-    @exec 'git fetch'
-    @exec "git checkout #{@develop_branch}"
-    @exec "git pull origin #{@develop_branch} --rebase"
-    @exec "git checkout #{@master_branch}"
-    @exec "git reset --hard origin/#{@master_branch}"
+    @exec ['fetch']
+    @exec ['checkout', @develop_branch]
+    @exec ['pull', 'origin', @develop_branch, '--rebase']
+    @exec ['checkout', @master_branch]
+    @exec ['reset', '--hard', "origin/#{master_branch}"]
 
   push: =>
-    @exec "git push origin #{@develop_branch}"
-    @exec "git push origin #{@master_branch}"
-    @exec 'git push origin --tags'
+    @exec ['push', 'origin', @develop_branch]
+    @exec ['push', 'origin', @master_branch]
+    @exec ['push', 'origin', '--tags']
 
   reset: =>
-    @exec "git checkout #{@develop_branch}"
-    @exec 'git reset --hard HEAD'
-    @exec "git branch -D release/#{@next_version}"
+    @exec ['checkout', @develop_branch]
+    @exec ['reset', '--hard', 'HEAD']
+    @exec ['branch', '-D', "release/#{@next_version}"]
 
   start: =>
-    @exec "git checkout #{@develop_branch}"
-    @exec "git flow release start #{@next_version}"
+    @exec ['checkout', @develop_branch]
+    @exec ['flow', 'release', 'start', @next_version]
 
   commit: (files) =>
-    @exec "git add #{file}" for file in files
-    @exec "git commit -am \"#{cleanStringForConsole(@release_message).replace('{version}', @next_version)}\""
+    @exec ['add', file] for file in files
+    @exec ['commit', '-m', @release_message]
 
   finish: =>
-    @exec "git flow release finish -m \"#{@next_version}\" #{@next_version}"
+    @exec ['flow', 'release', 'finish', '-m', @release_message, @next_version]
 
 
 module.exports = GitCommands

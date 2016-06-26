@@ -20,7 +20,7 @@ args =
   no_confirm: ['n', 'no-confirm']
   skip_git_pull: ['l', 'skip-git-pull']
   skip_git_push: ['s', 'skip-git-push']
-  release_message: ['m', 'message']
+  set_release_message: ['m', 'set-release-message']
 
 release_file_allowed_keys = [
   'readme_file_location'
@@ -43,12 +43,12 @@ class Options
   current_version: null
   skip_git_pull: false
   skip_git_push: false
+  set_release_message: false
   pre_commit_commands: []
   post_commit_commands: []
   post_complete_commands: []
   additional_files_to_commit: []
   validation_error: '\n'
-  release_message: 'Release {version}'
 
   constructor: (@args) ->
 
@@ -72,7 +72,7 @@ class Options
     @current_version = (@getArgumentValue 'current_version') or @current_version
     @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
     @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
-    @release_message = (@getArgumentValue 'release_message') or @release_message
+    @set_release_message = (@getArgumentValue 'set_release_message') or @set_release_message
 
     @validateArguments()
 
@@ -88,7 +88,7 @@ class Options
       @validatePostCommitCommands() and
       @validatePostCompleteCommands() and
       @validateAdditionalFilesToCommit() and
-      @validateReleaseMessage()
+      @validateSetReleaseMessage()
     ) or throw new HelpError @validation_error
 
   validateReadmeFileLocation: ->
@@ -142,35 +142,35 @@ class Options
 
   validatePreCommitCommands: ->
     unless Array.isArray @pre_commit_commands
-      @validation_error += 'Pre Git Commands must be an array'
+      @validation_error += 'Pre Git Commands must be an array\n'
       false
     else
       true
 
   validatePostCommitCommands: ->
     unless Array.isArray @post_commit_commands
-      @validation_error += 'Post Git Commands must be an array'
+      @validation_error += 'Post Git Commands must be an array\n'
       false
     else
       true
 
   validatePostCompleteCommands: ->
     unless Array.isArray @post_complete_commands
-      @validation_error += 'Post Complete Commands must be an array'
+      @validation_error += 'Post Complete Commands must be an array\n'
       false
     else
       true
 
   validateAdditionalFilesToCommit: ->
     unless Array.isArray @additional_files_to_commit
-      @validation_error += 'Additional Files to Commit must be an array'
+      @validation_error += 'Additional Files to Commit must be an array\n'
       false
     else
       true
 
-  validateReleaseMessage: ->
-    unless typeof @release_message is 'string' and @release_message.length > 0
-      @validation_error += 'Release Message must be a string greater than 0 length'
+  validateSetReleaseMessage: ->
+    unless typeof @set_release_message is 'boolean'
+      @validation_error += 'Invalid value for set-release-message\n'
       false
     else
       true
