@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, GitResetError, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -28,6 +28,8 @@
   PackageFile = require('./lib/PackageFile');
 
   GitFlowSettings = require('./lib/GitFlowSettings');
+
+  GitResetError = require('./lib/error/GitResetError');
 
   askReleaseType = require('./lib/askReleaseType');
 
@@ -56,8 +58,7 @@
     }).then(function() {
       return options.parse();
     }).then(function() {
-      return git_flow_settings = new GitFlowSettings(Path.resolve('./'));
-    }).then(function() {
+      git_flow_settings = new GitFlowSettings(Path.resolve('./'));
       return git_flow_settings.parseIni();
     }).then(function() {
       return GitCommands.checkForCleanWorkingDirectory();
@@ -68,24 +69,23 @@
         });
       }
     }).then(function() {
-      return package_file = new PackageFile(options.package_file_location);
-    }).then(function() {
-      return package_file.load();
-    }).then(function() {
+      package_file = new PackageFile(options.package_file_location);
+      package_file.load();
       if (!options.current_version) {
         return options.current_version = package_file.getVersion();
       }
     }).then(function() {
       return options.next_version = incrementVersion(options.current_version, options.release_type, git_flow_settings.version_tag_prefix);
     }).then(function() {
-      release_message = "Release " + options.next_version;
       if (options.set_release_message) {
-        return release_message = askReleaseMessage(release_message);
+        return askReleaseMessage(options.next_version);
+      } else {
+        return "Release " + options.next_version;
       }
+    }).then(function(text) {
+      return release_message = text;
     }).then(function() {
-      return options.no_confirm || (askConfirmUpdate(options.current_version, options.next_version));
-    }).then(function(do_update) {
-      if (!do_update) {
+      if (!(options.no_confirm || askConfirmUpdate(options.current_version, options.next_version))) {
         throw new Error('Update Canceled');
       }
     }).then(function() {
@@ -133,8 +133,8 @@
       package_file.save();
       return observatory_tasks.write_files.done('Complete');
     }).then(function() {
-      return Promise["try"](function() {
-        var command, i, j, len, len1, ref, ref1;
+      var command, err, error1, i, j, len, len1, ref, ref1;
+      try {
         observatory_tasks.pre_commit_commands.status('Running');
         ref = options.pre_commit_commands;
         for (i = 0, len = ref.length; i < len; i++) {
@@ -147,13 +147,13 @@
           }
         }
         return observatory_tasks.pre_commit_commands.done('Complete');
-      })["catch"](function(err) {
-        git_commands.reset();
-        throw err;
-      });
+      } catch (error1) {
+        err = error1;
+        throw new GitResetError(err);
+      }
     }).then(function() {
-      return Promise["try"](function() {
-        var file, files, i, j, len, len1, ref, tmp_file, tmp_files;
+      var err, error1, file, files, i, j, len, len1, ref, tmp_file, tmp_files;
+      try {
         files = [options.readme_file_location, options.package_file_location];
         ref = options.additional_files_to_commit;
         for (i = 0, len = ref.length; i < len; i++) {
@@ -167,34 +167,35 @@
         observatory_tasks.git_commit.status('Committing');
         git_commands.commit(files);
         return observatory_tasks.git_commit.done('Complete');
-      })["catch"](function(err) {
-        git_commands.reset();
-        throw err;
-      });
+      } catch (error1) {
+        err = error1;
+        throw new GitResetError(err);
+      }
     }).then(function() {
-      var command, error, error1, i, len, ref;
-      observatory_tasks.post_commit_commands.status('Running');
-      ref = options.post_commit_commands;
-      for (i = 0, len = ref.length; i < len; i++) {
-        command = ref[i];
-        try {
+      var command, err, error1, i, len, ref;
+      try {
+        observatory_tasks.post_commit_commands.status('Running');
+        ref = options.post_commit_commands;
+        for (i = 0, len = ref.length; i < len; i++) {
+          command = ref[i];
           observatory_tasks.post_commit_commands.status(command);
           runArbitraryCommand(command);
-        } catch (error1) {
-          error = error1;
-          console.error(error.message);
         }
+        return observatory_tasks.post_commit_commands.done('Complete');
+      } catch (error1) {
+        err = error1;
+        throw new GitResetError(err);
       }
-      return observatory_tasks.post_commit_commands.done('Complete');
     }).then(function() {
-      return Promise["try"](function() {
+      var err, error1;
+      try {
         observatory_tasks.git_finish.status('Finishing');
         git_commands.finish();
         return observatory_tasks.git_finish.done('Complete');
-      })["catch"](function(err) {
-        git_commands.reset();
-        throw err;
-      });
+      } catch (error1) {
+        err = error1;
+        throw new GitResetError(err);
+      }
     }).then(function() {
       if (!options.skip_git_push) {
         observatory_tasks.git_push.status('Pushing');
@@ -218,11 +219,15 @@
         }
       }
       return observatory_tasks.post_complete_commands.done('Complete');
+    })["catch"](GitResetError, function(err) {
+      console.log('test');
+      git_commands.reset();
+      throw err;
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;
       }
-      console.log(err.message);
+      console.error(err.message);
       return process.exit(1);
     });
   };

@@ -4,8 +4,7 @@
   MIT License
 ###
 
-SpawnSync = require('child_process').spawnSync
-Exec = require('child_process').execSync
+ChildProcess = require('child_process')
 
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
@@ -14,7 +13,7 @@ GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m
 
 class GitCommands
   @checkForCleanWorkingDirectory: ->
-    status_result = Exec 'git status', {env: env}
+    status_result = ChildProcess.execSync 'git status', {env: env}
     unless GIT_CLEAN_REGEX.test status_result.toString()
       throw new Error 'Working directory is not clean, not ready for release'
 
@@ -38,7 +37,7 @@ class GitCommands
 
   exec: (args) ->
 
-    result = SpawnSync 'git', args, {env: env, stdio: 'pipe'}
+    result = ChildProcess.spawnSync 'git', args, {env: env, stdio: 'pipe'}
 
     unless result.status is 0
       throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"

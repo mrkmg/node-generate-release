@@ -17,6 +17,8 @@ GitCommands = require './lib/GitCommands'
 PackageFile = require './lib/PackageFile'
 GitFlowSettings = require './lib/GitFlowSettings'
 
+GitResetError = require './lib/error/GitResetError'
+
 askReleaseType = require './lib/askReleaseType'
 askConfirmUpdate = require './lib/askConfirmUpdate'
 askReleaseMessage = require './lib/askReleaseMessage'
@@ -45,7 +47,6 @@ module.exports = (args) ->
   #Retreive Git Flow Settings
   .then ->
     git_flow_settings = new GitFlowSettings Path.resolve './'
-  .then ->
     git_flow_settings.parseIni()
 
   #Check for Clean Working Dir
@@ -55,16 +56,13 @@ module.exports = (args) ->
   #Get Release Type from options or by asking
   .then ->
     unless options.release_type
-      askReleaseType()
-      .then (release_type) ->
+      askReleaseType().then (release_type) ->
         options.release_type = release_type
 
   #Get Current Version
   .then ->
     package_file = new PackageFile options.package_file_location
-  .then ->
     package_file.load()
-  .then ->
     unless options.current_version
       options.current_version = package_file.getVersion()
 
@@ -74,18 +72,19 @@ module.exports = (args) ->
 
   #Set/Get Release Message
   .then ->
-    release_message = "Release #{options.next_version}"
-
     if options.set_release_message
-      release_message = askReleaseMessage release_message
+      askReleaseMessage(options.next_version)
+    else
+      "Release #{options.next_version}"
+  .then (text) ->
+    release_message = text
 
   #Confirm the Release
   .then ->
-    options.no_confirm or (askConfirmUpdate options.current_version, options.next_version)
-  .then (do_update) ->
-    unless do_update
+    unless options.no_confirm or askConfirmUpdate options.current_version, options.next_version
       throw new Error 'Update Canceled'
 
+  #Setup the observatory
   .then ->
     Observatory.settings
       prefix: '[Generate Release] '
@@ -140,21 +139,18 @@ module.exports = (args) ->
 
   #Run pre commit commands
   .then ->
-    Promise
-    .try ->
+    try
       observatory_tasks.pre_commit_commands.status('Running')
       for command in options.pre_commit_commands
         observatory_tasks.pre_commit_commands.status command
         runArbitraryCommand command for command in options.pre_commit_commands
       observatory_tasks.pre_commit_commands.done('Complete')
-    .catch (err) ->
-      git_commands.reset()
-      throw err
+    catch err
+      throw new GitResetError err
 
   #Commit files
   .then ->
-    Promise
-    .try ->
+    try
       files = [options.readme_file_location, options.package_file_location]
 
       for file in options.additional_files_to_commit
@@ -165,33 +161,30 @@ module.exports = (args) ->
       observatory_tasks.git_commit.status('Committing')
       git_commands.commit files
       observatory_tasks.git_commit.done('Complete')
-    .catch (err) ->
-      git_commands.reset()
-      throw err
+    catch err
+      throw new GitResetError err
 
   #Run post commit commands
   .then ->
-    observatory_tasks.post_commit_commands.status('Running')
+    try
+      observatory_tasks.post_commit_commands.status('Running')
 
-    for command in options.post_commit_commands
-      try
+      for command in options.post_commit_commands
         observatory_tasks.post_commit_commands.status command
         runArbitraryCommand command
-      catch error
-        console.error error.message
 
-    observatory_tasks.post_commit_commands.done('Complete')
+      observatory_tasks.post_commit_commands.done('Complete')
+    catch err
+      throw new GitResetError err
 
   #Git Finish
   .then ->
-    Promise
-    .try ->
+    try
       observatory_tasks.git_finish.status('Finishing')
       git_commands.finish()
       observatory_tasks.git_finish.done('Complete')
-    .catch (err) ->
-      git_commands.reset()
-      throw err
+    catch err
+      throw new GitResetError err
 
   #Git Push
   .then ->
@@ -211,13 +204,20 @@ module.exports = (args) ->
         observatory_tasks.post_complete_commands.status command
         runArbitraryCommand command
       catch error
+        #TODO make this better. Currently, the error message may not be seen...
         console.error error.message
 
     observatory_tasks.post_complete_commands.done('Complete')
+
+  #Reset on GitResetError
+  .catch GitResetError, (err) ->
+    console.log 'test'
+    git_commands.reset()
+    throw err
 
   #Print the errors
   .catch (err) ->
     if IS_DEBUG
       throw err
-    console.log err.message
+    console.error err.message
     process.exit 1

@@ -17,7 +17,7 @@
 
   extend = require('extend');
 
-  HelpError = require('./HelpError');
+  HelpError = require('./error/HelpError');
 
   args = {
     show_help: ['h', 'help'],
