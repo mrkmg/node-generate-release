@@ -92,7 +92,7 @@
       this.exec(['checkout', this.develop_branch]);
       this.exec(['pull', this.remote, this.develop_branch, '--rebase']);
       this.exec(['checkout', this.master_branch]);
-      return this.exec(['reset', '--hard', remote + "/" + master_branch]);
+      return this.exec(['reset', '--hard', this.remote + "/" + this.master_branch]);
     };
 
     GitCommands.prototype.push = function() {

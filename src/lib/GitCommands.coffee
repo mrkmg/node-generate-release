@@ -48,7 +48,7 @@ class GitCommands
     @exec ['checkout', @develop_branch]
     @exec ['pull', @remote, @develop_branch, '--rebase']
     @exec ['checkout', @master_branch]
-    @exec ['reset', '--hard', "#{remote}/#{master_branch}"]
+    @exec ['reset', '--hard', "#{@remote}/#{@master_branch}"]
 
   push: =>
     @exec ['push', @remote, @develop_branch]
