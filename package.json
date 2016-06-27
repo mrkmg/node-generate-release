@@ -19,7 +19,7 @@
     "compile": "coffee --compile --output main/ src/",
     "compile-watch": "coffee --compile --watch --output main/ src",
     "test": "npm run lint && npm run unit && npm run cover",
-    "lint": "coffeelint -f .coffeelint.json src",
+    "lint": "coffeelint -f .coffeelint.json src test",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
     "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
     "coveralls": "istanbul-coveralls",

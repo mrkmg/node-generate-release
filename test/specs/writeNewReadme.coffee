@@ -11,7 +11,7 @@ assert = Chai.assert
 
 Temp = require 'temp'
 FS = require 'fs'
-writeNewReadme = require '../../src/lib/writeNewReadme'
+writeNewReadme = require '../../src/lib/helper/writeNewReadme'
 
 describe 'writeNewReadme', ->
   file_path = undefined

@@ -10,7 +10,6 @@ Chai.use(require 'chai-as-promised')
 assert = Chai.assert
 
 Path = require 'path'
-Minimist = require 'minimist'
 Temp = require 'temp'
 Exec = require('child_process').execSync
 rmdir = require 'rmdir'
@@ -29,8 +28,7 @@ describe 'Options', ->
     rmdir temp_dir, cb
 
   it 'should have default options set properly', ->
-    options = new Options {}
-    options.parse()
+    options = new Options []
 
     assert.equal options.readme_file_location, Path.resolve './README.md'
     assert.equal options.package_file_location, Path.resolve './package.json'
@@ -45,7 +43,8 @@ describe 'Options', ->
 
 
   it 'should parse cli options properly', ->
-    options = new Options Minimist [
+    options = new Options [
+      'node', 'script'
       '-r', './alt.README.md'
       '-p', './alt.package.json'
       '-c', '1.2.3'
@@ -57,8 +56,6 @@ describe 'Options', ->
       '-s'
       '-m'
     ]
-
-    options.parse()
 
     assert.equal options.readme_file_location, Path.resolve './alt.README.md'
     assert.equal options.package_file_location, Path.resolve './alt.package.json'
@@ -72,8 +69,10 @@ describe 'Options', ->
     assert.equal options.set_release_message, true
 
   it 'should parse release file options correctly', ->
-    options = new Options Minimist ['-d', './all.release.json']
-    options.parse()
+    options = new Options [
+      'node', 'script'
+      '-d', './all.release.json'
+    ]
 
     assert.equal options.readme_file_location, Path.resolve './alt.README.md'
     assert.equal options.package_file_location, Path.resolve './alt.package.json'
@@ -85,5 +84,3 @@ describe 'Options', ->
     assert.sameMembers options.pre_commit_commands, ['test1']
     assert.sameMembers options.post_commit_commands, ['test2']
     assert.sameMembers options.additional_files_to_commit, ['test3']
-
-
