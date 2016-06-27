@@ -8,188 +8,126 @@ existsSync = require 'exists-sync'
 Path = require 'path'
 pick = require 'object.pick'
 extend = require 'extend'
+Minimist = require 'minimist'
 HelpError = require './error/HelpError'
 
-args =
-  show_help: ['h', 'help']
-  readme_file_location: ['r', 'readme']
-  package_file_location: ['p', 'package']
-  dot_release_file_location: ['d', 'release-file']
-  current_version: ['c', 'current-version']
-  release_type: ['t', 'release-type']
-  no_confirm: ['n', 'no-confirm']
-  skip_git_pull: ['l', 'skip-git-pull']
-  skip_git_push: ['s', 'skip-git-push']
-  set_release_message: ['m', 'set-release-message']
-  remote: ['o', 'remote']
 
-release_file_allowed_keys = [
-  'readme_file_location'
-  'package_file_location'
-  'no_confirm'
-  'skip_git_pull'
-  'skip_git_push'
-  'pre_commit_commands'
-  'post_commit_commands'
-  'post_complete_commands'
-  'additional_files_to_commit'
-  'set_release_message'
-  'remote'
-]
+options =
+  show_help:
+    default: false
+    switches: ['h', 'help']
+    file_key: false
+    validate: (input) -> typeof input is 'boolean'
+  readme_file_location:
+    default: './README.md'
+    switches: ['r', 'readme']
+    file_key: 'readme_file_location'
+    filter: (input) -> Path.resolve input
+    validate: (input) -> typeof input is 'string' and existsSync(input)
+  package_file_location:
+    default: './package.json'
+    switches: ['p', 'package']
+    file_key: 'package_file_location'
+    filter: (input) -> Path.resolve input
+    validate: (input) -> typeof input is 'string' and existsSync(input)
+  dot_release_file_location:
+    default: './.release.json'
+    switches: ['d', 'release-file']
+    file_key: false
+    filter: (input) -> Path.resolve input
+    validate: (input) -> typeof input is 'string'
+  no_confirm:
+    default: false
+    switches: ['n', 'no-confirm']
+    file_key: 'no_confirm'
+    validate: (input) -> typeof input is 'boolean'
+  release_type:
+    default: null
+    switches: ['t', 'release-type']
+    file_key: 'release_type'
+    validate: (input) -> input is null or (typeof input is 'string' and input in ['patch', 'minor', 'major'])
+  current_version:
+    default: null
+    switches: ['c', 'current-version']
+    file_key: false
+    validate: (input) -> input is null or typeof input is 'string'
+  remote:
+    default: 'origin'
+    switches: ['o', 'remote']
+    file_key: 'remote'
+    validate: (input) -> typeof input is 'string'
+  skip_git_pull:
+    default: false
+    switches: ['l', 'skip-git-pull']
+    file_key: 'skip_git_pull'
+    validate: (input) -> typeof input is 'boolean'
+  skip_git_push:
+    default: false
+    switches: ['s', 'skip-git-push']
+    file_key: 'skip_git_push'
+    validate: (input) -> typeof input is 'boolean'
+  set_release_message:
+    default: false
+    switches: ['m', 'set-release-message']
+    file_key: 'set_release_message'
+    validate: (input) -> typeof input is 'boolean'
+  pre_commit_commands:
+    default: []
+    switches: false
+    file_key: 'pre_commit_commands'
+    validate: (input) -> Array.isArray input
+  post_commit_commands:
+    default: []
+    switches: false
+    file_key: 'post_commit_commands'
+    validate: (input) -> Array.isArray input
+  post_complete_commands:
+    default: []
+    switches: false
+    file_key: 'post_complete_commands'
+    validate: (input) -> Array.isArray input
+  additional_files_to_commit:
+    default: []
+    switches: false
+    file_key: 'additional_files_to_commit'
+    validate: (input) -> Array.isArray input
 
 class Options
-  readme_file_location: './README.md'
-  package_file_location: './package.json'
-  dot_release_file_location: './.release.json'
-  no_confirm: false
-  release_type: null
-  current_version: null
-  remote: 'origin'
-  skip_git_pull: false
-  skip_git_push: false
-  set_release_message: false
-  pre_commit_commands: []
-  post_commit_commands: []
-  post_complete_commands: []
-  additional_files_to_commit: []
-  validation_error: '\n'
+  _file_data: {}
 
-  constructor: (@args) ->
+  constructor: (args) ->
+    @args = Minimist args.slice 2
 
-  readArgsFromFile: ->
+    # Get Release File First
+    @getOption 'dot_release_file_location', options.dot_release_file_location
+    @loadFileData()
+    @getAllOptions()
+
+  getAllOptions: ->
+    @getOption(key, opts) for key, opts of options
+
+  getOption: (key, opts) ->
+    value = undefined
+
+    value = @getSwitchValue(opts.switches) if opts.switches isnt false
+    value = @getFileValue(opts.file_key)   if value is undefined and opts.file_key isnt false
+    value = opts.default                   if value is undefined
+    value = opts.filter value              if opts.filter?
+
+    if opts.validate?
+      unless opts.validate value
+        throw new Error "Invalid Value for #{key}: #{value}"
+
+    @[key] = value
+
+  loadFileData: ->
     if existsSync @dot_release_file_location
-      file_properties = require @dot_release_file_location
-      extend @, pick file_properties, release_file_allowed_keys
+      @_file_data = require @dot_release_file_location
 
-  parse: ->
-    if @getArgumentValue 'show_help'
-      throw new HelpError
+  getFileValue: (key) ->
+    if @_file_data[key]? then @_file_data[key]
 
-    @dot_release_file_location = Path.resolve((@getArgumentValue 'dot_release_file_location') or @dot_release_file_location)
-
-    @readArgsFromFile()
-
-    @readme_file_location = Path.resolve((@getArgumentValue 'readme_file_location') or @readme_file_location)
-    @package_file_location = Path.resolve((@getArgumentValue 'package_file_location') or @package_file_location)
-    @release_type = (@getArgumentValue 'release_type') or @release_type
-    @no_confirm = (@getArgumentValue 'no_confirm') or @no_confirm
-    @current_version = (@getArgumentValue 'current_version') or @current_version
-    @skip_git_pull = (@getArgumentValue 'skip_git_pull') or @skip_git_pull
-    @skip_git_push = (@getArgumentValue 'skip_git_push') or @skip_git_push
-    @set_release_message = (@getArgumentValue 'set_release_message') or @set_release_message
-    @remote = (@getArgumentValue 'remote') or @remote
-
-    @validateArguments()
-
-  validateArguments: ->
-    (
-      @validateReadmeFileLocation() and
-      @validatePackageFileLocation() and
-      @validateReleaseType() and
-      @validateNoConfirm() and
-      @validateSkipGitPull() and
-      @validateSkipGitPush() and
-      @validatePreCommitCommands() and
-      @validatePostCommitCommands() and
-      @validatePostCompleteCommands() and
-      @validateAdditionalFilesToCommit() and
-      @validateSetReleaseMessage() and
-      @validateRemote()
-    ) or throw new HelpError @validation_error
-
-  validateReadmeFileLocation: ->
-    unless existsSync @readme_file_location
-      @validation_error += "Readme does not exist: #{@readme_file_location}\n"
-      false
-    else
-      true
-
-  validatePackageFileLocation: ->
-    unless existsSync @package_file_location
-      @validation_error += "Package file does not exist: #{@package_file_location}\n"
-      false
-    else
-      true
-
-  validateCurrentVersion: ->
-    unless (not @current_version) or (@current_version.test /(\d+\.){2}\d+/)
-      @validation_error += "Invalid current version: #{@current_version}\n"
-      false
-    else
-      true
-
-  validateReleaseType: ->
-    unless (not @release_type) or (@release_type in ['patch', 'minor', 'major'])
-      @validation_error += "Unknown release type: #{@release_type}\n"
-      false
-    else
-      true
-
-  validateNoConfirm: ->
-    unless typeof @no_confirm is 'boolean'
-      @validation_error += 'Invalid value for no-confirm\n'
-      false
-    else
-      true
-
-  validateRemote: ->
-    unless typeof @remote is 'string'
-      @validation_error += 'Invalid value for remote\n'
-      false
-    else
-      true
-
-  validateSkipGitPush: ->
-    unless typeof @skip_git_push is 'boolean'
-      @validation_error += 'Invalid value for skip-git-push\n'
-      false
-    else
-      true
-
-  validateSkipGitPull: ->
-    unless typeof @skip_git_pull is 'boolean'
-      @validation_error += 'Invalid value for skip-git-pull\n'
-      false
-    else
-      true
-
-  validatePreCommitCommands: ->
-    unless Array.isArray @pre_commit_commands
-      @validation_error += 'Pre Git Commands must be an array\n'
-      false
-    else
-      true
-
-  validatePostCommitCommands: ->
-    unless Array.isArray @post_commit_commands
-      @validation_error += 'Post Git Commands must be an array\n'
-      false
-    else
-      true
-
-  validatePostCompleteCommands: ->
-    unless Array.isArray @post_complete_commands
-      @validation_error += 'Post Complete Commands must be an array\n'
-      false
-    else
-      true
-
-  validateAdditionalFilesToCommit: ->
-    unless Array.isArray @additional_files_to_commit
-      @validation_error += 'Additional Files to Commit must be an array\n'
-      false
-    else
-      true
-
-  validateSetReleaseMessage: ->
-    unless typeof @set_release_message is 'boolean'
-      @validation_error += 'Invalid value for set-release-message\n'
-      false
-    else
-      true
-
-  getArgumentValue: (argument) ->
-    t = @
-    (t.args[arg] for arg in args[argument] when t.args[arg])[0]
+  getSwitchValue: (switches) ->
+    (@args[s] for s in switches when @args[s]?)[0]
 
 module.exports = Options

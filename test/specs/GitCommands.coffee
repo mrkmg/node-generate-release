@@ -15,7 +15,7 @@ GitCommands = require '../../src/lib/GitCommands'
 
 describe 'GitCommands', ->
   before ->
-    this.settings =
+    @settings =
       master_branch: 'test_master_branch'
       develop_branch: 'test_develop_branch'
       remote: 'test_remote'
@@ -23,49 +23,49 @@ describe 'GitCommands', ->
       next_version: 'test_next_version'
       release_message: 'test_release_message'
 
-    this.spawnSync = Sinon.stub ChildProcess, 'spawnSync', ->
+    @spawnSync = Sinon.stub ChildProcess, 'spawnSync', ->
       status: 0
 
   beforeEach ->
-    this.git_commands = new GitCommands this.settings
+    @git_commands = new GitCommands @settings
 
   afterEach ->
-    this.spawnSync.reset()
+    @spawnSync.reset()
 
   after ->
-    this.spawnSync.restore()
+    @spawnSync.restore()
 
   it 'pull', ->
-    this.git_commands.pull()
+    @git_commands.pull()
 
-    assert.deepEqual this.spawnSync.args[0][1], ['fetch', 'test_remote']
-    assert.deepEqual this.spawnSync.args[1][1], ['checkout', 'test_develop_branch']
-    assert.deepEqual this.spawnSync.args[2][1], ['pull', 'test_remote', 'test_develop_branch', '--rebase']
-    assert.deepEqual this.spawnSync.args[3][1], ['checkout', 'test_master_branch']
-    assert.deepEqual this.spawnSync.args[4][1], ['reset', '--hard', 'test_remote/test_master_branch']
+    assert.deepEqual @spawnSync.args[0][1], ['fetch', 'test_remote']
+    assert.deepEqual @spawnSync.args[1][1], ['checkout', 'test_develop_branch']
+    assert.deepEqual @spawnSync.args[2][1], ['pull', 'test_remote', 'test_develop_branch', '--rebase']
+    assert.deepEqual @spawnSync.args[3][1], ['checkout', 'test_master_branch']
+    assert.deepEqual @spawnSync.args[4][1], ['reset', '--hard', 'test_remote/test_master_branch']
 
   it 'push', ->
-    this.git_commands.push()
-    assert.deepEqual this.spawnSync.args[0][1], ['push', 'test_remote', 'test_develop_branch']
-    assert.deepEqual this.spawnSync.args[1][1], ['push', 'test_remote', 'test_master_branch']
-    assert.deepEqual this.spawnSync.args[2][1], ['push', 'test_remote', '--tags']
+    @git_commands.push()
+    assert.deepEqual @spawnSync.args[0][1], ['push', 'test_remote', 'test_develop_branch']
+    assert.deepEqual @spawnSync.args[1][1], ['push', 'test_remote', 'test_master_branch']
+    assert.deepEqual @spawnSync.args[2][1], ['push', 'test_remote', '--tags']
 
   it 'reset', ->
-    this.git_commands.reset()
-    assert.deepEqual this.spawnSync.args[0][1], ['checkout', 'test_develop_branch']
-    assert.deepEqual this.spawnSync.args[1][1], ['reset', '--hard', 'HEAD']
-    assert.deepEqual this.spawnSync.args[2][1], ['branch', '-D', 'release/test_next_version']
+    @git_commands.reset()
+    assert.deepEqual @spawnSync.args[0][1], ['checkout', 'test_develop_branch']
+    assert.deepEqual @spawnSync.args[1][1], ['reset', '--hard', 'HEAD']
+    assert.deepEqual @spawnSync.args[2][1], ['branch', '-D', 'release/test_next_version']
 
   it 'start', ->
-    this.git_commands.start()
-    assert.deepEqual this.spawnSync.args[0][1], ['checkout', 'test_develop_branch']
-    assert.deepEqual this.spawnSync.args[1][1], ['flow', 'release', 'start', 'test_next_version']
+    @git_commands.start()
+    assert.deepEqual @spawnSync.args[0][1], ['checkout', 'test_develop_branch']
+    assert.deepEqual @spawnSync.args[1][1], ['flow', 'release', 'start', 'test_next_version']
 
   it 'commit', ->
-    this.git_commands.commit(['test_file'])
-    assert.deepEqual this.spawnSync.args[0][1], ['add', 'test_file']
-    assert.deepEqual this.spawnSync.args[1][1], ['commit', '-m', 'test_release_message']
+    @git_commands.commit(['test_file'])
+    assert.deepEqual @spawnSync.args[0][1], ['add', 'test_file']
+    assert.deepEqual @spawnSync.args[1][1], ['commit', '-m', 'test_release_message']
 
   it 'finish', ->
-    this.git_commands.finish()
-    assert.deepEqual this.spawnSync.args[0][1], ['flow', 'release', 'finish', '-m', 'test_release_message', 'test_next_version']
+    @git_commands.finish()
+    assert.deepEqual @spawnSync.args[0][1], ['flow', 'release', 'finish', '-m', 'test_release_message', 'test_next_version']

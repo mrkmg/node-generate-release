@@ -14,14 +14,14 @@
     "level": "error"
   },
   "colon_assignment_spacing": {
-    "level": "ignore",
+    "level": "error",
     "spacing": {
       "left": 0,
-      "right": 0
+      "right": 1
     }
   },
   "cyclomatic_complexity": {
-    "level": "ignore",
+    "level": "warn",
     "value": 10
   },
   "duplicate_key": {
@@ -114,13 +114,13 @@
     "level": "error"
   },
   "no_unnecessary_fat_arrows": {
-    "level": "warn"
+    "level": "error"
   },
   "non_empty_constructor_needs_parens": {
     "level": "ignore"
   },
   "prefer_english_operator": {
-    "level": "ignore",
+    "level": "warn",
     "doubleNotLevel": "ignore"
   },
   "space_operators": {

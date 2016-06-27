@@ -22,10 +22,6 @@ GitCommands = require '../../src/lib/GitCommands'
 main = require '../../src/index'
 
 describe 'run', ->
-  before ->
-    @starting_debug = process.env.IS_DEBUG
-    process.env.IS_DEBUG = true
-
   beforeEach ->
     @arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
     @starting_dir = process.cwd()
@@ -36,9 +32,6 @@ describe 'run', ->
   afterEach (cb) ->
     process.chdir @starting_dir
     rmdir @temp_dir, cb
-
-  after ->
-    process.env.IS_DEBUG = @starting_debug
 
   it 'Should run correctly', ->
     Promise
@@ -65,15 +58,10 @@ describe 'run', ->
     .try =>
       main @arguments
     .catch -> true #throw away error, we expect it.
-    .then =>
+    .then ->
       assert reset_spy.called
       assert exit_stub.calledWith(1)
     .finally ->
       exit_stub.restore()
       commit_stub.restore()
       reset_spy.restore()
-
-
-
-
-

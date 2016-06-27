@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var HelpError, Options, Path, args, existsSync, extend, pick, release_file_allowed_keys;
+  var HelpError, Minimist, Options, Path, existsSync, extend, options, pick;
 
   existsSync = require('exists-sync');
 
@@ -17,224 +17,210 @@
 
   extend = require('extend');
 
+  Minimist = require('minimist');
+
   HelpError = require('./error/HelpError');
 
-  args = {
-    show_help: ['h', 'help'],
-    readme_file_location: ['r', 'readme'],
-    package_file_location: ['p', 'package'],
-    dot_release_file_location: ['d', 'release-file'],
-    current_version: ['c', 'current-version'],
-    release_type: ['t', 'release-type'],
-    no_confirm: ['n', 'no-confirm'],
-    skip_git_pull: ['l', 'skip-git-pull'],
-    skip_git_push: ['s', 'skip-git-push'],
-    set_release_message: ['m', 'set-release-message'],
-    remote: ['o', 'remote']
+  options = {
+    show_help: {
+      "default": false,
+      switches: ['h', 'help'],
+      file_key: false,
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    readme_file_location: {
+      "default": './README.md',
+      switches: ['r', 'readme'],
+      file_key: 'readme_file_location',
+      filter: function(input) {
+        return Path.resolve(input);
+      },
+      validate: function(input) {
+        return typeof input === 'string' && existsSync(input);
+      }
+    },
+    package_file_location: {
+      "default": './package.json',
+      switches: ['p', 'package'],
+      file_key: 'package_file_location',
+      filter: function(input) {
+        return Path.resolve(input);
+      },
+      validate: function(input) {
+        return typeof input === 'string' && existsSync(input);
+      }
+    },
+    dot_release_file_location: {
+      "default": './.release.json',
+      switches: ['d', 'release-file'],
+      file_key: false,
+      filter: function(input) {
+        return Path.resolve(input);
+      },
+      validate: function(input) {
+        return typeof input === 'string';
+      }
+    },
+    no_confirm: {
+      "default": false,
+      switches: ['n', 'no-confirm'],
+      file_key: 'no_confirm',
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    release_type: {
+      "default": null,
+      switches: ['t', 'release-type'],
+      file_key: 'release_type',
+      validate: function(input) {
+        return input === null || (typeof input === 'string' && (input === 'patch' || input === 'minor' || input === 'major'));
+      }
+    },
+    current_version: {
+      "default": null,
+      switches: ['c', 'current-version'],
+      file_key: false,
+      validate: function(input) {
+        return input === null || typeof input === 'string';
+      }
+    },
+    remote: {
+      "default": 'origin',
+      switches: ['o', 'remote'],
+      file_key: 'remote',
+      validate: function(input) {
+        return typeof input === 'string';
+      }
+    },
+    skip_git_pull: {
+      "default": false,
+      switches: ['l', 'skip-git-pull'],
+      file_key: 'skip_git_pull',
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    skip_git_push: {
+      "default": false,
+      switches: ['s', 'skip-git-push'],
+      file_key: 'skip_git_push',
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    set_release_message: {
+      "default": false,
+      switches: ['m', 'set-release-message'],
+      file_key: 'set_release_message',
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    pre_commit_commands: {
+      "default": [],
+      switches: false,
+      file_key: 'pre_commit_commands',
+      validate: function(input) {
+        return Array.isArray(input);
+      }
+    },
+    post_commit_commands: {
+      "default": [],
+      switches: false,
+      file_key: 'post_commit_commands',
+      validate: function(input) {
+        return Array.isArray(input);
+      }
+    },
+    post_complete_commands: {
+      "default": [],
+      switches: false,
+      file_key: 'post_complete_commands',
+      validate: function(input) {
+        return Array.isArray(input);
+      }
+    },
+    additional_files_to_commit: {
+      "default": [],
+      switches: false,
+      file_key: 'additional_files_to_commit',
+      validate: function(input) {
+        return Array.isArray(input);
+      }
+    }
   };
 
-  release_file_allowed_keys = ['readme_file_location', 'package_file_location', 'no_confirm', 'skip_git_pull', 'skip_git_push', 'pre_commit_commands', 'post_commit_commands', 'post_complete_commands', 'additional_files_to_commit', 'set_release_message', 'remote'];
-
   Options = (function() {
-    Options.prototype.readme_file_location = './README.md';
+    Options.prototype._file_data = {};
 
-    Options.prototype.package_file_location = './package.json';
-
-    Options.prototype.dot_release_file_location = './.release.json';
-
-    Options.prototype.no_confirm = false;
-
-    Options.prototype.release_type = null;
-
-    Options.prototype.current_version = null;
-
-    Options.prototype.remote = 'origin';
-
-    Options.prototype.skip_git_pull = false;
-
-    Options.prototype.skip_git_push = false;
-
-    Options.prototype.set_release_message = false;
-
-    Options.prototype.pre_commit_commands = [];
-
-    Options.prototype.post_commit_commands = [];
-
-    Options.prototype.post_complete_commands = [];
-
-    Options.prototype.additional_files_to_commit = [];
-
-    Options.prototype.validation_error = '\n';
-
-    function Options(args1) {
-      this.args = args1;
+    function Options(args) {
+      this.args = Minimist(args.slice(2));
+      this.getOption('dot_release_file_location', options.dot_release_file_location);
+      this.loadFileData();
+      this.getAllOptions();
     }
 
-    Options.prototype.readArgsFromFile = function() {
-      var file_properties;
+    Options.prototype.getAllOptions = function() {
+      var key, opts, results;
+      results = [];
+      for (key in options) {
+        opts = options[key];
+        results.push(this.getOption(key, opts));
+      }
+      return results;
+    };
+
+    Options.prototype.getOption = function(key, opts) {
+      var value;
+      value = void 0;
+      if (opts.switches !== false) {
+        value = this.getSwitchValue(opts.switches);
+      }
+      if (value === void 0 && opts.file_key !== false) {
+        value = this.getFileValue(opts.file_key);
+      }
+      if (value === void 0) {
+        value = opts["default"];
+      }
+      if (opts.filter != null) {
+        value = opts.filter(value);
+      }
+      if (opts.validate != null) {
+        if (!opts.validate(value)) {
+          throw new Error("Invalid Value for " + key + ": " + value);
+        }
+      }
+      return this[key] = value;
+    };
+
+    Options.prototype.loadFileData = function() {
       if (existsSync(this.dot_release_file_location)) {
-        file_properties = require(this.dot_release_file_location);
-        return extend(this, pick(file_properties, release_file_allowed_keys));
+        return this._file_data = require(this.dot_release_file_location);
       }
     };
 
-    Options.prototype.parse = function() {
-      if (this.getArgumentValue('show_help')) {
-        throw new HelpError;
-      }
-      this.dot_release_file_location = Path.resolve((this.getArgumentValue('dot_release_file_location')) || this.dot_release_file_location);
-      this.readArgsFromFile();
-      this.readme_file_location = Path.resolve((this.getArgumentValue('readme_file_location')) || this.readme_file_location);
-      this.package_file_location = Path.resolve((this.getArgumentValue('package_file_location')) || this.package_file_location);
-      this.release_type = (this.getArgumentValue('release_type')) || this.release_type;
-      this.no_confirm = (this.getArgumentValue('no_confirm')) || this.no_confirm;
-      this.current_version = (this.getArgumentValue('current_version')) || this.current_version;
-      this.skip_git_pull = (this.getArgumentValue('skip_git_pull')) || this.skip_git_pull;
-      this.skip_git_push = (this.getArgumentValue('skip_git_push')) || this.skip_git_push;
-      this.set_release_message = (this.getArgumentValue('set_release_message')) || this.set_release_message;
-      this.remote = (this.getArgumentValue('remote')) || this.remote;
-      return this.validateArguments();
-    };
-
-    Options.prototype.validateArguments = function() {
-      return (this.validateReadmeFileLocation() && this.validatePackageFileLocation() && this.validateReleaseType() && this.validateNoConfirm() && this.validateSkipGitPull() && this.validateSkipGitPush() && this.validatePreCommitCommands() && this.validatePostCommitCommands() && this.validatePostCompleteCommands() && this.validateAdditionalFilesToCommit() && this.validateSetReleaseMessage() && this.validateRemote()) || (function() {
-        throw new HelpError(this.validation_error);
-      }).call(this);
-    };
-
-    Options.prototype.validateReadmeFileLocation = function() {
-      if (!existsSync(this.readme_file_location)) {
-        this.validation_error += "Readme does not exist: " + this.readme_file_location + "\n";
-        return false;
-      } else {
-        return true;
+    Options.prototype.getFileValue = function(key) {
+      if (this._file_data[key] != null) {
+        return this._file_data[key];
       }
     };
 
-    Options.prototype.validatePackageFileLocation = function() {
-      if (!existsSync(this.package_file_location)) {
-        this.validation_error += "Package file does not exist: " + this.package_file_location + "\n";
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateCurrentVersion = function() {
-      if (!((!this.current_version) || (this.current_version.test(/(\d+\.){2}\d+/)))) {
-        this.validation_error += "Invalid current version: " + this.current_version + "\n";
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateReleaseType = function() {
-      var ref;
-      if (!((!this.release_type) || ((ref = this.release_type) === 'patch' || ref === 'minor' || ref === 'major'))) {
-        this.validation_error += "Unknown release type: " + this.release_type + "\n";
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateNoConfirm = function() {
-      if (typeof this.no_confirm !== 'boolean') {
-        this.validation_error += 'Invalid value for no-confirm\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateRemote = function() {
-      if (typeof this.remote !== 'string') {
-        this.validation_error += 'Invalid value for remote\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateSkipGitPush = function() {
-      if (typeof this.skip_git_push !== 'boolean') {
-        this.validation_error += 'Invalid value for skip-git-push\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateSkipGitPull = function() {
-      if (typeof this.skip_git_pull !== 'boolean') {
-        this.validation_error += 'Invalid value for skip-git-pull\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validatePreCommitCommands = function() {
-      if (!Array.isArray(this.pre_commit_commands)) {
-        this.validation_error += 'Pre Git Commands must be an array\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validatePostCommitCommands = function() {
-      if (!Array.isArray(this.post_commit_commands)) {
-        this.validation_error += 'Post Git Commands must be an array\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validatePostCompleteCommands = function() {
-      if (!Array.isArray(this.post_complete_commands)) {
-        this.validation_error += 'Post Complete Commands must be an array\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateAdditionalFilesToCommit = function() {
-      if (!Array.isArray(this.additional_files_to_commit)) {
-        this.validation_error += 'Additional Files to Commit must be an array\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.validateSetReleaseMessage = function() {
-      if (typeof this.set_release_message !== 'boolean') {
-        this.validation_error += 'Invalid value for set-release-message\n';
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    Options.prototype.getArgumentValue = function(argument) {
-      var arg, t;
-      t = this;
+    Options.prototype.getSwitchValue = function(switches) {
+      var s;
       return ((function() {
-        var i, len, ref, results;
-        ref = args[argument];
+        var i, len, results;
         results = [];
-        for (i = 0, len = ref.length; i < len; i++) {
-          arg = ref[i];
-          if (t.args[arg]) {
-            results.push(t.args[arg]);
+        for (i = 0, len = switches.length; i < len; i++) {
+          s = switches[i];
+          if (this.args[s] != null) {
+            results.push(this.args[s]);
           }
         }
         return results;
-      })())[0];
+      }).call(this))[0];
     };
 
     return Options;

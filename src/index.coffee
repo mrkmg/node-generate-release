@@ -7,7 +7,6 @@
 IS_DEBUG = process.env.IS_DEBUG?
 
 Promise = require 'bluebird'
-Minimist = require 'minimist'
 Glob = require 'glob'
 Path = require 'path'
 Observatory = require 'observatory'
@@ -19,12 +18,13 @@ GitFlowSettings = require './lib/GitFlowSettings'
 
 GitResetError = require './lib/error/GitResetError'
 
-askReleaseType = require './lib/askReleaseType'
-askConfirmUpdate = require './lib/askConfirmUpdate'
-askReleaseMessage = require './lib/askReleaseMessage'
-incrementVersion = require './lib/incrementVersion'
-writeNewReadme = require './lib/writeNewReadme'
-runArbitraryCommand = require './lib/runArbitraryCommand'
+askReleaseType = require './lib/question/askReleaseType'
+askConfirmUpdate = require './lib/question/askConfirmUpdate'
+askReleaseMessage = require './lib/question/askReleaseMessage'
+
+incrementVersion = require './lib/helper/incrementVersion'
+writeNewReadme = require './lib/helper/writeNewReadme'
+runArbitraryCommand = require './lib/helper/runArbitraryCommand'
 
 module.exports = (args) ->
   options = undefined
@@ -37,12 +37,7 @@ module.exports = (args) ->
   Promise
   #Parse Arguments
   .try ->
-    args.slice 2
-  .then Minimist
-  .then (mArgs) ->
-    options = new Options mArgs
-  .then ->
-    options.parse()
+    options = new Options args
 
   #Retreive Git Flow Settings
   .then ->
@@ -81,8 +76,12 @@ module.exports = (args) ->
 
   #Confirm the Release
   .then ->
-    unless options.no_confirm or askConfirmUpdate options.current_version, options.next_version
-      throw new Error 'Update Canceled'
+    unless options.no_confirm
+      askConfirmUpdate options.current_version, options.next_version
+    else
+      true
+  .then (confirmed) ->
+    throw new Error('Update canceled') unless confirmed
 
   #Setup the observatory
   .then ->
@@ -211,7 +210,6 @@ module.exports = (args) ->
 
   #Reset on GitResetError
   .catch GitResetError, (err) ->
-    console.log 'test'
     git_commands.reset()
     throw err
 
