@@ -7,13 +7,11 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, GitResetError, Glob, IS_DEBUG, Minimist, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, GitResetError, Glob, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
   Promise = require('bluebird');
-
-  Minimist = require('minimist');
 
   Glob = require('glob');
 
@@ -31,17 +29,17 @@
 
   GitResetError = require('./lib/error/GitResetError');
 
-  askReleaseType = require('./lib/askReleaseType');
+  askReleaseType = require('./lib/question/askReleaseType');
 
-  askConfirmUpdate = require('./lib/askConfirmUpdate');
+  askConfirmUpdate = require('./lib/question/askConfirmUpdate');
 
-  askReleaseMessage = require('./lib/askReleaseMessage');
+  askReleaseMessage = require('./lib/question/askReleaseMessage');
 
-  incrementVersion = require('./lib/incrementVersion');
+  incrementVersion = require('./lib/helper/incrementVersion');
 
-  writeNewReadme = require('./lib/writeNewReadme');
+  writeNewReadme = require('./lib/helper/writeNewReadme');
 
-  runArbitraryCommand = require('./lib/runArbitraryCommand');
+  runArbitraryCommand = require('./lib/helper/runArbitraryCommand');
 
   module.exports = function(args) {
     var git_commands, git_flow_settings, observatory_tasks, options, package_file, release_message;
@@ -52,11 +50,7 @@
     observatory_tasks = void 0;
     release_message = void 0;
     return Promise["try"](function() {
-      return args.slice(2);
-    }).then(Minimist).then(function(mArgs) {
-      return options = new Options(mArgs);
-    }).then(function() {
-      return options.parse();
+      return options = new Options(args);
     }).then(function() {
       git_flow_settings = new GitFlowSettings(Path.resolve('./'));
       return git_flow_settings.parseIni();
@@ -85,8 +79,14 @@
     }).then(function(text) {
       return release_message = text;
     }).then(function() {
-      if (!(options.no_confirm || askConfirmUpdate(options.current_version, options.next_version))) {
-        throw new Error('Update Canceled');
+      if (!options.no_confirm) {
+        return askConfirmUpdate(options.current_version, options.next_version);
+      } else {
+        return true;
+      }
+    }).then(function(confirmed) {
+      if (!confirmed) {
+        throw new Error('Update canceled');
       }
     }).then(function() {
       Observatory.settings({
@@ -220,7 +220,6 @@
       }
       return observatory_tasks.post_complete_commands.done('Complete');
     })["catch"](GitResetError, function(err) {
-      console.log('test');
       git_commands.reset();
       throw err;
     })["catch"](function(err) {
