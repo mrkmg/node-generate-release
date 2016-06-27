@@ -11,7 +11,7 @@ ChildProcess = require('child_process')
 Chai.use(require 'chai-as-promised')
 assert = Chai.assert
 
-GitCommands = require '../../src/lib/GitCommands'
+GitCommands = require '../../../src/lib/GitCommands'
 
 describe 'GitCommands', ->
   before ->

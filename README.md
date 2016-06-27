@@ -1,6 +1,11 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
+[![Generate Release on Travis CI](https://img.shields.io/travis/mrkmg/node-generate-release.svg?style=flat-square)](https://travis-ci.org/mrkmg/node-generate-release/branches)
+[![Coverage Status](https://img.shields.io/coveralls/mrkmg/node-generate-release/master.svg?style=flat-square)](https://coveralls.io/github/mrkmg/node-generate-release?branch=master)
+[![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
+[![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
 Current Version: 0.6.2
 
 Requires NodeJS v4.0.0 or greater

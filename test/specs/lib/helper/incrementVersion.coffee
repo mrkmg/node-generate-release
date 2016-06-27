@@ -9,7 +9,7 @@ Chai = require 'chai'
 Chai.use(require 'chai-as-promised')
 assert = Chai.assert
 
-incrementVersion = require '../../src/lib/helper/incrementVersion'
+incrementVersion = require '../../../../src/lib/helper/incrementVersion'
 
 describe 'incrementVersion', ->
   it 'increment without prefix', ->
