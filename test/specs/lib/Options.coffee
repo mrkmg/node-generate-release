@@ -13,7 +13,7 @@ Path = require 'path'
 Temp = require 'temp'
 Exec = require('child_process').execSync
 rmdir = require 'rmdir'
-Options = require '../../src/lib/Options'
+Options = require '../../../src/lib/Options'
 
 describe 'Options', ->
   starting_dir = process.cwd()

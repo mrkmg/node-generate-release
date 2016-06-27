@@ -4,6 +4,12 @@ node_js:
   - 5
   - 4
 language: node_js
+notifications:
+  email:
+    recipients:
+      - kevin@mrkmg.com
+    on_success: [change]
+    on_failure: [always]
 script: PATH="$PATH:~/bin" npm test
 before_install:
   - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh

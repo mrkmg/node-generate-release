@@ -17,6 +17,7 @@ PackageFile = require './lib/PackageFile'
 GitFlowSettings = require './lib/GitFlowSettings'
 
 GitResetError = require './lib/error/GitResetError'
+HelpError = require './lib/error/HelpError'
 
 askReleaseType = require './lib/question/askReleaseType'
 askConfirmUpdate = require './lib/question/askConfirmUpdate'
@@ -38,6 +39,10 @@ module.exports = (args) ->
   #Parse Arguments
   .try ->
     options = new Options args
+
+  #Check for help flag
+  .then ->
+    if options.show_help then throw new HelpError
 
   #Retreive Git Flow Settings
   .then ->
@@ -208,10 +213,18 @@ module.exports = (args) ->
 
     observatory_tasks.post_complete_commands.done('Complete')
 
+  .then ->
+    process.exit 0
+
   #Reset on GitResetError
   .catch GitResetError, (err) ->
     git_commands.reset()
     throw err
+
+  #Show usage/help
+  .catch HelpError, (err) ->
+    console.log err.message
+    process.exit 0
 
   #Print the errors
   .catch (err) ->

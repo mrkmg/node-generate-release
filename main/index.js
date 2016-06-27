@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, GitResetError, Glob, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, GitResetError, Glob, HelpError, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -28,6 +28,8 @@
   GitFlowSettings = require('./lib/GitFlowSettings');
 
   GitResetError = require('./lib/error/GitResetError');
+
+  HelpError = require('./lib/error/HelpError');
 
   askReleaseType = require('./lib/question/askReleaseType');
 
@@ -51,6 +53,10 @@
     release_message = void 0;
     return Promise["try"](function() {
       return options = new Options(args);
+    }).then(function() {
+      if (options.show_help) {
+        throw new HelpError;
+      }
     }).then(function() {
       git_flow_settings = new GitFlowSettings(Path.resolve('./'));
       return git_flow_settings.parseIni();
@@ -219,9 +225,14 @@
         }
       }
       return observatory_tasks.post_complete_commands.done('Complete');
+    }).then(function() {
+      return process.exit(0);
     })["catch"](GitResetError, function(err) {
       git_commands.reset();
       throw err;
+    })["catch"](HelpError, function(err) {
+      console.log(err.message);
+      return process.exit(0);
     })["catch"](function(err) {
       if (IS_DEBUG) {
         throw err;

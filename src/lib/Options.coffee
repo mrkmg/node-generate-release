@@ -9,8 +9,6 @@ Path = require 'path'
 pick = require 'object.pick'
 extend = require 'extend'
 Minimist = require 'minimist'
-HelpError = require './error/HelpError'
-
 
 options =
   show_help:

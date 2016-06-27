@@ -131,5 +131,10 @@
   },
   "transform_messes_up_line_numbers": {
     "level": "warn"
+  },
+  "limit_newlines": {
+    "module": "coffeelint-limit-newlines",
+    "level": "error",
+    "value": 2
   }
 }

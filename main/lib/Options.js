@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var HelpError, Minimist, Options, Path, existsSync, extend, options, pick;
+  var Minimist, Options, Path, existsSync, extend, options, pick;
 
   existsSync = require('exists-sync');
 
@@ -18,8 +18,6 @@
   extend = require('extend');
 
   Minimist = require('minimist');
-
-  HelpError = require('./error/HelpError');
 
   options = {
     show_help: {

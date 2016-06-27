@@ -22,21 +22,26 @@ GitCommands = require '../../src/lib/GitCommands'
 main = require '../../src/index'
 
 describe 'run', ->
+  before ->
+    @run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
+    @help_arguments = ['node', 'script', '-h']
+
   beforeEach ->
-    @arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
+    @exit_stub = Sinon.stub(process, 'exit')
     @starting_dir = process.cwd()
     @temp_dir = Temp.path()
 
     setTestRepo @temp_dir
 
   afterEach (cb) ->
+    @exit_stub.restore()
     process.chdir @starting_dir
     rmdir @temp_dir, cb
 
   it 'Should run correctly', ->
     Promise
     .try =>
-      main @arguments
+      main @run_arguments
     .then =>
       package_file = JSON.parse FS.readFileSync "#{@temp_dir}/package.json"
       readme_file = FS.readFileSync "#{@temp_dir}/README.md"
@@ -48,20 +53,31 @@ describe 'run', ->
       assert FS.existsSync "#{@temp_dir}/pre_command"
       assert FS.existsSync "#{@temp_dir}/post_command"
       assert FS.existsSync "#{@temp_dir}/post_complete"
+      assert @exit_stub.calledWith(0)
 
   it 'Should reset on command failure', ->
     commit_stub = Sinon.stub(GitCommands.prototype, 'commit').throws()
     reset_spy = Sinon.spy(GitCommands.prototype, 'reset')
-    exit_stub = Sinon.stub(process, 'exit', -> 0)
 
     Promise
     .try =>
-      main @arguments
+      main @run_arguments
     .catch -> true #throw away error, we expect it.
-    .then ->
+    .then =>
       assert reset_spy.called
-      assert exit_stub.calledWith(1)
+      assert @exit_stub.calledWith(1)
     .finally ->
-      exit_stub.restore()
       commit_stub.restore()
       reset_spy.restore()
+
+  it 'Should show help', ->
+    stdout_spy = Sinon.spy(process.stdout, 'write')
+
+    Promise
+    .try =>
+      main @help_arguments
+    .then =>
+      assert stdout_spy.calledWith('generate-release\n\n-r, --readme               Path to README.md file. Default: ./README.md\n-p, --package              Path to package.json file. Default: ./package.json\n-c, --current-version      Current Version. Default: read from package.json\n-t, --release-type         Release Type: patch, minor, major. Default: prompt\n-n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation\n-l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull\n-s, --skip-git-push        Do not push to origin when complete. Default: Do push\n-d, --release-file         Path to your .release.json file. Default: ./.release.json\n-m, --set-release-message  Prompt to write a release message. Default: Release {version}\n-o, --remote               Change the remote. Default: origin\n\n\n')
+      assert @exit_stub.calledWith(0)
+    .finally ->
+      stdout_spy.restore()
