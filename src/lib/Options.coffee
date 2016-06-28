@@ -16,12 +16,6 @@ options =
     switches: ['h', 'help']
     file_key: false
     validate: (input) -> typeof input is 'boolean'
-  readme_file_location:
-    default: './README.md'
-    switches: ['r', 'readme']
-    file_key: 'readme_file_location'
-    filter: (input) -> Path.resolve input
-    validate: (input) -> typeof input is 'string' and existsSync(input)
   package_file_location:
     default: './package.json'
     switches: ['p', 'package']
@@ -84,10 +78,15 @@ options =
     switches: false
     file_key: 'post_complete_commands'
     validate: (input) -> Array.isArray input
-  additional_files_to_commit:
+  files_to_version:
+    default: ['README.md']
+    switches: false
+    file_key: 'files_to_version'
+    validate: (input) -> Array.isArray input
+  files_to_commit:
     default: []
     switches: false
-    file_key: 'additional_files_to_commit'
+    file_key: 'files_to_commit'
     validate: (input) -> Array.isArray input
 
 class Options

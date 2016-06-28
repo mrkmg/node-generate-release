@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, GitResetError, Glob, HelpError, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, runArbitraryCommand, writeNewReadme;
+  var GitCommands, GitFlowSettings, GitResetError, Glob, HelpError, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, replaceVersionInFile, runArbitraryCommand;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
@@ -39,7 +39,7 @@
 
   incrementVersion = require('./lib/helper/incrementVersion');
 
-  writeNewReadme = require('./lib/helper/writeNewReadme');
+  replaceVersionInFile = require('./lib/helper/replaceVersionInFile');
 
   runArbitraryCommand = require('./lib/helper/runArbitraryCommand');
 
@@ -131,8 +131,19 @@
       git_commands.start();
       return observatory_tasks.git_start.done('Complete');
     }).then(function() {
-      observatory_tasks.write_files.status('readme');
-      return writeNewReadme(options.readme_file_location, options.current_version, options.next_version);
+      var err, error1, file, i, len, ref;
+      try {
+        ref = options.files_to_version;
+        for (i = 0, len = ref.length; i < len; i++) {
+          file = ref[i];
+          observatory_tasks.write_files.status(file);
+          replaceVersionInFile(file, options.current_version, options.next_version);
+        }
+        return observatory_tasks.write_files.done('Complete');
+      } catch (error1) {
+        err = error1;
+        throw new GitResetError(err);
+      }
     }).then(function() {
       observatory_tasks.write_files.status('package');
       package_file.setVersion(options.next_version);
@@ -160,8 +171,8 @@
     }).then(function() {
       var err, error1, file, files, i, j, len, len1, ref, tmp_file, tmp_files;
       try {
-        files = [options.readme_file_location, options.package_file_location];
-        ref = options.additional_files_to_commit;
+        files = [options.package_file_location].concat(options.files_to_version).concat(options.files_to_commit);
+        ref = options.files_to_commit;
         for (i = 0, len = ref.length; i < len; i++) {
           file = ref[i];
           tmp_files = Glob.sync(file);

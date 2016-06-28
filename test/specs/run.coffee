@@ -48,7 +48,7 @@ describe 'run', ->
       tag_check_result = Exec 'git tag -l 1.2.4'
 
       assert.equal package_file.version, '1.2.4'
-      assert.equal readme_file.toString(), 'test repo\n1.2.4\n'
+      assert.equal readme_file.toString(), 'TEST FILE\n=========\n\n1.2.4'
       assert.equal tag_check_result.toString(), '1.2.4\n'
       assert FS.existsSync "#{@temp_dir}/pre_command"
       assert FS.existsSync "#{@temp_dir}/post_command"
@@ -77,7 +77,7 @@ describe 'run', ->
     .try =>
       main @help_arguments
     .then =>
-      assert stdout_spy.calledWith('generate-release\n\n-r, --readme               Path to README.md file. Default: ./README.md\n-p, --package              Path to package.json file. Default: ./package.json\n-c, --current-version      Current Version. Default: read from package.json\n-t, --release-type         Release Type: patch, minor, major. Default: prompt\n-n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation\n-l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull\n-s, --skip-git-push        Do not push to origin when complete. Default: Do push\n-d, --release-file         Path to your .release.json file. Default: ./.release.json\n-m, --set-release-message  Prompt to write a release message. Default: Release {version}\n-o, --remote               Change the remote. Default: origin\n\n\n')
+      assert stdout_spy.calledWith('generate-release\n\n-p, --package              Path to package.json file. Default: ./package.json\n-c, --current-version      Current Version. Default: read from package.json\n-t, --release-type         Release Type: patch, minor, major. Default: prompt\n-n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation\n-l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull\n-s, --skip-git-push        Do not push to origin when complete. Default: Do push\n-d, --release-file         Path to your .release.json file. Default: ./.release.json\n-m, --set-release-message  Prompt to write a release message. Default: Release {version}\n-o, --remote               Change the remote. Default: origin\n\n\n')
       assert @exit_stub.calledWith(0)
     .finally ->
       stdout_spy.restore()

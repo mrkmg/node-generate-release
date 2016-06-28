@@ -24,7 +24,7 @@ askConfirmUpdate = require './lib/question/askConfirmUpdate'
 askReleaseMessage = require './lib/question/askReleaseMessage'
 
 incrementVersion = require './lib/helper/incrementVersion'
-writeNewReadme = require './lib/helper/writeNewReadme'
+replaceVersionInFile = require './lib/helper/replaceVersionInFile'
 runArbitraryCommand = require './lib/helper/runArbitraryCommand'
 
 module.exports = (args) ->
@@ -129,10 +129,15 @@ module.exports = (args) ->
     git_commands.start()
     observatory_tasks.git_start.done('Complete')
 
-  #Write Readme
+  #Write Version Files
   .then ->
-    observatory_tasks.write_files.status('readme')
-    writeNewReadme options.readme_file_location, options.current_version, options.next_version
+    try
+      for file in options.files_to_version
+        observatory_tasks.write_files.status(file)
+        replaceVersionInFile file, options.current_version, options.next_version
+      observatory_tasks.write_files.done('Complete')
+    catch err
+      throw new GitResetError err
 
   #Write package
   .then ->
@@ -155,9 +160,11 @@ module.exports = (args) ->
   #Commit files
   .then ->
     try
-      files = [options.readme_file_location, options.package_file_location]
+      files = [options.package_file_location]
+      .concat options.files_to_version
+      .concat options.files_to_commit
 
-      for file in options.additional_files_to_commit
+      for file in options.files_to_commit
         tmp_files = Glob.sync file
         for tmp_file in tmp_files
           files.push Path.resolve tmp_file

@@ -47,29 +47,29 @@ This is the default process.
 1. Verify the working directory is clean
 1. Reads git-flow settings from repo config file
 1. Reads Current version from package.json file and generates the new version
-1. Fetches from origin
-1. Rebases origin/develop into develop
-1. Resets master to origin/master
+1. Fetches from `remote`
+1. Rebases `remote`/develop into develop
+1. Resets master to `remote`/master
 1. Starts a git-flow release named the new version number
-1. Changes the version number in your README.md file and package.json file
-1. Commits the changes to the README.md and package.json file
-1. Runs all `pre_commit_commands`, if any of those commands fail, the release is canceled and 
-     everything is reset.
+1. Changes the version number in package.json and any files in `files_to_version`
+1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
+1. Runs all `pre_commit_commands`
 1. Commits Files
-1. Runs all `post_commit_commands`, if any of those commands fail, the release is canceled and 
-     everything is reset.
+1. Runs all `post_commit_commands`
 1. Runs the git-flow finish release command
-1. Pushes master, develop, and tags to origin
-1. Runs all the `post_complete_commands`. These commands can fail without affecting the release
+1. Pushes master, develop, and tags to `remote`
+1. Runs all the `post_complete_commands`
 
-Many aspects of this process can be changed using the options below.
+If any of the steps aside from the `post_complete_commands` step fail, the entire release is canceled and everything is
+reset. Also, many aspects of this process can be changed using the options below.
 
 Options
 --------
 
+**CLI**
+
 run `generate-release --help` to see this as well.
 
-    -r, --readme               Path to README.md file. Default: ./README.md
     -p, --package              Path to package.json file. Default: ./package.json
     -c, --current-version      Current Version. Default: read from package.json
     -t, --release-type         Release Type: patch, minor, major. Default: prompt
@@ -80,8 +80,7 @@ run `generate-release --help` to see this as well.
     -m, --set-release-message  Prompt to write a release message. Default: Release {version}
     -o, --remote               Change the remote. Default: origin
 
-Release File
-------------
+**Release File**
 
 By default, the following options can be set in a `.release.json` file. The following
 is an example with all files set.
@@ -97,11 +96,12 @@ is an example with all files set.
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],
-          "additional_files_to_commit": []
+          "files_to_commit": []
+          "files_to_version": ["README.md"]
       }
       
-The `additional_files_to_commit` use [node-glob](https://github.com/isaacs/node-glob). See the
-documentation located there on how to format those options
+The `files_to_commit` and `files_to_version` use [node-glob](https://github.com/isaacs/node-glob). See the
+documentation located there on how to format those options.
 
 Building Assets, Running Tests, and Publishing Package
 --------------------------------
@@ -127,7 +127,7 @@ following assumptions are made:
         "post_complete_commands": [
             "npm publish"
         ],
-        "additional_files_to_commit": [
+        "files_to_commit": [
             "./build/**/*"
         ]
     }
@@ -139,7 +139,7 @@ Roadmap
 - Code coverage for tests **Partial**
 - ~~Change remote (not origin)~~
 - ~~Allow for custom hook (like running gulp or grunt during release to prepare assets)~~
-- Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)
+- ~~Ability to define arbitrary files to replace version in (like source code files, other MD's, etc)~~
 - ~~Use and parse a .release file to parse defaults (instead of using cli switches)~~
 - ~~Custom release message~~
 - ~~Read git-flow configuration from .git folder~~
