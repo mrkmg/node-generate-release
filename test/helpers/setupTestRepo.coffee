@@ -1,8 +1,53 @@
 Exec = require('child_process').execSync
+FS = require('fs')
 
 module.exports = (temp_dir) ->
-  Exec "git clone https://github.com/mrkmg/node-generate-release-test-repo.git #{temp_dir}", stdio: 'pipe'
+  FS.mkdirSync temp_dir
   process.chdir temp_dir
-  Exec 'git flow init -d', stdio: 'pipe'
-  Exec 'git remote rm origin'
-  Exec 'git remote add test https://github.com/mrkmg/node-generate-release-test-repo.git'
+  FS.writeFileSync 'package.json', package_json
+  FS.writeFileSync 'alt.package.json', package_json
+  FS.writeFileSync '.release.json', release_json
+  FS.writeFileSync '.alt.release.json', release_json
+  FS.writeFileSync '.all.release.json', all_release_json
+  FS.writeFileSync 'README.md', readme_md
+
+  Exec 'git init', stdio: 'ignore'
+  Exec 'git add -A'
+  Exec 'git commit -m "Commit"', stdio: 'pipe'
+  Exec 'git flow init -d', stdio: 'ignore'
+
+
+readme_md = '''
+TEST FILE
+=========
+
+1.2.3
+'''
+
+package_json = '''
+{"version":"1.2.3"}
+'''
+
+release_json = '''
+{
+  "pre_commit_commands": ["echo pre commit", "touch ./pre_command"],
+  "post_commit_commands": ["echo post commit", "touch ./post_command"],
+  "post_complete_commands": ["echo post complete", "touch ./post_complete"]
+}
+'''
+
+all_release_json = '''
+{
+  "readme_file_location": "./alt.README.md",
+  "package_file_location": "./alt.package.json",
+  "no_confirm": true,
+  "skip_git_pull": true,
+  "skip_git_push": true,
+  "pre_commit_commands": ["test1"],
+  "post_commit_commands": ["test2"],
+  "files_to_commit": ["test3"],
+  "files_to_version": ["test5"],
+  "set_release_message": true,
+  "remote": "test4"
+}
+'''

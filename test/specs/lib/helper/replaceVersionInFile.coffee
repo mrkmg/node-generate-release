@@ -11,21 +11,19 @@ assert = Chai.assert
 
 Temp = require 'temp'
 FS = require 'fs'
-writeNewReadme = require '../../../../src/lib/helper/writeNewReadme'
+replaceVersionInFile = require '../../../../src/lib/helper/replaceVersionInFile'
 
-describe 'writeNewReadme', ->
-  file_path = undefined
-
+describe 'replaceVersionInFile', ->
   before ->
-    file_path = Temp.path '.md'
+    @file_path = Temp.path '.md'
 
   beforeEach ->
-    FS.writeFileSync file_path, 'abc 1.2.3 abc'
+    FS.writeFileSync @file_path, 'abc 1.2.3 abc'
 
   afterEach ->
-    FS.unlink file_path
+    FS.unlink @file_path
 
   it 'should write new version to readme correctly', ->
-    writeNewReadme file_path, '1.2.3', '1.2.4'
-    message = FS.readFileSync file_path
+    replaceVersionInFile @file_path, '1.2.3', '1.2.4'
+    message = FS.readFileSync @file_path
     assert.equal message.toString(), 'abc 1.2.4 abc'

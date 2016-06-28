@@ -28,17 +28,6 @@
         return typeof input === 'boolean';
       }
     },
-    readme_file_location: {
-      "default": './README.md',
-      switches: ['r', 'readme'],
-      file_key: 'readme_file_location',
-      filter: function(input) {
-        return Path.resolve(input);
-      },
-      validate: function(input) {
-        return typeof input === 'string' && existsSync(input);
-      }
-    },
     package_file_location: {
       "default": './package.json',
       switches: ['p', 'package'],
@@ -141,10 +130,18 @@
         return Array.isArray(input);
       }
     },
-    additional_files_to_commit: {
+    files_to_version: {
+      "default": ['README.md'],
+      switches: false,
+      file_key: 'files_to_version',
+      validate: function(input) {
+        return Array.isArray(input);
+      }
+    },
+    files_to_commit: {
       "default": [],
       switches: false,
-      file_key: 'additional_files_to_commit',
+      file_key: 'files_to_commit',
       validate: function(input) {
         return Array.isArray(input);
       }

@@ -9,7 +9,6 @@ class HelpError extends Error
     @message = """
       generate-release
 
-      -r, --readme               Path to README.md file. Default: ./README.md
       -p, --package              Path to package.json file. Default: ./package.json
       -c, --current-version      Current Version. Default: read from package.json
       -t, --release-type         Release Type: patch, minor, major. Default: prompt
