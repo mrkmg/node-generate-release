@@ -131,11 +131,20 @@
       git_commands.start();
       return observatory_tasks.git_start.done('Complete');
     }).then(function() {
-      var err, error1, file, i, len, ref;
+      var err, error1, file, files, i, item, j, k, len, len1, len2, ref, ref1;
       try {
+        files = [];
         ref = options.files_to_version;
         for (i = 0, len = ref.length; i < len; i++) {
-          file = ref[i];
+          item = ref[i];
+          ref1 = Glob.sync(item);
+          for (j = 0, len1 = ref1.length; j < len1; j++) {
+            file = ref1[j];
+            files.push(Path.resolve(file));
+          }
+        }
+        for (k = 0, len2 = files.length; k < len2; k++) {
+          file = files[k];
           observatory_tasks.write_files.status(file);
           replaceVersionInFile(file, options.current_version, options.next_version);
         }
@@ -169,16 +178,25 @@
         throw new GitResetError(err);
       }
     }).then(function() {
-      var err, error1, file, files, i, j, len, len1, ref, tmp_file, tmp_files;
+      var err, error1, file, files, i, item, j, k, l, len, len1, len2, len3, ref, ref1, ref2, ref3;
       try {
-        files = [options.package_file_location].concat(options.files_to_version).concat(options.files_to_commit);
+        files = [options.package_file_location];
         ref = options.files_to_commit;
         for (i = 0, len = ref.length; i < len; i++) {
-          file = ref[i];
-          tmp_files = Glob.sync(file);
-          for (j = 0, len1 = tmp_files.length; j < len1; j++) {
-            tmp_file = tmp_files[j];
-            files.push(Path.resolve(tmp_file));
+          item = ref[i];
+          ref1 = Glob.sync(item);
+          for (j = 0, len1 = ref1.length; j < len1; j++) {
+            file = ref1[j];
+            files.push(Path.resolve(file));
+          }
+        }
+        ref2 = options.files_to_version;
+        for (k = 0, len2 = ref2.length; k < len2; k++) {
+          item = ref2[k];
+          ref3 = Glob.sync(item);
+          for (l = 0, len3 = ref3.length; l < len3; l++) {
+            file = ref3[l];
+            files.push(Path.resolve(file));
           }
         }
         observatory_tasks.git_commit.status('Committing');
