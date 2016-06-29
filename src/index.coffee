@@ -7,7 +7,6 @@
 IS_DEBUG = process.env.IS_DEBUG?
 
 Promise = require 'bluebird'
-Glob = require 'glob'
 Path = require 'path'
 Observatory = require 'observatory'
 
@@ -26,6 +25,7 @@ askReleaseMessage = require './lib/question/askReleaseMessage'
 incrementVersion = require './lib/helper/incrementVersion'
 replaceVersionInFile = require './lib/helper/replaceVersionInFile'
 runArbitraryCommand = require './lib/helper/runArbitraryCommand'
+globNormalize = require './lib/helper/globNormalize'
 
 module.exports = (args) ->
   options = undefined
@@ -132,8 +132,7 @@ module.exports = (args) ->
   #Write Version Files
   .then ->
     try
-      files = []
-      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_version
+      files = globNormalize options.files_to_version
       for file in files
         observatory_tasks.write_files.status(file)
         replaceVersionInFile file, options.current_version, options.next_version
@@ -162,11 +161,7 @@ module.exports = (args) ->
   #Commit files
   .then ->
     try
-      files = [options.package_file_location]
-
-      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_commit
-      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_version
-
+      files = globNormalize options.package_file_location, options.files_to_commit, options.files_to_version
       observatory_tasks.git_commit.status('Committing')
       git_commands.commit files
       observatory_tasks.git_commit.done('Complete')
