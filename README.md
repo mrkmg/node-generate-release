@@ -10,6 +10,8 @@ Current Version: 0.7.2
 
 Requires NodeJS v4.0.0 or greater
 
+![Generate Release Example](https://cloud.githubusercontent.com/assets/399561/16465518/272a62be-3e0d-11e6-8691-44441a3b0629.gif)
+
 
 Usage
 -----
