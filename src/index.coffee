@@ -132,7 +132,9 @@ module.exports = (args) ->
   #Write Version Files
   .then ->
     try
-      for file in options.files_to_version
+      files = []
+      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_version
+      for file in files
         observatory_tasks.write_files.status(file)
         replaceVersionInFile file, options.current_version, options.next_version
       observatory_tasks.write_files.done('Complete')
@@ -161,13 +163,9 @@ module.exports = (args) ->
   .then ->
     try
       files = [options.package_file_location]
-      .concat options.files_to_version
-      .concat options.files_to_commit
 
-      for file in options.files_to_commit
-        tmp_files = Glob.sync file
-        for tmp_file in tmp_files
-          files.push Path.resolve tmp_file
+      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_commit
+      files.push Path.resolve file for file in Glob.sync item for item in options.files_to_version
 
       observatory_tasks.git_commit.status('Committing')
       git_commands.commit files
