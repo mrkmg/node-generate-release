@@ -7,13 +7,11 @@
  */
 
 (function() {
-  var GitCommands, GitFlowSettings, GitResetError, Glob, HelpError, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, incrementVersion, replaceVersionInFile, runArbitraryCommand;
+  var GitCommands, GitFlowSettings, GitResetError, HelpError, IS_DEBUG, Observatory, Options, PackageFile, Path, Promise, askConfirmUpdate, askReleaseMessage, askReleaseType, globNormalize, incrementVersion, replaceVersionInFile, runArbitraryCommand;
 
   IS_DEBUG = process.env.IS_DEBUG != null;
 
   Promise = require('bluebird');
-
-  Glob = require('glob');
 
   Path = require('path');
 
@@ -42,6 +40,8 @@
   replaceVersionInFile = require('./lib/helper/replaceVersionInFile');
 
   runArbitraryCommand = require('./lib/helper/runArbitraryCommand');
+
+  globNormalize = require('./lib/helper/globNormalize');
 
   module.exports = function(args) {
     var git_commands, git_flow_settings, observatory_tasks, options, package_file, release_message;
@@ -131,20 +131,11 @@
       git_commands.start();
       return observatory_tasks.git_start.done('Complete');
     }).then(function() {
-      var err, error1, file, files, i, item, j, k, len, len1, len2, ref, ref1;
+      var err, error1, file, files, i, len;
       try {
-        files = [];
-        ref = options.files_to_version;
-        for (i = 0, len = ref.length; i < len; i++) {
-          item = ref[i];
-          ref1 = Glob.sync(item);
-          for (j = 0, len1 = ref1.length; j < len1; j++) {
-            file = ref1[j];
-            files.push(Path.resolve(file));
-          }
-        }
-        for (k = 0, len2 = files.length; k < len2; k++) {
-          file = files[k];
+        files = globNormalize(options.files_to_version);
+        for (i = 0, len = files.length; i < len; i++) {
+          file = files[i];
           observatory_tasks.write_files.status(file);
           replaceVersionInFile(file, options.current_version, options.next_version);
         }
@@ -178,27 +169,9 @@
         throw new GitResetError(err);
       }
     }).then(function() {
-      var err, error1, file, files, i, item, j, k, l, len, len1, len2, len3, ref, ref1, ref2, ref3;
+      var err, error1, files;
       try {
-        files = [options.package_file_location];
-        ref = options.files_to_commit;
-        for (i = 0, len = ref.length; i < len; i++) {
-          item = ref[i];
-          ref1 = Glob.sync(item);
-          for (j = 0, len1 = ref1.length; j < len1; j++) {
-            file = ref1[j];
-            files.push(Path.resolve(file));
-          }
-        }
-        ref2 = options.files_to_version;
-        for (k = 0, len2 = ref2.length; k < len2; k++) {
-          item = ref2[k];
-          ref3 = Glob.sync(item);
-          for (l = 0, len3 = ref3.length; l < len3; l++) {
-            file = ref3[l];
-            files.push(Path.resolve(file));
-          }
-        }
+        files = globNormalize(options.package_file_location, options.files_to_commit, options.files_to_version);
         observatory_tasks.git_commit.status('Committing');
         git_commands.commit(files);
         return observatory_tasks.git_commit.done('Complete');
