@@ -16,7 +16,7 @@
 
   env.GIT_MERGE_AUTOEDIT = 'no';
 
-  GIT_CLEAN_REGEX = /^nothing to commit, working directory clean$/m;
+  GIT_CLEAN_REGEX = /^nothing to commit,? \(?working directory clean\)?$/m;
 
   GitCommands = (function() {
     GitCommands.checkForCleanWorkingDirectory = function() {
