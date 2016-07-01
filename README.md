@@ -6,7 +6,7 @@ Generate a release for a project following semver using nodejs and gitflow
 [![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
 [![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-Current Version: 0.7.6
+Current Version: 0.7.7
 
 Requires NodeJS v4.0.0 or greater
 
@@ -41,6 +41,13 @@ Then add the following to your `package.json` file:
 
 Then you can run `npm run-script release` in order to generate a release.
 
+####Important notes for OSX
+
+Git-flow from nvie is broken on OSX, and `generate-release` will not work. Please use the updated and actively 
+maintained version from petervanderdoes, 
+[https://github.com/petervanderdoes/gitflow-avh](https://github.com/petervanderdoes/gitflow-avh). Please follow the 
+[OSX Install Guide](https://github.com/petervanderdoes/gitflow-avh/wiki/Installing-on-Mac-OS-X)
+
 What does it do?
 ----------------
 
@@ -54,16 +61,18 @@ This is the default process.
 1. Resets master to `remote`/master
 1. Starts a git-flow release named the new version number
 1. Changes the version number in package.json and any files in `files_to_version`
-1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
 1. Runs all `pre_commit_commands`
-1. Commits Files
+1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
+    1. *This will also commit any file deletions which may have occurred during the `pre_commit_commands`*
 1. Runs all `post_commit_commands`
 1. Runs the git-flow finish release command
 1. Pushes master, develop, and tags to `remote`
 1. Runs all the `post_complete_commands`
 
-If any of the steps aside from the `post_complete_commands` step fail, the entire release is canceled and everything is
-reset. Also, many aspects of this process can be changed using the options below.
+*If any of the steps aside from the `post_complete_commands` step fail, the entire release is canceled and everything
+is reset.*
+
+*All commands are run in either `sh` or `cmd.exe`. If `sh` is available, even on windows, it will use that first.*
 
 Options
 --------

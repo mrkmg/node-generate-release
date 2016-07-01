@@ -36,7 +36,6 @@ class GitCommands
     unless @next_version then throw new Error 'New Version is not set'
 
   exec: (args) ->
-
     result = ChildProcess.spawnSync 'git', args, {env: env, stdio: 'pipe'}
 
     unless result.status is 0

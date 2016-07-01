@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Generate a release using git-glow",
   "engines": {
     "node": ">=4.0.0"
@@ -23,7 +23,7 @@
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
     "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
     "coveralls": "istanbul-coveralls",
-    "release": "./bin/generate-release"
+    "release": "coffee -e 'require(\"./src\")([])'"
   },
   "files": [
     "bin",

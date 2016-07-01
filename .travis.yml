@@ -4,6 +4,9 @@ node_js:
   - 5
   - 4
 language: node_js
+os:
+  - linux
+  - osx
 notifications:
   email:
     recipients:
@@ -12,10 +15,14 @@ notifications:
     on_failure: [always]
 script: PATH="$PATH:~/bin" npm test
 before_install:
-  - curl -OL https://raw.github.com/nvie/gitflow/develop/contrib/gitflow-installer.sh
+  - curl -OL https://raw.github.com/petervanderdoes/gitflow-avh/develop/contrib/gitflow-installer.sh
   - chmod +x gitflow-installer.sh
   - mkdir ~/bin
-  - INSTALL_PREFIX=~/bin ./gitflow-installer.sh
+  - PREFIX=~ ./gitflow-installer.sh install stable
+  - if [ $TRAVIS_OS_NAME == "osx" ]; then
+      brew install gnu-getopt;
+      echo export FLAGS_GETOPT_CMD="$(brew --prefix gnu-getopt)/bin/getopt" >~/.gitflow_export;
+    fi
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
