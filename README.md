@@ -88,7 +88,6 @@ By default, the following options can be set in a `.release.json` file. The foll
 is an example with all files set.
 
       {
-          "readme_file_location": "./README.md",
           "package_file_location": "./package.json",
           "no_confirm": false,
           "skip_git_pull": false,
