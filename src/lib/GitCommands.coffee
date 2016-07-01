@@ -36,8 +36,14 @@ class GitCommands
     unless @next_version then throw new Error 'New Version is not set'
 
   exec: (args) ->
+    result = (
+      if process.platform is 'darwin'
+        str = 'git ' + args.map((arg) -> arg.replace /(["\s'$`\\])/g, '\\$1').join(' ')
+        ChildProcess.spawnSync 'sh', ['-c', str]
+      else
+        ChildProcess.spawnSync 'git', args, {env: env, stdio: 'pipe'}
+    )
 
-    result = ChildProcess.spawnSync 'git', args, {env: env, stdio: 'pipe'}
 
     unless result.status is 0
       throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
