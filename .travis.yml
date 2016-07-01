@@ -18,7 +18,7 @@ before_install:
   - curl -OL https://raw.github.com/petervanderdoes/gitflow-avh/develop/contrib/gitflow-installer.sh
   - chmod +x gitflow-installer.sh
   - mkdir ~/bin
-  - PREFIX=~/bin ./gitflow-installer.sh install stable
+  - PREFIX=~ ./gitflow-installer.sh install stable
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
