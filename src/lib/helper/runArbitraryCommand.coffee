@@ -4,13 +4,10 @@
   MIT License
 ###
 
-ParseSpawnArgs = require 'parse-spawn-args'
 SpawnSync = require('child_process').spawnSync
 
 module.exports = (command_string) ->
-  command_array = ParseSpawnArgs.parse command_string
-  command = command_array.shift()
-  ret = SpawnSync command, command_array, stdio: 'pipe'
+  ret = SpawnSync 'sh', ['-c', command_string], stdio: 'pipe'
 
   if ret.error
     throw ret.error

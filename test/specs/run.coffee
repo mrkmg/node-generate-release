@@ -53,6 +53,7 @@ describe 'run', ->
       assert FS.existsSync "#{@temp_dir}/pre_command"
       assert FS.existsSync "#{@temp_dir}/post_command"
       assert FS.existsSync "#{@temp_dir}/post_complete"
+      assert not FS.existsSync "#{@temp_dir}/deleteme"
       assert @exit_stub.calledWith(0)
 
   it 'Should reset on command failure', ->
