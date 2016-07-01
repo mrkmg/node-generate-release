@@ -23,7 +23,7 @@
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
     "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
     "coveralls": "istanbul-coveralls",
-    "release": "./bin/generate-release"
+    "release": "coffee -e 'require('./bin')([])'"
   },
   "files": [
     "bin",

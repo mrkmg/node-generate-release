@@ -54,9 +54,9 @@ This is the default process.
 1. Resets master to `remote`/master
 1. Starts a git-flow release named the new version number
 1. Changes the version number in package.json and any files in `files_to_version`
-1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
 1. Runs all `pre_commit_commands`
-1. Commits Files
+1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
+    1. *This will also commit any file deletions which may have occurred during the `pre_commit_commands`*
 1. Runs all `post_commit_commands`
 1. Runs the git-flow finish release command
 1. Pushes master, develop, and tags to `remote`
