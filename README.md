@@ -41,6 +41,10 @@ Then add the following to your `package.json` file:
 
 Then you can run `npm run-script release` in order to generate a release.
 
+**Git-flow from nvie is broken on OSX, and `generate-release` will not work. Please use the updated and actively 
+maintained version from petervanderdoes, 
+[https://github.com/petervanderdoes/gitflow-avh](https://github.com/petervanderdoes/gitflow-avh)**
+
 What does it do?
 ----------------
 
