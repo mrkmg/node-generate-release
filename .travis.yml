@@ -19,6 +19,10 @@ before_install:
   - chmod +x gitflow-installer.sh
   - mkdir ~/bin
   - PREFIX=~ ./gitflow-installer.sh install stable
+  - if [ $TRAVIS_OS_NAME == 'osx' ]; then
+      brew install gnu-getopt.
+      echo export FLAGS_GETOPT_CMD="$(brew --prefix gnu-getopt)/bin/getopt" >~/.gitflow_export
+    fi
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
