@@ -44,6 +44,7 @@
     function GitCommands(opts) {
       this.finish = bind(this.finish, this);
       this.commit = bind(this.commit, this);
+      this.addDeletedFiles = bind(this.addDeletedFiles, this);
       this.start = bind(this.start, this);
       this.reset = bind(this.reset, this);
       this.push = bind(this.push, this);
@@ -83,6 +84,11 @@
       if (result.status !== 0) {
         throw new Error((args.join(' ')) + " returned " + result.status + ". \n\n Output: \n\n " + result.stderr);
       }
+      if (result.stdout) {
+        return result.stdout.toString();
+      } else {
+        return '';
+      }
     };
 
     GitCommands.prototype.pull = function() {
@@ -110,8 +116,22 @@
       return this.exec(['flow', 'release', 'start', this.next_version]);
     };
 
+    GitCommands.prototype.addDeletedFiles = function() {
+      var file, files, i, len, results;
+      files = this.exec(['ls-files', '--deleted']).split('\n');
+      results = [];
+      for (i = 0, len = files.length; i < len; i++) {
+        file = files[i];
+        if (file !== '') {
+          results.push(this.exec(['rm', '--cached', file]));
+        }
+      }
+      return results;
+    };
+
     GitCommands.prototype.commit = function(files) {
       var file, i, len;
+      this.addDeletedFiles();
       for (i = 0, len = files.length; i < len; i++) {
         file = files[i];
         this.exec(['add', file]);

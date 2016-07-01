@@ -63,9 +63,11 @@
       return GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
       if (!this.options.release_type) {
-        return askReleaseType().then(function(release_type) {
-          return this.options.release_type = release_type;
-        });
+        return askReleaseType().then((function(_this) {
+          return function(release_type) {
+            return _this.options.release_type = release_type;
+          };
+        })(this));
       }
     }).then(function() {
       this.package_file = new PackageFile(this.options.package_file_location);

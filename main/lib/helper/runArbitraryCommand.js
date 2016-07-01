@@ -7,17 +7,13 @@
  */
 
 (function() {
-  var ParseSpawnArgs, SpawnSync;
-
-  ParseSpawnArgs = require('parse-spawn-args');
+  var SpawnSync;
 
   SpawnSync = require('child_process').spawnSync;
 
   module.exports = function(command_string) {
-    var command, command_array, ret;
-    command_array = ParseSpawnArgs.parse(command_string);
-    command = command_array.shift();
-    ret = SpawnSync(command, command_array, {
+    var ret;
+    ret = SpawnSync('sh', ['-c', command_string], {
       stdio: 'pipe'
     });
     if (ret.error) {
