@@ -62,8 +62,10 @@ This is the default process.
 1. Pushes master, develop, and tags to `remote`
 1. Runs all the `post_complete_commands`
 
-If any of the steps aside from the `post_complete_commands` step fail, the entire release is canceled and everything is
-reset. Also, many aspects of this process can be changed using the options below.
+*If any of the steps aside from the `post_complete_commands` step fail, the entire release is canceled and everything
+is reset.*
+
+*All commands are run in either `sh` or `cmd.exe`. If `sh` is available, even on windows, it will use that first.*
 
 Options
 --------
