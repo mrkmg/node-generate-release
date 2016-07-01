@@ -63,8 +63,8 @@ describe 'GitCommands', ->
 
   it 'commit', ->
     @git_commands.commit(['test_file'])
-    assert.deepEqual @spawnSync.args[0][1], ['add', 'test_file']
-    assert.deepEqual @spawnSync.args[1][1], ['commit', '-m', 'test_release_message']
+    assert.deepEqual @spawnSync.args[1][1], ['add', 'test_file']
+    assert.deepEqual @spawnSync.args[2][1], ['commit', '-m', 'test_release_message']
 
   it 'finish', ->
     @git_commands.finish()

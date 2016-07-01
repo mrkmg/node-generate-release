@@ -10,6 +10,7 @@ module.exports = (temp_dir) ->
   FS.writeFileSync '.alt.release.json', release_json
   FS.writeFileSync '.all.release.json', all_release_json
   FS.writeFileSync 'README.md', readme_md
+  FS.writeFileSync 'deleteme', 'testfile'
 
   Exec 'git init', stdio: 'ignore'
   Exec 'git add -A'
@@ -30,9 +31,9 @@ package_json = '''
 
 release_json = '''
 {
-  "pre_commit_commands": ["echo pre commit", "touch ./pre_command"],
-  "post_commit_commands": ["echo post commit", "touch ./post_command"],
-  "post_complete_commands": ["echo post complete", "touch ./post_complete"]
+  "pre_commit_commands": ["touch ./pre_command", "rm -f deleteme"],
+  "post_commit_commands": ["touch ./post_command"],
+  "post_complete_commands": ["touch ./post_complete"]
 }
 '''
 

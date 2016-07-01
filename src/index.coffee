@@ -55,7 +55,7 @@ module.exports = (args) ->
   #Get Release Type from options or by asking
   .then ->
     unless @options.release_type
-      askReleaseType().then (release_type) ->
+      askReleaseType().then (release_type) =>
         @options.release_type = release_type
 
   #Get Current Version

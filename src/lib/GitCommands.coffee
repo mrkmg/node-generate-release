@@ -42,6 +42,11 @@ class GitCommands
     unless result.status is 0
       throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
 
+    if result.stdout
+      result.stdout.toString()
+    else
+      ''
+
   pull: =>
     @exec ['fetch', @remote]
     @exec ['checkout', @develop_branch]
@@ -63,7 +68,12 @@ class GitCommands
     @exec ['checkout', @develop_branch]
     @exec ['flow', 'release', 'start', @next_version]
 
+  addDeletedFiles: =>
+    files = @exec(['ls-files', '--deleted']).split '\n'
+    @exec ['rm', '--cached', file] for file in files when file isnt ''
+
   commit: (files) =>
+    @addDeletedFiles()
     @exec ['add', file] for file in files
     @exec ['commit', '-m', @release_message]
 
