@@ -142,6 +142,19 @@ following assumptions are made:
         ]
     }
 
+Usage on a Non NPM Based Repo
+-----------------------------
+
+It's quite simple to use this on a non NPM based repo. The only npm specific aspect baked into Generate Release is the
+usage of the package.json file. In fact, you are able to use any json file which maintains a version property. If you
+are working on a PHP project which uses [Composer](https://getcomposer.org), the composer.json already has the required
+property. Either call generate-release with `-p composer.json` or set the `package_file_location` property of your
+`.release.json` file.
+
+If your project does not already contain a json file which maintains a version, you just use the `.release.json` 
+file! Just put a version property in the file and set `package_file_location` to ".release.json".
+
+
 Roadmap
 -------
 
