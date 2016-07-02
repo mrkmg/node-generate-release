@@ -6,7 +6,7 @@ Generate a release for a project following semver using nodejs and gitflow
 [![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
 [![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-Current Version: 0.7.7
+Current Version: 0.8.0
 
 Requires NodeJS v4.0.0 or greater
 
@@ -88,13 +88,13 @@ run `generate-release --help` to see this as well.
     -l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull
     -s, --skip-git-push        Do not push to origin when complete. Default: Do push
     -d, --release-file         Path to your .release.json file. Default: ./.release.json
-    -m, --set-release-message  Prompt to write a release message. Default: Release {version}
+    -m, --set-release-message  Prompt to write a release message. Default: Do no prompt, use "Release {version}"
     -o, --remote               Change the remote. Default: origin
 
 **Release File**
 
 By default, the following options can be set in a `.release.json` file. The following
-is an example with all files set.
+is an example with all default options set.
 
       {
           "package_file_location": "./package.json",
@@ -102,7 +102,7 @@ is an example with all files set.
           "skip_git_pull": false,
           "skip_git_push": false,
           "set_release_message": true,
-          "release": "origin",
+          "remote": "origin",
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],
@@ -141,6 +141,19 @@ following assumptions are made:
             "./build/**/*"
         ]
     }
+
+Usage on a Non NPM Based Repo
+-----------------------------
+
+It's quite simple to use this on a non NPM based repo. The only npm specific aspect baked into Generate Release is the
+usage of the package.json file. In fact, you are able to use any json file which maintains a version property. If you
+are working on a PHP project which uses [Composer](https://getcomposer.org), the composer.json already has the required
+property. Either call generate-release with `-p composer.json` or set the `package_file_location` property of your
+`.release.json` file.
+
+If your project does not already contain a json file which maintains a version, you just use the `.release.json` 
+file! Just put a version property in the file and set `package_file_location` to ".release.json".
+
 
 Roadmap
 -------

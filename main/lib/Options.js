@@ -7,15 +7,11 @@
  */
 
 (function() {
-  var Minimist, Options, Path, existsSync, extend, options, pick;
+  var Minimist, Options, Path, existsSync, options;
 
   existsSync = require('exists-sync');
 
   Path = require('path');
-
-  pick = require('object.pick');
-
-  extend = require('extend');
 
   Minimist = require('minimist');
 

@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "description": "Generate a release using git-glow",
   "engines": {
     "node": ">=4.0.0"
@@ -42,15 +42,11 @@
   "dependencies": {
     "bluebird": "^3.1.2",
     "exists-sync": "0.0.3",
-    "extend": "^3.0.0",
     "glob": "^7.0.4",
     "iniparser": "^1.0.5",
     "inquirer": "^1.1.0",
-    "js-yaml": "^3.6.1",
     "minimist": "^1.2.0",
-    "object.pick": "^1.1.2",
     "observatory": "^1.0.0",
-    "parse-spawn-args": "^1.0.2",
     "rmdir": "^1.2.0"
   },
   "devDependencies": {
@@ -64,7 +60,6 @@
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^2.3.4",
     "sinon": "^1.17.4",
-    "temp": "^0.8.3",
-    "uglify-js": "^2.6.2"
+    "temp": "^0.8.3"
   }
 }
