@@ -46,7 +46,7 @@ describe 'run', ->
       package_file = JSON.parse FS.readFileSync "#{@temp_dir}/package.json"
       readme_file = FS.readFileSync "#{@temp_dir}/README.md"
       tag_check_result = Exec 'git tag -l 1.2.4'
-      tag_message_result = Exec 'git --no-pager log -1 --decorate=short --format="%B" 1.2.4'
+      tag_message_result = Exec 'git --no-pager log -1 --decorate=short --format=\%B 1.2.4'
 
       assert.equal package_file.version, '1.2.4'
       assert.equal readme_file.toString(), 'TEST FILE\n=========\n\n1.2.4'
