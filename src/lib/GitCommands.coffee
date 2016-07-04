@@ -86,10 +86,10 @@ class GitCommands
 
   finish: =>
     if GitCommands.isAvhEdition()
-      finishAvh()
+      @finishAvh()
     else
-      finishNonAvh()
-      
+      @finishNonAvh()
+
   finishNonAvh: =>
     @exec ['flow', 'release', 'finish', '-m', @release_message, @next_version]
 
