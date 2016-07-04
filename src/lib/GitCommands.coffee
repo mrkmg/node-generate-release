@@ -4,18 +4,26 @@
   MIT License
 ###
 
-ChildProcess = require('child_process')
+FS = require 'fs'
+ChildProcess = require 'child_process'
+Temp = require 'temp'
 
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
 
 GIT_CLEAN_REGEX = /^nothing to commit,? \(?working directory clean\)?$/m
+AVH_EDITION_REGEX = /AVH Edition/
 
 class GitCommands
   @checkForCleanWorkingDirectory: ->
     status_result = ChildProcess.execSync 'git status', {env: env}
     unless GIT_CLEAN_REGEX.test status_result.toString()
       throw new Error 'Working directory is not clean, not ready for release'
+
+  @isAvhEdition: ->
+    version_result = ChildProcess.execSync 'git flow version', {env: env}
+    AVH_EDITION_REGEX.test version_result
+
 
   master_branch: 'master'
   develop_branch: 'develop'
@@ -77,7 +85,20 @@ class GitCommands
     @exec ['commit', '-m', @release_message]
 
   finish: =>
+    if GitCommands.isAvhEdition()
+      finishAvh()
+    else
+      finishNonAvh()
+      
+  finishNonAvh: =>
     @exec ['flow', 'release', 'finish', '-m', @release_message, @next_version]
+
+  finishAvh: =>
+    release_message_file = Temp.path()
+    FS.writeFileSync release_message_file, @release_message, 'utf8'
+    @exec ['flow', 'release', 'finish', '-f', release_message_file, @next_version]
+    FS.unlinkSync release_message_file
+
 
 
 module.exports = GitCommands
