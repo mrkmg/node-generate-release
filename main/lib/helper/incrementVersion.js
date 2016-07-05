@@ -14,7 +14,7 @@
   module.exports = function(version, type) {
     var version_split;
     if (!VERSION_REGEX.test(version)) {
-      throw new Error("Version does not batch semver: " + version);
+      throw new Error("Version does not match semver: " + version);
     }
     version_split = version.match(VERSION_REGEX)[0].split('.').map(function(t) {
       return parseInt(t);

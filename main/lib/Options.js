@@ -24,6 +24,14 @@
         return typeof input === 'boolean';
       }
     },
+    quiet: {
+      "default": false,
+      switches: ['q', 'quiet'],
+      file_key: false,
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
     package_file_location: {
       "default": './package.json',
       switches: ['p', 'package'],

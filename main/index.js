@@ -96,75 +96,101 @@
         throw new Error('Update canceled');
       }
     }).then(function() {
-      Observatory.settings({
-        prefix: '[Generate Release] '
-      });
-      return this.observatory_tasks = {
-        git_pull: Observatory.add('GIT: Pull from Origin'),
-        git_start: Observatory.add('GIT: Start Release'),
-        write_files: Observatory.add('Files: Write New Version'),
-        pre_commit_commands: Observatory.add('Commands: Pre Commit'),
-        git_commit: Observatory.add('GIT: Commit Files'),
-        post_commit_commands: Observatory.add('Commands: Post Commit'),
-        git_finish: Observatory.add('GIT: Finish Release'),
-        git_push: Observatory.add('GIT: Push to Origin'),
-        post_complete_commands: Observatory.add('Commands: Post Complete')
-      };
+      if (!this.options.quiet) {
+        Observatory.settings({
+          prefix: '[Generate Release] '
+        });
+        return this.observatory_tasks = {
+          git_pull: Observatory.add('GIT: Pull from Origin'),
+          git_start: Observatory.add('GIT: Start Release'),
+          write_files: Observatory.add('Files: Write New Version'),
+          pre_commit_commands: Observatory.add('Commands: Pre Commit'),
+          git_commit: Observatory.add('GIT: Commit Files'),
+          post_commit_commands: Observatory.add('Commands: Post Commit'),
+          git_finish: Observatory.add('GIT: Finish Release'),
+          git_push: Observatory.add('GIT: Push to Origin'),
+          post_complete_commands: Observatory.add('Commands: Post Complete')
+        };
+      }
     }).then(function() {
       return this.git_commands = new GitCommands({
         master_branch: this.git_flow_settings.master,
         develop_branch: this.git_flow_settings.develop,
         current_version: this.options.current_version,
-        next_version: "" + this.options.next_version,
+        next_version: this.options.next_version,
         release_message: this.release_message,
         remote: this.options.remote
       });
     }).then(function() {
       if (!this.options.skip_git_pull) {
-        this.observatory_tasks.git_pull.status('Pulling');
+        if (!this.options.quiet) {
+          this.observatory_tasks.git_pull.status('Pulling');
+        }
         this.git_commands.pull();
-        return this.observatory_tasks.git_pull.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_pull.done('Complete');
+        }
       } else {
-        return this.observatory_tasks.git_pull.done('Skipped');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_pull.done('Skipped');
+        }
       }
     }).then(function() {
-      this.observatory_tasks.git_start.status('Starting');
+      if (!this.options.quiet) {
+        this.observatory_tasks.git_start.status('Starting');
+      }
       this.git_commands.start();
-      return this.observatory_tasks.git_start.done('Complete');
+      if (!this.options.quiet) {
+        return this.observatory_tasks.git_start.done('Complete');
+      }
     }).then(function() {
       var err, error1, file, files, i, len;
       try {
         files = globNormalize(this.options.files_to_version);
         for (i = 0, len = files.length; i < len; i++) {
           file = files[i];
-          this.observatory_tasks.write_files.status(file);
+          if (!this.options.quiet) {
+            this.observatory_tasks.write_files.status(file);
+          }
           replaceVersionInFile(file, this.options.current_version, this.options.next_version);
         }
-        return this.observatory_tasks.write_files.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.write_files.done('Complete');
+        }
       } catch (error1) {
         err = error1;
         throw new GitResetError(err);
       }
     }).then(function() {
-      this.observatory_tasks.write_files.status('package');
+      if (!this.options.quiet) {
+        this.observatory_tasks.write_files.status('package');
+      }
       this.package_file.setVersion(this.options.next_version);
       this.package_file.save();
-      return this.observatory_tasks.write_files.done('Complete');
+      if (!this.options.quiet) {
+        return this.observatory_tasks.write_files.done('Complete');
+      }
     }).then(function() {
       var command, err, error1, i, j, len, len1, ref, ref1;
       try {
-        this.observatory_tasks.pre_commit_commands.status('Running');
+        if (!this.options.quiet) {
+          this.observatory_tasks.pre_commit_commands.status('Running');
+        }
         ref = this.options.pre_commit_commands;
         for (i = 0, len = ref.length; i < len; i++) {
           command = ref[i];
-          this.observatory_tasks.pre_commit_commands.status(command);
+          if (!this.options.quiet) {
+            this.observatory_tasks.pre_commit_commands.status(command);
+          }
           ref1 = this.options.pre_commit_commands;
           for (j = 0, len1 = ref1.length; j < len1; j++) {
             command = ref1[j];
             runArbitraryCommand(command);
           }
         }
-        return this.observatory_tasks.pre_commit_commands.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.pre_commit_commands.done('Complete');
+        }
       } catch (error1) {
         err = error1;
         throw new GitResetError(err);
@@ -173,9 +199,13 @@
       var err, error1, files;
       try {
         files = globNormalize(this.options.package_file_location, this.options.files_to_commit, this.options.files_to_version);
-        this.observatory_tasks.git_commit.status('Committing');
+        if (!this.options.quiet) {
+          this.observatory_tasks.git_commit.status('Committing');
+        }
         this.git_commands.commit(files);
-        return this.observatory_tasks.git_commit.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_commit.done('Complete');
+        }
       } catch (error1) {
         err = error1;
         throw new GitResetError(err);
@@ -183,14 +213,20 @@
     }).then(function() {
       var command, err, error1, i, len, ref;
       try {
-        this.observatory_tasks.post_commit_commands.status('Running');
+        if (!this.options.quiet) {
+          this.observatory_tasks.post_commit_commands.status('Running');
+        }
         ref = this.options.post_commit_commands;
         for (i = 0, len = ref.length; i < len; i++) {
           command = ref[i];
-          this.observatory_tasks.post_commit_commands.status(command);
+          if (!this.options.quiet) {
+            this.observatory_tasks.post_commit_commands.status(command);
+          }
           runArbitraryCommand(command);
         }
-        return this.observatory_tasks.post_commit_commands.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.post_commit_commands.done('Complete');
+        }
       } catch (error1) {
         err = error1;
         throw new GitResetError(err);
@@ -198,36 +234,52 @@
     }).then(function() {
       var err, error1;
       try {
-        this.observatory_tasks.git_finish.status('Finishing');
+        if (!this.options.quiet) {
+          this.observatory_tasks.git_finish.status('Finishing');
+        }
         this.git_commands.finish();
-        return this.observatory_tasks.git_finish.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_finish.done('Complete');
+        }
       } catch (error1) {
         err = error1;
         throw new GitResetError(err);
       }
     }).then(function() {
       if (!this.options.skip_git_push) {
-        this.observatory_tasks.git_push.status('Pushing');
+        if (!this.options.quiet) {
+          this.observatory_tasks.git_push.status('Pushing');
+        }
         this.git_commands.push();
-        return this.observatory_tasks.git_push.done('Complete');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_push.done('Complete');
+        }
       } else {
-        return this.observatory_tasks.git_push.done('Skipped');
+        if (!this.options.quiet) {
+          return this.observatory_tasks.git_push.done('Skipped');
+        }
       }
     }).then(function() {
       var command, error, error1, i, len, ref;
-      this.observatory_tasks.post_complete_commands.status('Running');
+      if (!this.options.quiet) {
+        this.observatory_tasks.post_complete_commands.status('Running');
+      }
       ref = this.options.post_complete_commands;
       for (i = 0, len = ref.length; i < len; i++) {
         command = ref[i];
         try {
-          this.observatory_tasks.post_complete_commands.status(command);
+          if (!this.options.quiet) {
+            this.observatory_tasks.post_complete_commands.status(command);
+          }
           runArbitraryCommand(command);
         } catch (error1) {
           error = error1;
           console.error(error.message);
         }
       }
-      return this.observatory_tasks.post_complete_commands.done('Complete');
+      if (!this.options.quiet) {
+        return this.observatory_tasks.post_complete_commands.done('Complete');
+      }
     }).then(function() {
       return process.exit(0);
     })["catch"](GitResetError, function(err) {
