@@ -30,5 +30,4 @@ module.exports = (project_path) ->
   {
     master: ini_data[BRANCH_CONFIG]['master']
     develop: ini_data[BRANCH_CONFIG]['develop']
-    version_tag_prefix: ini_data[PREFIX_CONFIG]['versiontag']
   }

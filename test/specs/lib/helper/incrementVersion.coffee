@@ -17,11 +17,6 @@ describe 'incrementVersion', ->
     assert.equal incrementVersion('1.2.3', 'minor'), '1.3.0'
     assert.equal incrementVersion('1.2.3', 'major'), '2.0.0'
 
-  it 'increment with prefix', ->
-    assert.equal incrementVersion('v1.2.3', 'patch', 'v'), 'v1.2.4'
-    assert.equal incrementVersion('v1.2.3', 'minor', 'v'), 'v1.3.0'
-    assert.equal incrementVersion('v1.2.3', 'major', 'v'), 'v2.0.0'
-
   it 'throws on invalid versions', ->
     assert.throws ->
       incrementVersion('1', 'patch')

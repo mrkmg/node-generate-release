@@ -76,7 +76,7 @@
         return this.options.current_version = this.package_file.getVersion();
       }
     }).then(function() {
-      return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type, this.git_flow_settings.version_tag_prefix);
+      return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
     }).then(function() {
       if (this.options.set_release_message) {
         return askReleaseMessage(this.options.next_version);
@@ -115,7 +115,7 @@
         master_branch: this.git_flow_settings.master,
         develop_branch: this.git_flow_settings.develop,
         current_version: this.options.current_version,
-        next_version: this.options.next_version,
+        next_version: "" + this.options.next_version,
         release_message: this.release_message,
         remote: this.options.remote
       });
