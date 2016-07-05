@@ -6,7 +6,7 @@
 
 VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/
 
-module.exports = (version, type, prefix = '') ->
+module.exports = (version, type) ->
   unless VERSION_REGEX.test version
     throw new Error "Version does not batch semver: #{version}"
 
@@ -24,4 +24,4 @@ module.exports = (version, type, prefix = '') ->
     else
       throw new Error "Unknown Bump Type: #{type}"
 
-  prefix + version_split.join '.'
+  version_split.join '.'
