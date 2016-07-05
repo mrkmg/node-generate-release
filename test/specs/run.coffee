@@ -46,12 +46,12 @@ describe 'run', ->
       package_file = JSON.parse FS.readFileSync "#{@temp_dir}/package.json"
       readme_file = FS.readFileSync "#{@temp_dir}/README.md"
       tag_check_result = Exec 'git tag -l 1.2.4'
-      tag_message_result = Exec 'git --no-pager log -1 --decorate=short --format=\%B 1.2.4'
+      tag_message_result = Exec 'git cat-file tag 1.2.4 | tail -n +6'
 
       assert.equal package_file.version, '1.2.4'
       assert.equal readme_file.toString(), 'TEST FILE\n=========\n\n1.2.4'
       assert.equal tag_check_result.toString(), '1.2.4\n'
-      assert.equal tag_message_result.toString(), 'Release 1.2.4\n\n'
+      assert.equal tag_message_result.toString(), 'Release 1.2.4\n'
       assert FS.existsSync "#{@temp_dir}/pre_command"
       assert FS.existsSync "#{@temp_dir}/post_command"
       assert FS.existsSync "#{@temp_dir}/post_complete"
