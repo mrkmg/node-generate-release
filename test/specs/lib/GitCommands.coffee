@@ -68,4 +68,5 @@ describe 'GitCommands', ->
 
   it 'finish', ->
     @git_commands.finish()
+    @git_commands.is_avh = false
     assert.deepEqual @spawnSync.args[0][1], ['flow', 'release', 'finish', '-m', 'test_release_message', 'test_next_version']

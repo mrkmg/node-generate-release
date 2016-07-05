@@ -31,6 +31,7 @@ class GitCommands
   current_version: undefined
   next_version: undefined
   release_message: undefined
+  is_avh: false
 
   constructor: (opts) ->
     if opts.master_branch? then @master_branch = opts.master_branch
@@ -39,6 +40,8 @@ class GitCommands
     if opts.next_version? then @next_version = opts.next_version
     if opts.release_message? then @release_message = opts.release_message
     if opts.remote? then @remote = opts.remote
+
+    @is_avh = GitCommands.isAvhEdition()
 
     unless @current_version then throw new Error 'Current Version is not set'
     unless @next_version then throw new Error 'New Version is not set'
@@ -85,7 +88,7 @@ class GitCommands
     @exec ['commit', '-m', @release_message]
 
   finish: =>
-    if GitCommands.isAvhEdition()
+    if @is_avh
       @finishAvh()
     else
       @finishNonAvh()
@@ -95,7 +98,7 @@ class GitCommands
 
   finishAvh: =>
     release_message_file = Temp.path()
-    FS.writeFileSync release_message_file, @release_message, 'utf8'
+    FS.writeFileSync release_message_file, @release_message
     @exec ['flow', 'release', 'finish', '-f', release_message_file, @next_version]
     FS.unlinkSync release_message_file
 
