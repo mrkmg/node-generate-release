@@ -62,10 +62,10 @@ options =
     file_key: 'skip_git_push'
     validate: (input) -> typeof input is 'boolean'
   set_release_message:
-    default: false
+    default: "Release {version}"
     switches: ['m', 'set-release-message']
     file_key: 'set_release_message'
-    validate: (input) -> typeof input is 'boolean'
+    validate: (input) -> typeof input in ['boolean', 'string']
   pre_commit_commands:
     default: []
     switches: false
