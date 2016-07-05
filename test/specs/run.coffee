@@ -21,6 +21,24 @@ GitCommands = require '../../src/lib/GitCommands'
 
 main = require '../../src/index'
 
+help_message = '''
+generate-release
+
+-p, --package   FILE            Path to package.json file. Default: ./package.json
+-c, --current-version VERSION   Current Version. Default: read from package.json
+-t, --release-type TYPE         Release Type: patch, minor, major. Default: prompt
+-n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
+-l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
+-s, --skip-git-push             Do not push to origin when complete. Default: Do push
+-d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
+-o, --remote REMOTE             Change the remote. Default: origin
+-q, --quiet                     Less output. Default: Do show output
+-m, release-message [MESSAGE]   Set a release message. If no message given, prompt for one. Will replace
+                                "{version}" with the next version. Default: Release {version}
+
+
+'''
+
 describe 'run', ->
   before ->
     @run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
@@ -80,7 +98,7 @@ describe 'run', ->
     .try =>
       main @help_arguments
     .then =>
-      assert stdout_spy.calledWith('generate-release\n\n-p, --package              Path to package.json file. Default: ./package.json\n-c, --current-version      Current Version. Default: read from package.json\n-t, --release-type         Release Type: patch, minor, major. Default: prompt\n-n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation\n-l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull\n-s, --skip-git-push        Do not push to origin when complete. Default: Do push\n-d, --release-file         Path to your .release.json file. Default: ./.release.json\n-m, --set-release-message  Prompt to write a release message. Default: Release {version}\n-o, --remote               Change the remote. Default: origin\n-q, --quiet                Less output. Default: Do show output\n\n\n')
-      assert @exit_stub.calledWith(0)
+      assert.equal stdout_spy.args[0][0], help_message
+      assert @exit_stub.calledWith 0
     .finally ->
       stdout_spy.restore()
