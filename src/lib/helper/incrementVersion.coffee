@@ -8,7 +8,7 @@ VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/
 
 module.exports = (version, type) ->
   unless VERSION_REGEX.test version
-    throw new Error "Version does not batch semver: #{version}"
+    throw new Error "Version does not match semver: #{version}"
 
   version_split = version.match(VERSION_REGEX)[0].split('.').map (t) -> parseInt(t)
   switch type
