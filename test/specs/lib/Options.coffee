@@ -38,7 +38,7 @@ describe 'Options', ->
     assert.equal options.no_confirm, false
     assert.equal options.skip_git_pull, false
     assert.equal options.skip_git_push, false
-    assert.equal options.set_release_message, false
+    assert.equal options.set_release_message, 'Release {version}'
     assert.sameMembers options.files_to_version, ['README.md']
 
 

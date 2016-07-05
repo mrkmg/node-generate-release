@@ -71,7 +71,7 @@ module.exports = (args) ->
 
   #Set/Get Release Message
   .then ->
-    if @options.set_release_message == true
+    if @options.set_release_message is true
       askReleaseMessage(@options.next_version)
     else
       @options.set_release_message.replace '{version}', @options.next_version
