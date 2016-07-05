@@ -67,7 +67,7 @@ module.exports = (args) ->
 
   #Bump Version
   .then ->
-    @options.next_version = incrementVersion @options.current_version, @options.release_type, @git_flow_settings.version_tag_prefix
+    @options.next_version = incrementVersion @options.current_version, @options.release_type
 
   #Set/Get Release Message
   .then ->
@@ -89,19 +89,20 @@ module.exports = (args) ->
 
   #Setup the observatory
   .then ->
-    Observatory.settings
-      prefix: '[Generate Release] '
+    unless @options.quiet
+      Observatory.settings
+        prefix: '[Generate Release] '
 
-    @observatory_tasks =
-      git_pull: Observatory.add('GIT: Pull from Origin')
-      git_start: Observatory.add('GIT: Start Release')
-      write_files: Observatory.add('Files: Write New Version')
-      pre_commit_commands: Observatory.add('Commands: Pre Commit')
-      git_commit: Observatory.add('GIT: Commit Files')
-      post_commit_commands: Observatory.add('Commands: Post Commit')
-      git_finish: Observatory.add('GIT: Finish Release')
-      git_push: Observatory.add('GIT: Push to Origin')
-      post_complete_commands: Observatory.add('Commands: Post Complete')
+      @observatory_tasks =
+        git_pull: Observatory.add('GIT: Pull from Origin')
+        git_start: Observatory.add('GIT: Start Release')
+        write_files: Observatory.add('Files: Write New Version')
+        pre_commit_commands: Observatory.add('Commands: Pre Commit')
+        git_commit: Observatory.add('GIT: Commit Files')
+        post_commit_commands: Observatory.add('Commands: Post Commit')
+        git_finish: Observatory.add('GIT: Finish Release')
+        git_push: Observatory.add('GIT: Push to Origin')
+        post_complete_commands: Observatory.add('Commands: Post Complete')
 
   #Setup the Git Commands
   .then ->
@@ -116,44 +117,44 @@ module.exports = (args) ->
   #Git Pull
   .then ->
     unless @options.skip_git_pull
-      @observatory_tasks.git_pull.status('Pulling')
+      @observatory_tasks.git_pull.status('Pulling') unless @options.quiet
       @git_commands.pull()
-      @observatory_tasks.git_pull.done('Complete')
+      @observatory_tasks.git_pull.done('Complete') unless @options.quiet
     else
-      @observatory_tasks.git_pull.done('Skipped')
+      @observatory_tasks.git_pull.done('Skipped') unless @options.quiet
 
   #Git Start
   .then ->
-    @observatory_tasks.git_start.status('Starting')
+    @observatory_tasks.git_start.status('Starting') unless @options.quiet
     @git_commands.start()
-    @observatory_tasks.git_start.done('Complete')
+    @observatory_tasks.git_start.done('Complete') unless @options.quiet
 
   #Write Version Files
   .then ->
     try
       files = globNormalize @options.files_to_version
       for file in files
-        @observatory_tasks.write_files.status(file)
+        @observatory_tasks.write_files.status(file) unless @options.quiet
         replaceVersionInFile file, @options.current_version, @options.next_version
-      @observatory_tasks.write_files.done('Complete')
+      @observatory_tasks.write_files.done('Complete') unless @options.quiet
     catch err
       throw new GitResetError err
 
   #Write package
   .then ->
-    @observatory_tasks.write_files.status('package')
+    @observatory_tasks.write_files.status('package') unless @options.quiet
     @package_file.setVersion @options.next_version
     @package_file.save()
-    @observatory_tasks.write_files.done('Complete')
+    @observatory_tasks.write_files.done('Complete') unless @options.quiet
 
   #Run pre commit commands
   .then ->
     try
-      @observatory_tasks.pre_commit_commands.status('Running')
+      @observatory_tasks.pre_commit_commands.status('Running') unless @options.quiet
       for command in @options.pre_commit_commands
-        @observatory_tasks.pre_commit_commands.status command
+        @observatory_tasks.pre_commit_commands.status command unless @options.quiet
         runArbitraryCommand command for command in @options.pre_commit_commands
-      @observatory_tasks.pre_commit_commands.done('Complete')
+      @observatory_tasks.pre_commit_commands.done('Complete') unless @options.quiet
     catch err
       throw new GitResetError err
 
@@ -161,56 +162,56 @@ module.exports = (args) ->
   .then ->
     try
       files = globNormalize @options.package_file_location, @options.files_to_commit, @options.files_to_version
-      @observatory_tasks.git_commit.status('Committing')
+      @observatory_tasks.git_commit.status('Committing') unless @options.quiet
       @git_commands.commit files
-      @observatory_tasks.git_commit.done('Complete')
+      @observatory_tasks.git_commit.done('Complete') unless @options.quiet
     catch err
       throw new GitResetError err
 
   #Run post commit commands
   .then ->
     try
-      @observatory_tasks.post_commit_commands.status('Running')
+      @observatory_tasks.post_commit_commands.status('Running') unless @options.quiet
 
       for command in @options.post_commit_commands
-        @observatory_tasks.post_commit_commands.status command
+        @observatory_tasks.post_commit_commands.status command unless @options.quiet
         runArbitraryCommand command
 
-      @observatory_tasks.post_commit_commands.done('Complete')
+      @observatory_tasks.post_commit_commands.done('Complete') unless @options.quiet
     catch err
       throw new GitResetError err
 
   #Git Finish
   .then ->
     try
-      @observatory_tasks.git_finish.status('Finishing')
+      @observatory_tasks.git_finish.status('Finishing') unless @options.quiet
       @git_commands.finish()
-      @observatory_tasks.git_finish.done('Complete')
+      @observatory_tasks.git_finish.done('Complete') unless @options.quiet
     catch err
       throw new GitResetError err
 
   #Git Push
   .then ->
     unless @options.skip_git_push
-      @observatory_tasks.git_push.status('Pushing')
+      @observatory_tasks.git_push.status('Pushing') unless @options.quiet
       @git_commands.push()
-      @observatory_tasks.git_push.done('Complete')
+      @observatory_tasks.git_push.done('Complete') unless @options.quiet
     else
-      @observatory_tasks.git_push.done('Skipped')
+      @observatory_tasks.git_push.done('Skipped') unless @options.quiet
 
   #Run post commit commands
   .then ->
-    @observatory_tasks.post_complete_commands.status('Running')
+    @observatory_tasks.post_complete_commands.status('Running') unless @options.quiet
 
     for command in @options.post_complete_commands
       try
-        @observatory_tasks.post_complete_commands.status command
+        @observatory_tasks.post_complete_commands.status command unless @options.quiet
         runArbitraryCommand command
       catch error
         #TODO make this better. Currently, the error message may not be seen...
         console.error error.message
 
-    @observatory_tasks.post_complete_commands.done('Complete')
+    @observatory_tasks.post_complete_commands.done('Complete') unless @options.quiet
 
   .then ->
     process.exit 0

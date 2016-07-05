@@ -18,6 +18,7 @@ class HelpError extends Error
       -d, --release-file         Path to your .release.json file. Default: ./.release.json
       -m, --set-release-message  Prompt to write a release message. Default: Release {version}
       -o, --remote               Change the remote. Default: origin
+      -q, --quiet                Less output. Default: Do show output
 
       #{post or ''}"""
 

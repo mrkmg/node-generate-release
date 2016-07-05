@@ -11,13 +11,10 @@
 
   VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/;
 
-  module.exports = function(version, type, prefix) {
+  module.exports = function(version, type) {
     var version_split;
-    if (prefix == null) {
-      prefix = '';
-    }
     if (!VERSION_REGEX.test(version)) {
-      throw new Error("Version does not batch semver: " + version);
+      throw new Error("Version does not match semver: " + version);
     }
     version_split = version.match(VERSION_REGEX)[0].split('.').map(function(t) {
       return parseInt(t);
@@ -38,7 +35,7 @@
       default:
         throw new Error("Unknown Bump Type: " + type);
     }
-    return prefix + version_split.join('.');
+    return version_split.join('.');
   };
 
 }).call(this);

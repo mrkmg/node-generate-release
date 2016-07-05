@@ -4,12 +4,15 @@
   MIT License
 ###
 
-ChildProcess = require('child_process')
+FS = require 'fs'
+ChildProcess = require 'child_process'
+Temp = require 'temp'
 
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
 
 GIT_CLEAN_REGEX = /^nothing to commit,? \(?working directory clean\)?$/m
+AVH_EDITION_REGEX = /AVH Edition/
 
 class GitCommands
   @checkForCleanWorkingDirectory: ->
@@ -17,29 +20,37 @@ class GitCommands
     unless GIT_CLEAN_REGEX.test status_result.toString()
       throw new Error 'Working directory is not clean, not ready for release'
 
+  @isAvhEdition: ->
+    version_result = ChildProcess.execSync 'git flow version', {env: env}
+    AVH_EDITION_REGEX.test version_result
+
+
   master_branch: 'master'
   develop_branch: 'develop'
   remote: 'origin'
   current_version: undefined
   next_version: undefined
   release_message: undefined
+  is_avh: false
 
   constructor: (opts) ->
-    if opts.master_branch? then @master_branch = opts.master_branch
-    if opts.develop_branch? then @develop_branch = opts.develop_branch
-    if opts.current_version? then @current_version = opts.current_version
-    if opts.next_version? then @next_version = opts.next_version
-    if opts.release_message? then @release_message = opts.release_message
-    if opts.remote? then @remote = opts.remote
+    @master_branch = opts.master_branch       if opts.master_branch?
+    @develop_branch = opts.develop_branch     if opts.develop_branch?
+    @current_version = opts.current_version   if opts.current_version?
+    @next_version = opts.next_version         if opts.next_version?
+    @release_message = opts.release_message   if opts.release_message?
+    @remote = opts.remote                     if opts.remote?
+
+    @is_avh = GitCommands.isAvhEdition()
 
     unless @current_version then throw new Error 'Current Version is not set'
     unless @next_version then throw new Error 'New Version is not set'
 
-  exec: (args) ->
+  git: (args...) ->
     result = ChildProcess.spawnSync 'git', args, {env: env, stdio: 'pipe'}
 
     unless result.status is 0
-      throw new Error "#{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
+      throw new Error "git #{args.join(' ')} returned #{result.status}. \n\n Output: \n\n #{result.stderr}"
 
     if result.stdout
       result.stdout.toString()
@@ -47,37 +58,48 @@ class GitCommands
       ''
 
   pull: =>
-    @exec ['fetch', @remote]
-    @exec ['checkout', @develop_branch]
-    @exec ['pull', @remote, @develop_branch, '--rebase']
-    @exec ['checkout', @master_branch]
-    @exec ['reset', '--hard', "#{@remote}/#{@master_branch}"]
+    @git 'fetch', @remote
+    @git 'checkout', @develop_branch
+    @git 'pull', @remote, @develop_branch, '--rebase'
+    @git 'checkout', @master_branch
+    @git 'reset', '--hard', "#{@remote}/#{@master_branch}"
 
   push: =>
-    @exec ['push', @remote, @develop_branch]
-    @exec ['push', @remote, @master_branch]
-    @exec ['push', @remote, '--tags']
+    @git 'push', @remote, @develop_branch
+    @git 'push', @remote, @master_branch
+    @git 'push', @remote, '--tags'
 
   reset: =>
-    @exec ['checkout', @develop_branch]
-    @exec ['reset', '--hard', 'HEAD']
-    @exec ['branch', '-D', "release/#{@next_version}"]
+    @git 'checkout', @develop_branch
+    @git 'reset', '--hard', 'HEAD'
+    @git 'branch', '-D', "release/#{@next_version}"
 
   start: =>
-    @exec ['checkout', @develop_branch]
-    @exec ['flow', 'release', 'start', @next_version]
+    @git 'checkout', @develop_branch
+    @git 'flow', 'release', 'start', @next_version
 
   addDeletedFiles: =>
-    files = @exec(['ls-files', '--deleted']).split '\n'
-    @exec ['rm', '--cached', file] for file in files when file isnt ''
+    files = @git('ls-files', '--deleted').split '\n'
+    @git 'rm', '--cached', file for file in files when file isnt ''
 
   commit: (files) =>
     @addDeletedFiles()
-    @exec ['add', file] for file in files
-    @exec ['commit', '-m', @release_message]
+    @git 'add', file for file in files
+    @git 'commit', '-m', @release_message
 
   finish: =>
-    @exec ['flow', 'release', 'finish', '-m', @release_message, @next_version]
+    if @is_avh
+      @finishAvh()
+    else
+      @finishNonAvh()
 
+  finishNonAvh: =>
+    @git 'flow', 'release', 'finish', '-m', @release_message, @next_version
+
+  finishAvh: =>
+    release_message_file = Temp.path()
+    FS.writeFileSync release_message_file, @release_message
+    @git 'flow', 'release', 'finish', '-f', release_message_file, @next_version
+    FS.unlinkSync release_message_file
 
 module.exports = GitCommands
