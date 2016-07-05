@@ -90,6 +90,7 @@ run `generate-release --help` to see this as well.
     -d, --release-file         Path to your .release.json file. Default: ./.release.json
     -m, --set-release-message  Prompt to write a release message. Default: Do no prompt, use "Release {version}"
     -o, --remote               Change the remote. Default: origin
+    -q, --quiet                Less output. Default: Do show output
 
 **Release File**
 

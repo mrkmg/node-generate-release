@@ -14,6 +14,11 @@ options =
     switches: ['h', 'help']
     file_key: false
     validate: (input) -> typeof input is 'boolean'
+  quiet:
+    default: false
+    switches: ['q', 'quiet']
+    file_key: false
+    validate: (input) -> typeof input is 'boolean'
   package_file_location:
     default: './package.json'
     switches: ['p', 'package']
