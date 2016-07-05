@@ -67,7 +67,7 @@ module.exports = (args) ->
 
   #Bump Version
   .then ->
-    @options.next_version = incrementVersion @options.current_version, @options.release_type, @git_flow_settings.version_tag_prefix
+    @options.next_version = incrementVersion @options.current_version, @options.release_type
 
   #Set/Get Release Message
   .then ->
