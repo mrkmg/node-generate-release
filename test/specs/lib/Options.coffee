@@ -38,7 +38,7 @@ describe 'Options', ->
     assert.equal options.no_confirm, false
     assert.equal options.skip_git_pull, false
     assert.equal options.skip_git_push, false
-    assert.equal options.set_release_message, false
+    assert.equal options.release_message, 'Release {version}'
     assert.sameMembers options.files_to_version, ['README.md']
 
 
@@ -64,7 +64,7 @@ describe 'Options', ->
     assert.equal options.no_confirm, true
     assert.equal options.skip_git_pull, true
     assert.equal options.skip_git_push, true
-    assert.equal options.set_release_message, true
+    assert.equal options.release_message, true
 
   it 'should parse release file options correctly', ->
     options = new Options [
@@ -77,7 +77,7 @@ describe 'Options', ->
     assert.equal options.no_confirm, true
     assert.equal options.skip_git_pull, true
     assert.equal options.skip_git_push, true
-    assert.equal options.set_release_message, true
+    assert.equal options.release_message, 'Testing Message {version}'
     assert.sameMembers options.pre_commit_commands, ['test1']
     assert.sameMembers options.post_commit_commands, ['test2']
     assert.sameMembers options.files_to_commit, ['test3']

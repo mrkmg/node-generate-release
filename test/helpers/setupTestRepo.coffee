@@ -48,7 +48,7 @@ all_release_json = '''
   "post_commit_commands": ["test2"],
   "files_to_commit": ["test3"],
   "files_to_version": ["test5"],
-  "set_release_message": true,
+  "release_message": "Testing Message {version}",
   "remote": "test4"
 }
 '''

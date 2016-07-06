@@ -1,12 +1,12 @@
 # node-generate-release
 Generate a release for a project following semver using nodejs and gitflow
 
-[![Generate Release on Travis CI](https://img.shields.io/travis/mrkmg/node-generate-release.svg?style=flat-square)](https://travis-ci.org/mrkmg/node-generate-release/branches)
+[![Generate Release on Travis CI](https://img.shields.io/travis/mrkmg/node-generate-release/master.svg?style=flat-square)](https://travis-ci.org/mrkmg/node-generate-release/branches)
 [![Coverage Status](https://img.shields.io/coveralls/mrkmg/node-generate-release/master.svg?style=flat-square)](https://coveralls.io/github/mrkmg/node-generate-release?branch=master)
 [![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
 [![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-Current Version: 0.9.0
+Current Version: 0.10.0
 
 Requires NodeJS v4.0.0 or greater
 
@@ -81,16 +81,17 @@ Options
 
 run `generate-release --help` to see this as well.
 
-    -p, --package              Path to package.json file. Default: ./package.json
-    -c, --current-version      Current Version. Default: read from package.json
-    -t, --release-type         Release Type: patch, minor, major. Default: prompt
-    -n, --no-confirm           Do not ask for confirmation. Default: prompt for confirmation
-    -l, --skip-git-pull        Do not pull from origin and rebase master and dev. Default: Do pull
-    -s, --skip-git-push        Do not push to origin when complete. Default: Do push
-    -d, --release-file         Path to your .release.json file. Default: ./.release.json
-    -m, --set-release-message  Prompt to write a release message. Default: Do no prompt, use "Release {version}"
-    -o, --remote               Change the remote. Default: origin
-    -q, --quiet                Less output. Default: Do show output
+    -p, --package   FILE            Path to package.json file. Default: ./package.json
+    -c, --current-version VERSION   Current Version. Default: read from package.json
+    -t, --release-type TYPE         Release Type: patch, minor, major. Default: prompt
+    -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
+    -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
+    -s, --skip-git-push             Do not push to origin when complete. Default: Do push
+    -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
+    -o, --remote REMOTE             Change the remote. Default: origin
+    -q, --quiet                     Less output. Default: Do show output
+    -m, release-message [MESSAGE]   Set a release message. If no message given, prompt for one. Will replace
+                                    "{version}" with the next version. Default: Release {version}
 
 **Release File**
 
@@ -102,7 +103,7 @@ is an example with all default options set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
-          "set_release_message": true,
+          "release_message": true,
           "remote": "origin",
           "pre_commit_commands": [],
           "post_commit_commands": [],
@@ -113,6 +114,8 @@ is an example with all default options set.
       
 The `files_to_commit` and `files_to_version` use [node-glob](https://github.com/isaacs/node-glob). See the
 documentation located there on how to format those options.
+
+If `release_message` is true, 
 
 Building Assets, Running Tests, and Publishing Package
 --------------------------------

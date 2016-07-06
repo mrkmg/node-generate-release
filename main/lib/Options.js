@@ -102,12 +102,19 @@
         return typeof input === 'boolean';
       }
     },
-    set_release_message: {
-      "default": false,
+    release_message: {
+      "default": 'Release {version}',
       switches: ['m', 'set-release-message'],
-      file_key: 'set_release_message',
+      file_key: 'release_message',
+      filter: function(input) {
+        if (input === false) {
+          return 'Release {version}';
+        } else {
+          return input;
+        }
+      },
       validate: function(input) {
-        return typeof input === 'boolean';
+        return input === true || typeof input === 'string';
       }
     },
     pre_commit_commands: {
