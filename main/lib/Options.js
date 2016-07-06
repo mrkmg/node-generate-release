@@ -7,13 +7,15 @@
  */
 
 (function() {
-  var Minimist, Options, Path, existsSync, options;
+  var Minimist, Options, Path, existsSync, extend, options;
 
   existsSync = require('exists-sync');
 
   Path = require('path');
 
   Minimist = require('minimist');
+
+  extend = require('xtend');
 
   options = {
     show_help: {
@@ -165,6 +167,8 @@
     function Options(args) {
       this.args = Minimist(args.slice(2));
       this.getOption('dot_release_file_location', options.dot_release_file_location);
+      this.getOption('package_file_location', options.package_file_location);
+      this.loadPackageConfig();
       this.loadFileData();
       this.getAllOptions();
     }
@@ -204,7 +208,17 @@
 
     Options.prototype.loadFileData = function() {
       if (existsSync(this.dot_release_file_location)) {
-        return this._file_data = require(this.dot_release_file_location);
+        return this._file_data = extend(this._file_data, require(this.dot_release_file_location));
+      }
+    };
+
+    Options.prototype.loadPackageConfig = function() {
+      var package_json, ref;
+      if (existsSync(this.package_file_location)) {
+        package_json = require(this.package_file_location);
+        if (((ref = package_json.config) != null ? ref.generateRelease : void 0) != null) {
+          return this._file_data = extend(this._file_data, package_json.config.generateRelease);
+        }
       }
     };
 
