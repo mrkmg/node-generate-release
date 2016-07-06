@@ -78,10 +78,10 @@
     }).then(function() {
       return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
     }).then(function() {
-      if (this.options.set_release_message) {
+      if (this.options.release_message === true) {
         return askReleaseMessage(this.options.next_version);
       } else {
-        return "Release " + this.options.next_version;
+        return this.options.release_message.replace('{version}', this.options.next_version);
       }
     }).then(function(text) {
       return this.release_message = text;
