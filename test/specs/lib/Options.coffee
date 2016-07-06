@@ -18,12 +18,12 @@ setupTestRepo = require '../../helpers/setupTestRepo'
 
 describe 'Options', ->
 
-  beforeEach ->
+  before ->
     @starting_dir = process.cwd()
     @temp_dir = Temp.path()
     setupTestRepo @temp_dir
 
-  afterEach (cb) ->
+  after (cb) ->
     process.chdir @starting_dir
     rmdir @temp_dir, cb
 
@@ -65,6 +65,14 @@ describe 'Options', ->
     assert.equal options.skip_git_pull, true
     assert.equal options.skip_git_push, true
     assert.equal options.release_message, true
+
+  it 'should parse the release config from package.json', ->
+    options = new Options [
+      'node', 'script',
+      '-p', 'alt.package.json'
+    ]
+
+    assert.equal options.release_message, 'Alt Package Message {version}'
 
   it 'should parse release file options correctly', ->
     options = new Options [

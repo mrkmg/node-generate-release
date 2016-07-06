@@ -42,6 +42,7 @@ generate-release
 describe 'run', ->
   before ->
     @run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
+    @quiet_run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test', '-q']
     @help_arguments = ['node', 'script', '-h']
 
   beforeEach ->
@@ -75,6 +76,17 @@ describe 'run', ->
       assert FS.existsSync "#{@temp_dir}/post_complete"
       assert not FS.existsSync "#{@temp_dir}/deleteme"
       assert @exit_stub.calledWith(0)
+
+  it 'Should not output anything with quiet run', ->
+    output_spy = Sinon.spy process.stdout, 'write'
+
+    Promise
+    .try =>
+      main @quiet_run_arguments
+    .then ->
+      assert not output_spy.called
+    .finally ->
+      output_spy.restore()
 
   it 'Should reset on command failure', ->
     commit_stub = Sinon.stub(GitCommands.prototype, 'commit').throws()

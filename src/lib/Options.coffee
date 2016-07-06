@@ -7,6 +7,7 @@
 existsSync = require 'exists-sync'
 Path = require 'path'
 Minimist = require 'minimist'
+extend = require 'xtend'
 
 options =
   show_help:
@@ -101,6 +102,8 @@ class Options
 
     # Get Release File First
     @getOption 'dot_release_file_location', options.dot_release_file_location
+    @getOption 'package_file_location', options.package_file_location
+    @loadPackageConfig()
     @loadFileData()
     @getAllOptions()
 
@@ -123,7 +126,13 @@ class Options
 
   loadFileData: ->
     if existsSync @dot_release_file_location
-      @_file_data = require @dot_release_file_location
+      @_file_data = extend @_file_data, require @dot_release_file_location
+
+  loadPackageConfig: ->
+    if existsSync @package_file_location
+      package_json = require @package_file_location
+      if package_json.config?.generateRelease?
+        @_file_data = extend @_file_data, package_json.config.generateRelease
 
   getFileValue: (key) ->
     if @_file_data[key]? then @_file_data[key]
