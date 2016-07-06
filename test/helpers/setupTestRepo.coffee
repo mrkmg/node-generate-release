@@ -5,7 +5,7 @@ module.exports = (temp_dir) ->
   FS.mkdirSync temp_dir
   process.chdir temp_dir
   FS.writeFileSync 'package.json', package_json
-  FS.writeFileSync 'alt.package.json', package_json
+  FS.writeFileSync 'alt.package.json', alt_package_json
   FS.writeFileSync '.release.json', release_json
   FS.writeFileSync '.alt.release.json', release_json
   FS.writeFileSync '.all.release.json', all_release_json
@@ -26,7 +26,20 @@ TEST FILE
 '''
 
 package_json = '''
-{"version":"1.2.3"}
+{
+  "version":"1.2.3"
+}
+'''
+
+alt_package_json = '''
+{
+  "version":"1.2.3",
+  "config": {
+    "generateRelease": {
+      "release_message": "Alt Package Message {version}"
+    }
+  }
+}
 '''
 
 release_json = '''

@@ -115,7 +115,33 @@ is an example with all default options set.
 The `files_to_commit` and `files_to_version` use [node-glob](https://github.com/isaacs/node-glob). See the
 documentation located there on how to format those options.
 
-If `release_message` is true, 
+If `release_message` is true, then you will be prompted to write a release message via your editor of choice.
+
+**package.json**
+
+If you are using this for an NPM package, you can include all the above options in your package.json instead of 
+a dedicated file.
+
+Place all your configuration options in `config : generateRelease`.
+
+    {
+        ...
+        "config": {
+            "generateRelease": {
+                "no_confirm": false,
+                "remote": "origin"
+            }
+        },
+        ...
+    }
+
+**Option Precedence**
+
+Precedence is determined in the following order:
+
+- CLI Argument
+- package.json file
+- .release.json file
 
 Building Assets, Running Tests, and Publishing Package
 --------------------------------

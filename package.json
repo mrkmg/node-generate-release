@@ -48,7 +48,8 @@
     "minimist": "^1.2.0",
     "observatory": "^1.0.0",
     "rmdir": "^1.2.0",
-    "temp": "^0.8.3"
+    "temp": "^0.8.3",
+    "xtend": "^4.0.1"
   },
   "devDependencies": {
     "chai": "^3.4.1",
