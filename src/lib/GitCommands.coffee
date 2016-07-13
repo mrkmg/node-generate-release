@@ -11,7 +11,7 @@ Temp = require 'temp'
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
 
-GIT_CLEAN_REGEX = /^nothing to commit,? \(?working directory clean\)?$/m
+GIT_CLEAN_REGEX = /^nothing to commit,? \(?working (directory|tree) clean\)?$/m
 AVH_EDITION_REGEX = /AVH Edition/
 
 class GitCommands
