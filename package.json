@@ -41,10 +41,10 @@
   "homepage": "https://github.com/mrkmg/node-generate-release#readme",
   "dependencies": {
     "bluebird": "^3.1.2",
-    "exists-sync": "0.0.3",
+    "exists-sync": "0.0.4",
     "glob": "^7.0.4",
     "iniparser": "^1.0.5",
-    "inquirer": "^1.1.0",
+    "inquirer": "^2.0.0",
     "minimist": "^1.2.0",
     "observatory": "^1.0.0",
     "rmdir": "^1.2.0",
@@ -53,14 +53,14 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
-    "chai-as-promised": "^5.2.0",
+    "chai-as-promised": "^6.0.0",
     "coffee-coverage": "^1.0.1",
     "coffee-script": "^1.10.0",
     "coffeelint": "^1.14.2",
     "coffeelint-limit-newlines": "0.0.2",
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
-    "mocha": "^2.3.4",
+    "mocha": "^3.2.0",
     "sinon": "^1.17.4"
   }
 }
