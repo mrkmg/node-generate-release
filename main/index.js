@@ -62,12 +62,14 @@
     }).then(function() {
       return GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
-      if (!this.options.release_type) {
-        return askReleaseType().then((function(_this) {
-          return function(release_type) {
-            return _this.options.release_type = release_type;
-          };
-        })(this));
+      if (!this.options.next_version) {
+        if (!this.options.release_type) {
+          return askReleaseType().then((function(_this) {
+            return function(release_type) {
+              return _this.options.release_type = release_type;
+            };
+          })(this));
+        }
       }
     }).then(function() {
       this.package_file = new PackageFile(this.options.package_file_location);
@@ -76,7 +78,9 @@
         return this.options.current_version = this.package_file.getVersion();
       }
     }).then(function() {
-      return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
+      if (!this.options.next_version) {
+        return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
+      }
     }).then(function() {
       if (this.options.release_message === true) {
         return askReleaseMessage(this.options.next_version);

@@ -47,6 +47,11 @@ options =
     switches: ['c', 'current-version']
     file_key: false
     validate: (input) -> input is null or typeof input is 'string'
+  next_version:
+    default: null
+    switches: ['v', 'next-version']
+    file_key: false
+    validate: (input) -> input is null or typeof input is 'string'
   remote:
     default: 'origin'
     switches: ['o', 'remote']

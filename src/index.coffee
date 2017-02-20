@@ -54,9 +54,10 @@ module.exports = (args) ->
 
   #Get Release Type from options or by asking
   .then ->
-    unless @options.release_type
-      askReleaseType().then (release_type) =>
-        @options.release_type = release_type
+    unless @options.next_version
+      unless @options.release_type
+        askReleaseType().then (release_type) =>
+          @options.release_type = release_type
 
   #Get Current Version
   .then ->
@@ -65,9 +66,10 @@ module.exports = (args) ->
     unless @options.current_version
       @options.current_version = @package_file.getVersion()
 
-  #Bump Version
+  #Get or Bump Next Version
   .then ->
-    @options.next_version = incrementVersion @options.current_version, @options.release_type
+    unless @options.next_version
+      @options.next_version = incrementVersion @options.current_version, @options.release_type
 
   #Set/Get Release Message
   .then ->

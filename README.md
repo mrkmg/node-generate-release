@@ -83,7 +83,8 @@ run `generate-release --help` to see this as well.
 
     -p, --package   FILE            Path to package.json file. Default: ./package.json
     -c, --current-version VERSION   Current Version. Default: read from package.json
-    -t, --release-type TYPE         Release Type: patch, minor, major. Default: prompt
+    -v, --next-version VERSION      Next Version. Default: automatically bumps
+    -t, --release-type TYPE         Release Type: patch, minor, major. Ignored when next-version is given. Default: prompt, if next-version is undefined
     -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
     -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
     -s, --skip-git-push             Do not push to origin when complete. Default: Do push

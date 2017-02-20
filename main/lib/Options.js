@@ -80,6 +80,14 @@
         return input === null || typeof input === 'string';
       }
     },
+    next_version: {
+      "default": null,
+      switches: ['v', 'next-version'],
+      file_key: false,
+      validate: function(input) {
+        return input === null || typeof input === 'string';
+      }
+    },
     remote: {
       "default": 'origin',
       switches: ['o', 'remote'],
