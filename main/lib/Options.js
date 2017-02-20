@@ -80,6 +80,14 @@
         return input === null || typeof input === 'string';
       }
     },
+    next_version: {
+      "default": null,
+      switches: ['v', 'next-version'],
+      file_key: false,
+      validate: function(input) {
+        return input === null || typeof input === 'string';
+      }
+    },
     remote: {
       "default": 'origin',
       switches: ['o', 'remote'],
@@ -100,6 +108,14 @@
       "default": false,
       switches: ['s', 'skip-git-push'],
       file_key: 'skip_git_push',
+      validate: function(input) {
+        return typeof input === 'boolean';
+      }
+    },
+    skip_git_flow_finish: {
+      "default": false,
+      switches: ['f', 'skip-git-flow-finish'],
+      file_key: 'skip_git_flow_finish',
       validate: function(input) {
         return typeof input === 'boolean';
       }

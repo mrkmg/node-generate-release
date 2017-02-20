@@ -62,12 +62,14 @@
     }).then(function() {
       return GitCommands.checkForCleanWorkingDirectory();
     }).then(function() {
-      if (!this.options.release_type) {
-        return askReleaseType().then((function(_this) {
-          return function(release_type) {
-            return _this.options.release_type = release_type;
-          };
-        })(this));
+      if (!this.options.next_version) {
+        if (!this.options.release_type) {
+          return askReleaseType().then((function(_this) {
+            return function(release_type) {
+              return _this.options.release_type = release_type;
+            };
+          })(this));
+        }
       }
     }).then(function() {
       this.package_file = new PackageFile(this.options.package_file_location);
@@ -76,7 +78,9 @@
         return this.options.current_version = this.package_file.getVersion();
       }
     }).then(function() {
-      return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
+      if (!this.options.next_version) {
+        return this.options.next_version = incrementVersion(this.options.current_version, this.options.release_type);
+      }
     }).then(function() {
       if (this.options.release_message === true) {
         return askReleaseMessage(this.options.next_version);
@@ -119,7 +123,8 @@
         current_version: this.options.current_version,
         next_version: this.options.next_version,
         release_message: this.release_message,
-        remote: this.options.remote
+        remote: this.options.remote,
+        skip_git_flow_finish: this.options.skip_git_flow_finish
       });
     }).then(function() {
       if (!this.options.skip_git_pull) {
@@ -233,17 +238,23 @@
       }
     }).then(function() {
       var err, error1;
-      try {
-        if (!this.options.quiet) {
-          this.observatory_tasks.git_finish.status('Finishing');
+      if (!this.options.skip_git_flow_finish) {
+        try {
+          if (!this.options.quiet) {
+            this.observatory_tasks.git_finish.status('Finishing');
+          }
+          this.git_commands.finish();
+          if (!this.options.quiet) {
+            return this.observatory_tasks.git_finish.done('Complete');
+          }
+        } catch (error1) {
+          err = error1;
+          throw new GitResetError(err);
         }
-        this.git_commands.finish();
+      } else {
         if (!this.options.quiet) {
-          return this.observatory_tasks.git_finish.done('Complete');
+          return this.observatory_tasks.git_finish.done('Skipped');
         }
-      } catch (error1) {
-        err = error1;
-        throw new GitResetError(err);
       }
     }).then(function() {
       if (!this.options.skip_git_push) {

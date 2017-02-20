@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "description": "Generate a release using git-glow",
   "engines": {
     "node": ">=4.0.0"
