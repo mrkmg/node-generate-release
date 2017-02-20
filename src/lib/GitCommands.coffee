@@ -27,19 +27,24 @@ class GitCommands
 
   master_branch: 'master'
   develop_branch: 'develop'
+  release_branch: undefined
   remote: 'origin'
   current_version: undefined
   next_version: undefined
   release_message: undefined
+  skip_git_flow_finish: false
   is_avh: false
 
   constructor: (opts) ->
-    @master_branch = opts.master_branch       if opts.master_branch?
-    @develop_branch = opts.develop_branch     if opts.develop_branch?
-    @current_version = opts.current_version   if opts.current_version?
-    @next_version = opts.next_version         if opts.next_version?
-    @release_message = opts.release_message   if opts.release_message?
-    @remote = opts.remote                     if opts.remote?
+    @master_branch = opts.master_branch               if opts.master_branch?
+    @develop_branch = opts.develop_branch             if opts.develop_branch?
+    @current_version = opts.current_version           if opts.current_version?
+    @next_version = opts.next_version                 if opts.next_version?
+    @release_message = opts.release_message           if opts.release_message?
+    @remote = opts.remote                             if opts.remote?
+    @skip_git_flow_finish = opts.skip_git_flow_finish  if opts.skip_git_flow_finish?
+
+    @release_branch = "release/#{@next_version}"
 
     @is_avh = GitCommands.isAvhEdition()
 
@@ -65,9 +70,12 @@ class GitCommands
     @git 'reset', '--hard', "#{@remote}/#{@master_branch}"
 
   push: =>
-    @git 'push', @remote, @develop_branch
-    @git 'push', @remote, @master_branch
-    @git 'push', @remote, '--tags'
+    unless @skip_git_flow_finish
+      @git 'push', @remote, @develop_branch
+      @git 'push', @remote, @master_branch
+      @git 'push', @remote, '--tags'
+    else
+      @git 'push', '-u', @remote, @release_branch
 
   reset: =>
     @git 'checkout', @develop_branch

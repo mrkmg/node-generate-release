@@ -8,6 +8,7 @@ Chai = require 'chai'
 Sinon = require 'sinon'
 
 Chai.use(require 'chai-as-promised')
+Chai.use(require 'chai-string')
 assert = Chai.assert
 
 Promise = require 'bluebird'
@@ -30,6 +31,7 @@ generate-release
 -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
 -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
 -s, --skip-git-push             Do not push to origin when complete. Default: Do push
+-f, --skip-git-flow-finish      Do not finish git-flow release. Default: Do finish
 -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
 -o, --remote REMOTE             Change the remote. Default: origin
 -q, --quiet                     Less output. Default: Do show output
@@ -43,6 +45,7 @@ describe 'run', ->
   before ->
     @run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test']
     @quiet_run_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-o', 'test', '-q']
+    @skip_git_flow_finish_arguments = ['node', 'script', '-t', 'patch', '-n', '-l', '-s', '-f', '-o', 'test']
     @help_arguments = ['node', 'script', '-h']
 
   beforeEach ->
@@ -66,11 +69,13 @@ describe 'run', ->
       readme_file = FS.readFileSync "#{@temp_dir}/README.md"
       tag_check_result = Exec 'git tag -l 1.2.4'
       tag_message_result = Exec 'git cat-file tag 1.2.4 | tail -n +6'
+      branch_check_result = Exec 'git rev-parse --abbrev-ref HEAD'
 
       assert.equal package_file.version, '1.2.4'
       assert.equal readme_file.toString(), 'TEST FILE\n=========\n\n1.2.4'
       assert.equal tag_check_result.toString(), '1.2.4\n'
       assert.equal tag_message_result.toString(), 'Release 1.2.4\n'
+      assert.startsWith branch_check_result.toString(), 'develop'
       assert FS.existsSync "#{@temp_dir}/pre_command"
       assert FS.existsSync "#{@temp_dir}/post_command"
       assert FS.existsSync "#{@temp_dir}/post_complete"
@@ -87,6 +92,22 @@ describe 'run', ->
       assert not output_spy.called
     .finally ->
       output_spy.restore()
+
+  it 'Should be in release branch when skipped git-flow release finish', ->
+    Promise
+      .try =>
+        main @skip_git_flow_finish_arguments
+      .then =>
+        package_file = JSON.parse FS.readFileSync "#{@temp_dir}/package.json"
+        readme_file = FS.readFileSync "#{@temp_dir}/README.md"
+        tag_check_result = Exec 'git tag -l 1.2.4'
+        branch_check_result = Exec 'git rev-parse --abbrev-ref HEAD'
+
+        assert.equal package_file.version, '1.2.4'
+        assert.equal readme_file.toString(), 'TEST FILE\n=========\n\n1.2.4'
+        assert.equal tag_check_result.toString(), ''
+        assert.startsWith branch_check_result.toString(), 'release/1.2.4'
+        assert @exit_stub.calledWith(0)
 
   it 'Should reset on command failure', ->
     commit_stub = Sinon.stub(GitCommands.prototype, 'commit').throws()

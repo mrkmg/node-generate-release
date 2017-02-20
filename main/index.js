@@ -119,7 +119,8 @@
         current_version: this.options.current_version,
         next_version: this.options.next_version,
         release_message: this.release_message,
-        remote: this.options.remote
+        remote: this.options.remote,
+        skip_git_flow_finish: this.options.skip_git_flow_finish
       });
     }).then(function() {
       if (!this.options.skip_git_pull) {

@@ -113,6 +113,7 @@ module.exports = (args) ->
       next_version: @options.next_version
       release_message: @release_message
       remote: @options.remote
+      skip_git_flow_finish: @options.skip_git_flow_finish
 
   #Git Pull
   .then ->
