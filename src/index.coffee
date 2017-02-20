@@ -183,12 +183,15 @@ module.exports = (args) ->
 
   #Git Finish
   .then ->
-    try
-      @observatory_tasks.git_finish.status('Finishing') unless @options.quiet
-      @git_commands.finish()
-      @observatory_tasks.git_finish.done('Complete') unless @options.quiet
-    catch err
-      throw new GitResetError err
+    unless @options.skip_git_flow_finish
+      try
+        @observatory_tasks.git_finish.status('Finishing') unless @options.quiet
+        @git_commands.finish()
+        @observatory_tasks.git_finish.done('Complete') unless @options.quiet
+      catch err
+        throw new GitResetError err
+    else
+      @observatory_tasks.git_finish.done('Skipped') unless @options.quiet
 
   #Git Push
   .then ->

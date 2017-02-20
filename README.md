@@ -87,6 +87,7 @@ run `generate-release --help` to see this as well.
     -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
     -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
     -s, --skip-git-push             Do not push to origin when complete. Default: Do push
+    -f, --skip-git-flow-finish      Do not finish git-flow release. Default: Do finish
     -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
     -o, --remote REMOTE             Change the remote. Default: origin
     -q, --quiet                     Less output. Default: Do show output
@@ -103,6 +104,7 @@ is an example with all default options set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
+          "skip_git_flow_finish": false,
           "release_message": true,
           "remote": "origin",
           "pre_commit_commands": [],

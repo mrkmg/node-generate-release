@@ -62,6 +62,11 @@ options =
     switches: ['s', 'skip-git-push']
     file_key: 'skip_git_push'
     validate: (input) -> typeof input is 'boolean'
+  skip_git_flow_finish:
+    default: false
+    switches: ['f', 'skip-git-flow-finish']
+    file_key: 'skip_git_flow_finish'
+    validate: (input) -> typeof input is 'boolean'
   release_message:
     default: 'Release {version}'
     switches: ['m', 'set-release-message']
