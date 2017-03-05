@@ -111,7 +111,7 @@ is an example with all default options set.
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],
-          "files_to_commit": []
+          "files_to_commit": [],
           "files_to_version": ["README.md"]
       }
       
