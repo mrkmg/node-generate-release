@@ -54,9 +54,10 @@ module.exports = (args) ->
 
   #Get Release Type from options or by asking
   .then ->
-    unless @options.release_type
-      askReleaseType().then (release_type) =>
-        @options.release_type = release_type
+    unless @options.next_version
+      unless @options.release_type
+        askReleaseType().then (release_type) =>
+          @options.release_type = release_type
 
   #Get Current Version
   .then ->
@@ -65,9 +66,10 @@ module.exports = (args) ->
     unless @options.current_version
       @options.current_version = @package_file.getVersion()
 
-  #Bump Version
+  #Get or Bump Next Version
   .then ->
-    @options.next_version = incrementVersion @options.current_version, @options.release_type
+    unless @options.next_version
+      @options.next_version = incrementVersion @options.current_version, @options.release_type
 
   #Set/Get Release Message
   .then ->
@@ -113,6 +115,7 @@ module.exports = (args) ->
       next_version: @options.next_version
       release_message: @release_message
       remote: @options.remote
+      skip_git_flow_finish: @options.skip_git_flow_finish
 
   #Git Pull
   .then ->
@@ -183,12 +186,15 @@ module.exports = (args) ->
 
   #Git Finish
   .then ->
-    try
-      @observatory_tasks.git_finish.status('Finishing') unless @options.quiet
-      @git_commands.finish()
-      @observatory_tasks.git_finish.done('Complete') unless @options.quiet
-    catch err
-      throw new GitResetError err
+    unless @options.skip_git_flow_finish
+      try
+        @observatory_tasks.git_finish.status('Finishing') unless @options.quiet
+        @git_commands.finish()
+        @observatory_tasks.git_finish.done('Complete') unless @options.quiet
+      catch err
+        throw new GitResetError err
+    else
+      @observatory_tasks.git_finish.done('Skipped') unless @options.quiet
 
   #Git Push
   .then ->

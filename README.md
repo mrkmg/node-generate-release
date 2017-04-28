@@ -6,7 +6,7 @@ Generate a release for a project following semver using nodejs and gitflow
 [![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
 [![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-Current Version: 0.10.2
+Current Version: 0.12.0
 
 Requires NodeJS v4.0.0 or greater
 
@@ -83,10 +83,12 @@ run `generate-release --help` to see this as well.
 
     -p, --package   FILE            Path to package.json file. Default: ./package.json
     -c, --current-version VERSION   Current Version. Default: read from package.json
-    -t, --release-type TYPE         Release Type: patch, minor, major. Default: prompt
+    -v, --next-version VERSION      Next Version. Default: automatically bumps
+    -t, --release-type TYPE         Release Type: patch, minor, major. Ignored when next-version is given. Default: prompt, if next-version is undefined
     -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
     -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
     -s, --skip-git-push             Do not push to origin when complete. Default: Do push
+    -f, --skip-git-flow-finish      Do not finish git-flow release. Default: Do finish
     -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
     -o, --remote REMOTE             Change the remote. Default: origin
     -q, --quiet                     Less output. Default: Do show output
@@ -103,12 +105,13 @@ is an example with all default options set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
+          "skip_git_flow_finish": false,
           "release_message": true,
           "remote": "origin",
           "pre_commit_commands": [],
           "post_commit_commands": [],
           "post_complete_commands": [],
-          "files_to_commit": []
+          "files_to_commit": [],
           "files_to_version": ["README.md"]
       }
       

@@ -47,6 +47,11 @@ options =
     switches: ['c', 'current-version']
     file_key: false
     validate: (input) -> input is null or typeof input is 'string'
+  next_version:
+    default: null
+    switches: ['v', 'next-version']
+    file_key: false
+    validate: (input) -> input is null or typeof input is 'string'
   remote:
     default: 'origin'
     switches: ['o', 'remote']
@@ -61,6 +66,11 @@ options =
     default: false
     switches: ['s', 'skip-git-push']
     file_key: 'skip_git_push'
+    validate: (input) -> typeof input is 'boolean'
+  skip_git_flow_finish:
+    default: false
+    switches: ['f', 'skip-git-flow-finish']
+    file_key: 'skip_git_flow_finish'
     validate: (input) -> typeof input is 'boolean'
   release_message:
     default: 'Release {version}'
