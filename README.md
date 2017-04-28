@@ -6,7 +6,7 @@ Generate a release for a project following semver using nodejs and gitflow
 [![Generate Release on NPM](https://img.shields.io/npm/v/generate-release.svg?style=flat-square)](https://www.npmjs.com/package/generate-release)
 [![Generate Release uses the MIT](https://img.shields.io/npm/l/generate-release.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-Current Version: 0.11.0
+Current Version: 0.12.0
 
 Requires NodeJS v4.0.0 or greater
 
