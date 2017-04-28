@@ -21,8 +21,8 @@
     "test": "npm run lint && npm run unit && npm run cover",
     "lint": "coffeelint -f .coffeelint.json src test",
     "unit": "mocha --recursive --compilers coffee:coffee-script/register --timeout 10000 ./test/specs",
-    "cover": "istanbul cover _mocha -- --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
-    "coveralls": "istanbul-coveralls",
+    "cover": "nyc mocha --recursive --compilers coffee:coffee-script/register --require coffee-coverage/register-istanbul --timeout 10000 ./test/specs",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "release": "coffee -e 'require(\"./src\")([])'"
   },
   "files": [
@@ -44,7 +44,7 @@
     "exists-sync": "0.0.4",
     "glob": "^7.0.4",
     "iniparser": "^1.0.5",
-    "inquirer": "^2.0.0",
+    "inquirer": "^3.0.6",
     "minimist": "^1.2.0",
     "observatory": "^1.0.0",
     "rmdir": "^1.2.0",
@@ -54,13 +54,14 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "chai-as-promised": "^6.0.0",
-    "coffee-coverage": "^1.0.1",
+    "coffee-coverage": "^2.0.1",
     "coffee-script": "^1.10.0",
     "coffeelint": "^1.14.2",
     "coffeelint-limit-newlines": "0.0.2",
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^3.2.0",
-    "sinon": "^1.17.4"
+    "nyc": "^10.2.0",
+    "sinon": "^2.1.0"
   }
 }
