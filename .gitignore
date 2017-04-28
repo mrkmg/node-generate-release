@@ -35,3 +35,5 @@ node_modules
 # IntelliJ Folder
 .idea
 *.iml
+
+.nyc_output
