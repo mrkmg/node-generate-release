@@ -60,7 +60,7 @@
     "coffeelint-limit-newlines": "0.0.2",
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
-    "mocha": "^3.2.0",
+    "mocha": "^3.4.1",
     "nyc": "^10.3.2",
     "sinon": "^2.1.0"
   }
