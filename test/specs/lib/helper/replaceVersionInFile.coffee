@@ -21,7 +21,7 @@ describe 'replaceVersionInFile', ->
     FS.writeFileSync @file_path, 'abc 1.2.3 abc'
 
   afterEach ->
-    FS.unlink @file_path
+    FS.unlinkSync @file_path
 
   it 'should write new version to readme correctly', ->
     replaceVersionInFile @file_path, '1.2.3', '1.2.4'
