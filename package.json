@@ -61,7 +61,7 @@
     "istanbul": "^0.4.2",
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^3.4.1",
-    "nyc": "^10.3.2",
+    "nyc": "^11.0.2",
     "sinon": "^2.3.0"
   }
 }
