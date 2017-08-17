@@ -7,7 +7,7 @@
  */
 
 (function() {
-  var AVH_EDITION_REGEX, ChildProcess, FS, GIT_CLEAN_REGEX, GitCommands, Temp, env,
+  var AVH_EDITION_REGEX, ChildProcess, FS, GitCommands, Temp, env,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     slice = [].slice;
 
@@ -21,17 +21,17 @@
 
   env.GIT_MERGE_AUTOEDIT = 'no';
 
-  GIT_CLEAN_REGEX = /^nothing to commit,? \(?working (directory|tree) clean\)?$/m;
-
   AVH_EDITION_REGEX = /AVH Edition/;
 
   GitCommands = (function() {
     GitCommands.checkForCleanWorkingDirectory = function() {
-      var status_result;
-      status_result = ChildProcess.execSync('git status', {
-        env: env
-      });
-      if (!GIT_CLEAN_REGEX.test(status_result.toString())) {
+      var e;
+      try {
+        return ChildProcess.execSync('git diff-index --quiet HEAD --', {
+          env: env
+        });
+      } catch (error) {
+        e = error;
         throw new Error('Working directory is not clean, not ready for release');
       }
     };

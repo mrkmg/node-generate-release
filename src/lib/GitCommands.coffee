@@ -11,13 +11,13 @@ Temp = require 'temp'
 env = process.env
 env.GIT_MERGE_AUTOEDIT = 'no'
 
-GIT_CLEAN_REGEX = /^nothing to commit,? \(?working (directory|tree) clean\)?$/m
 AVH_EDITION_REGEX = /AVH Edition/
 
 class GitCommands
   @checkForCleanWorkingDirectory: ->
-    status_result = ChildProcess.execSync 'git status', {env: env}
-    unless GIT_CLEAN_REGEX.test status_result.toString()
+    try
+      ChildProcess.execSync 'git diff-index --quiet HEAD --', {env: env}
+    catch e
       throw new Error 'Working directory is not clean, not ready for release'
 
   @isAvhEdition: ->
