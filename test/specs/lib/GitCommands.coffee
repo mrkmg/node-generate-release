@@ -23,14 +23,13 @@ describe 'GitCommands', ->
       next_version: 'test_next_version'
       release_message: 'test_release_message'
 
-    @spawnSync = Sinon.stub ChildProcess, 'spawnSync', ->
-      status: 0
+    @spawnSync = Sinon.stub(ChildProcess, 'spawnSync').callsFake( -> status: 0)
 
   beforeEach ->
     @git_commands = new GitCommands @settings
 
   afterEach ->
-    @spawnSync.reset()
+    @spawnSync.resetHistory()
 
   after ->
     @spawnSync.restore()
