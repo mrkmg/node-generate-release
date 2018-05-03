@@ -14,19 +14,19 @@ env.GIT_MERGE_AUTOEDIT = "no";
 var AVH_EDITION_REGEX = /AVH Edition/;
 var GitCommands = /** @class */ (function () {
     function GitCommands(opts) {
-        this.masterBranch = "master";
         this.developBranch = "develop";
-        this.skipGitFlowFinish = false;
         this.isAvh = false;
+        this.masterBranch = "master";
+        this.skipGitFlowFinish = false;
         this.releaseMessage = "release/" + this.nextVersion;
-        if (opts.masterBranch) {
-            this.masterBranch = opts.masterBranch;
+        if (opts.currentVersion) {
+            this.currentVersion = opts.currentVersion;
         }
         if (opts.developBranch) {
             this.developBranch = opts.developBranch;
         }
-        if (opts.currentVersion) {
-            this.currentVersion = opts.currentVersion;
+        if (opts.masterBranch) {
+            this.masterBranch = opts.masterBranch;
         }
         if (opts.nextVersion) {
             this.nextVersion = opts.nextVersion;
@@ -34,11 +34,11 @@ var GitCommands = /** @class */ (function () {
         if (opts.releaseMessage) {
             this.releaseMessage = opts.releaseMessage;
         }
-        if (opts.skipGitFlowFinish) {
-            this.skipGitFlowFinish = opts.skipGitFlowFinish;
-        }
         if (opts.remote) {
             this.remote = opts.remote;
+        }
+        if (opts.skipGitFlowFinish) {
+            this.skipGitFlowFinish = opts.skipGitFlowFinish;
         }
         this.isAvh = GitCommands.isAvhEdition();
         if (!opts.currentVersion) {
@@ -100,7 +100,12 @@ var GitCommands = /** @class */ (function () {
     GitCommands.prototype.reset = function () {
         GitCommands.git("checkout", this.developBranch);
         GitCommands.git("reset", "--hard", "HEAD");
-        GitCommands.git("branch", "-D", "release/" + this.nextVersion);
+        try {
+            GitCommands.git("branch", "-D", "release/" + this.nextVersion);
+        }
+        catch (e) {
+            // It is safe to throw this away in case the next release branch was not yet made
+        }
     };
     GitCommands.prototype.start = function () {
         GitCommands.git("checkout", this.developBranch);

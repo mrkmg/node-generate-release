@@ -40,9 +40,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Written by Kevin Gravier <kevin@mrkmg.com>
  * MIT License 2018
  */
+var ReleaseCanceledError_1 = require("./lib/error/ReleaseCanceledError");
+// tslint:disable-next-line
+require("es6-shim");
 var Observatory = require("observatory");
-var UncleanWorkingDirectoryError_1 = require("./lib/error/UncleanWorkingDirectoryError");
 var path_1 = require("path");
+var UncleanWorkingDirectoryError_1 = require("./lib/error/UncleanWorkingDirectoryError");
 var GitCommands_1 = require("./lib/GitCommands");
 var Options_1 = require("./lib/Options");
 var PackageFile_1 = require("./lib/PackageFile");
@@ -56,7 +59,6 @@ var globNormalize_1 = require("./lib/helper/globNormalize");
 var incrementVersion_1 = require("./lib/helper/incrementVersion");
 var replaceVersionInFile_1 = require("./lib/helper/replaceVersionInFile");
 var runArbitraryCommand_1 = require("./lib/helper/runArbitraryCommand");
-require("es6-shim");
 var IS_DEBUG = !!process.env.IS_DEBUG;
 function main(args) {
     var m = new Main(args);
@@ -89,7 +91,7 @@ var Main = /** @class */ (function () {
                             console.error(err_1.message);
                             process.exit(1);
                         }
-                        else if (err_1 instanceof HelpError_1.HelpError) {
+                        else if (err_1 instanceof HelpError_1.HelpError || err_1 instanceof ReleaseCanceledError_1.ReleaseCanceledError) {
                             console.log(err_1.message);
                             process.exit(0);
                         }
@@ -99,6 +101,7 @@ var Main = /** @class */ (function () {
                         }
                         else {
                             console.error("There was an unknown error.");
+                            console.error(err_1.message);
                             process.exit(1);
                         }
                         return [3 /*break*/, 3];
@@ -125,9 +128,9 @@ var Main = /** @class */ (function () {
                         _a.sent();
                         this.setupObservatory();
                         this.setupGitCommands();
+                        this.runGitPull();
+                        this.runGitStart();
                         try {
-                            this.runGitPull();
-                            this.runGitStart();
                             this.versionFiles();
                             this.preCommitCommands();
                             this.runGitCommit();
@@ -212,19 +215,18 @@ var Main = /** @class */ (function () {
     };
     Main.prototype.confirmRelease = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var doRelease;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _a = !this.options.noConfirm;
-                        if (!_a) return [3 /*break*/, 2];
+                        if (this.options.noConfirm) {
+                            return [2 /*return*/];
+                        }
                         return [4 /*yield*/, askConfirmUpdate_1.askConfirmUpdate(this.options.currentVersion, this.options.nextVersion)];
                     case 1:
-                        _a = !(_b.sent());
-                        _b.label = 2;
-                    case 2:
-                        if (_a) {
-                            throw new Error("Update Canceled");
+                        doRelease = _a.sent();
+                        if (!doRelease) {
+                            throw new ReleaseCanceledError_1.ReleaseCanceledError();
                         }
                         return [2 /*return*/];
                 }
@@ -233,6 +235,7 @@ var Main = /** @class */ (function () {
     };
     Main.prototype.setupObservatory = function () {
         if (!this.options.quiet) {
+            // tslint:disable:object-literal-sort-keys
             this.observatoryTasks = {
                 git_pull: Observatory.add("GIT: Pull from Origin"),
                 git_start: Observatory.add("GIT: Start Release"),
@@ -244,13 +247,14 @@ var Main = /** @class */ (function () {
                 git_push: Observatory.add("GIT: Push to Origin"),
                 post_complete_commands: Observatory.add("Commands: Post Complete"),
             };
+            // tslint:enable:object-literal-sort-keys
         }
     };
     Main.prototype.setupGitCommands = function () {
         this.gitCommands = new GitCommands_1.GitCommands({
-            masterBranch: this.gitFlowSettings.master,
-            developBranch: this.gitFlowSettings.develop,
             currentVersion: this.options.currentVersion,
+            developBranch: this.gitFlowSettings.develop,
+            masterBranch: this.gitFlowSettings.master,
             nextVersion: this.options.nextVersion,
             releaseMessage: this.releaseMessage,
             remote: this.options.remote,
