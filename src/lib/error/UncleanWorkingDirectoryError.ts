@@ -9,7 +9,10 @@ export class UncleanWorkingDirectoryError extends Error {
         super("The working directory is not clean.");
 
         const proto = new.target.prototype;
-        if (Object.setPrototypeOf) Object.setPrototypeOf(this, proto);
-        else (this as any).__proto__ = new.target.prototype;
+        if (Object.setPrototypeOf) {
+            Object.setPrototypeOf(this, proto);
+        } else {
+            (this as any).__proto__ = new.target.prototype;
+        }
     }
 }

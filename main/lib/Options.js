@@ -5,88 +5,81 @@
  * MIT License 2018
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+var fs_1 = require("fs");
 var Minimist = require("minimist");
 var path_1 = require("path");
 var extend = require("xtend");
-var fs_1 = require("fs");
 var options = {
-    showHelp: {
-        default: false,
-        switches: ["h", "help"],
+    currentVersion: {
+        default: null,
         file_key: false,
-        validate: function (input) { return typeof input === "boolean"; },
+        switches: ["c", "current-version"],
+        validate: function (input) { return input === null || typeof input === "string"; },
     },
-    quiet: {
-        default: false,
-        switches: ["q", "quiet"],
+    dotReleaseFileLocation: {
+        default: "./.release.json",
         file_key: false,
+        filter: function (input) { return path_1.resolve(input); },
+        switches: ["d", "release-file"],
+        validate: function (input) { return typeof input === "string"; },
+    },
+    filesToCommit: {
+        default: [],
+        file_key: "files_to_commit",
+        switches: false,
+        validate: function (input) { return Array.isArray(input); },
+    },
+    filesToVersion: {
+        default: ["README.md"],
+        file_key: "files_to_version",
+        switches: false,
+        validate: function (input) { return Array.isArray(input); },
+    },
+    nextVersion: {
+        default: null,
+        file_key: false,
+        switches: ["v", "next-version"],
+        validate: function (input) { return input === null || typeof input === "string"; },
+    },
+    noConfirm: {
+        default: false,
+        file_key: "no_confirm",
+        switches: ["n", "no-confirm"],
         validate: function (input) { return typeof input === "boolean"; },
     },
     packageFileLocation: {
         default: "./package.json",
-        switches: ["p", "package"],
         file_key: "package_file_location",
         filter: function (input) { return path_1.resolve(input); },
+        switches: ["p", "package"],
         validate: function (input) { return typeof input === "string" && fs_1.existsSync(input); },
     },
-    dotReleaseFileLocation: {
-        default: "./.release.json",
-        switches: ["d", "release-file"],
+    postCommitCommands: {
+        default: [],
+        file_key: "post_commit_commands",
+        switches: false,
+        validate: function (input) { return Array.isArray(input); },
+    },
+    postCompleteCommands: {
+        default: [],
+        file_key: "post_complete_commands",
+        switches: false,
+        validate: function (input) { return Array.isArray(input); },
+    },
+    preCommitCommands: {
+        default: [],
+        file_key: "pre_commit_commands",
+        switches: false,
+        validate: function (input) { return Array.isArray(input); },
+    },
+    quiet: {
+        default: false,
         file_key: false,
-        filter: function (input) { return path_1.resolve(input); },
-        validate: function (input) { return typeof input === "string"; },
-    },
-    noConfirm: {
-        default: false,
-        switches: ["n", "no-confirm"],
-        file_key: "no_confirm",
-        validate: function (input) { return typeof input === "boolean"; },
-    },
-    releaseType: {
-        default: null,
-        switches: ["t", "release-type"],
-        file_key: "release_type",
-        validate: function (input) { return input === null || (typeof input === "string" && (input === "patch" || input === "minor" || input === "major")); },
-    },
-    currentVersion: {
-        default: null,
-        switches: ["c", "current-version"],
-        file_key: false,
-        validate: function (input) { return input === null || typeof input === "string"; },
-    },
-    nextVersion: {
-        default: null,
-        switches: ["v", "next-version"],
-        file_key: false,
-        validate: function (input) { return input === null || typeof input === "string"; },
-    },
-    remote: {
-        default: "origin",
-        switches: ["o", "remote"],
-        file_key: "remote",
-        validate: function (input) { return typeof input === "string"; },
-    },
-    skipGitPull: {
-        default: false,
-        switches: ["l", "skip-git-pull"],
-        file_key: "skip_git_pull",
-        validate: function (input) { return typeof input === "boolean"; },
-    },
-    skipGitPush: {
-        default: false,
-        switches: ["s", "skip-git-push"],
-        file_key: "skip_git_push",
-        validate: function (input) { return typeof input === "boolean"; },
-    },
-    skipGitFlowFinish: {
-        default: false,
-        switches: ["f", "skip-git-flow-finish"],
-        file_key: "skip_git_flow_finish",
+        switches: ["q", "quiet"],
         validate: function (input) { return typeof input === "boolean"; },
     },
     releaseMessage: {
         default: "Release {version}",
-        switches: ["m", "set-release-message"],
         file_key: "release_message",
         filter: function (input) {
             if (input === false) {
@@ -96,37 +89,45 @@ var options = {
                 return input;
             }
         },
+        switches: ["m", "set-release-message"],
         validate: function (input) { return input === true || typeof input === "string"; },
     },
-    preCommitCommands: {
-        default: [],
-        switches: false,
-        file_key: "pre_commit_commands",
-        validate: function (input) { return Array.isArray(input); },
+    releaseType: {
+        default: null,
+        file_key: "release_type",
+        switches: ["t", "release-type"],
+        validate: function (input) { return input === null ||
+            (typeof input === "string" && (input === "patch" || input === "minor" || input === "major")); },
     },
-    postCommitCommands: {
-        default: [],
-        switches: false,
-        file_key: "post_commit_commands",
-        validate: function (input) { return Array.isArray(input); },
+    remote: {
+        default: "origin",
+        file_key: "remote",
+        switches: ["o", "remote"],
+        validate: function (input) { return typeof input === "string"; },
     },
-    postCompleteCommands: {
-        default: [],
-        switches: false,
-        file_key: "post_complete_commands",
-        validate: function (input) { return Array.isArray(input); },
+    showHelp: {
+        default: false,
+        file_key: false,
+        switches: ["h", "help"],
+        validate: function (input) { return typeof input === "boolean"; },
     },
-    filesToVersion: {
-        default: ["README.md"],
-        switches: false,
-        file_key: "files_to_version",
-        validate: function (input) { return Array.isArray(input); },
+    skipGitFlowFinish: {
+        default: false,
+        file_key: "skip_git_flow_finish",
+        switches: ["f", "skip-git-flow-finish"],
+        validate: function (input) { return typeof input === "boolean"; },
     },
-    filesToCommit: {
-        default: [],
-        switches: false,
-        file_key: "files_to_commit",
-        validate: function (input) { return Array.isArray(input); },
+    skipGitPull: {
+        default: false,
+        file_key: "skip_git_pull",
+        switches: ["l", "skip-git-pull"],
+        validate: function (input) { return typeof input === "boolean"; },
+    },
+    skipGitPush: {
+        default: false,
+        file_key: "skip_git_push",
+        switches: ["s", "skip-git-push"],
+        validate: function (input) { return typeof input === "boolean"; },
     },
 };
 var Options = /** @class */ (function () {

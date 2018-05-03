@@ -15,33 +15,6 @@ env.GIT_MERGE_AUTOEDIT = "no";
 const AVH_EDITION_REGEX = /AVH Edition/;
 
 export class GitCommands {
-    public masterBranch = "master";
-    public developBranch = "develop";
-    public remote: string;
-    public releaseBranch: string;
-    public currentVersion: string;
-    public nextVersion: string;
-    public releaseMessage: string;
-    public skipGitFlowFinish: boolean = false;
-    public isAvh: boolean = false;
-
-    constructor(opts: any) {
-        this.releaseMessage = `release/${this.nextVersion}`;
-
-        if (opts.masterBranch) { this.masterBranch = opts.masterBranch; }
-        if (opts.developBranch) { this.developBranch = opts.developBranch; }
-        if (opts.currentVersion) { this.currentVersion = opts.currentVersion; }
-        if (opts.nextVersion) { this.nextVersion = opts.nextVersion; }
-        if (opts.releaseMessage) { this.releaseMessage = opts.releaseMessage; }
-        if (opts.skipGitFlowFinish) { this.skipGitFlowFinish = opts.skipGitFlowFinish; }
-        if (opts.remote) { this.remote = opts.remote; }
-
-        this.isAvh = GitCommands.isAvhEdition();
-
-        if (!opts.currentVersion) { throw new Error("Current Version is not set."); }
-        if (!opts.nextVersion) { throw new Error("Next Version is not set."); }
-    }
-
     public static isAvhEdition() {
         const versionResult = execSync("git flow version", {env});
         return AVH_EDITION_REGEX.test(versionResult.toString());
@@ -74,6 +47,33 @@ export class GitCommands {
         }
     }
 
+    public currentVersion: string;
+    public developBranch = "develop";
+    public isAvh: boolean = false;
+    public masterBranch = "master";
+    public nextVersion: string;
+    public releaseBranch: string;
+    public releaseMessage: string;
+    public remote: string;
+    public skipGitFlowFinish: boolean = false;
+
+    constructor(opts: any) {
+        this.releaseMessage = `release/${this.nextVersion}`;
+
+        if (opts.currentVersion) { this.currentVersion = opts.currentVersion; }
+        if (opts.developBranch) { this.developBranch = opts.developBranch; }
+        if (opts.masterBranch) { this.masterBranch = opts.masterBranch; }
+        if (opts.nextVersion) { this.nextVersion = opts.nextVersion; }
+        if (opts.releaseMessage) { this.releaseMessage = opts.releaseMessage; }
+        if (opts.remote) { this.remote = opts.remote; }
+        if (opts.skipGitFlowFinish) { this.skipGitFlowFinish = opts.skipGitFlowFinish; }
+
+        this.isAvh = GitCommands.isAvhEdition();
+
+        if (!opts.currentVersion) { throw new Error("Current Version is not set."); }
+        if (!opts.nextVersion) { throw new Error("Next Version is not set."); }
+    }
+
     public pull() {
         GitCommands.git("fetch", this.remote);
         GitCommands.git("checkout", this.developBranch);
@@ -95,7 +95,11 @@ export class GitCommands {
     public reset() {
         GitCommands.git("checkout", this.developBranch);
         GitCommands.git("reset", "--hard", "HEAD");
-        GitCommands.git("branch", "-D", `release/${this.nextVersion}`);
+        try {
+            GitCommands.git("branch", "-D", `release/${this.nextVersion}`);
+        } catch (e) {
+            // It is safe to throw this away in case the next release branch was not yet made
+        }
     }
 
     public start() {

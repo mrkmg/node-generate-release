@@ -1,9 +1,4 @@
 "use strict";
-/**
- * Generate Release
- * Written by Kevin Gravier <kevin@mrkmg.com>
- * MIT License 2018
- */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -40,9 +35,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Generate Release
+ * Written by Kevin Gravier <kevin@mrkmg.com>
+ * MIT License 2018
+ */
+var ReleaseCanceledError_1 = require("./lib/error/ReleaseCanceledError");
+// tslint:disable-next-line
 require("es6-shim");
-var UncleanWorkingDirectoryError_1 = require("./lib/error/UncleanWorkingDirectoryError");
+var Observatory = require("observatory");
 var path_1 = require("path");
+var UncleanWorkingDirectoryError_1 = require("./lib/error/UncleanWorkingDirectoryError");
 var GitCommands_1 = require("./lib/GitCommands");
 var Options_1 = require("./lib/Options");
 var PackageFile_1 = require("./lib/PackageFile");
@@ -56,249 +59,285 @@ var globNormalize_1 = require("./lib/helper/globNormalize");
 var incrementVersion_1 = require("./lib/helper/incrementVersion");
 var replaceVersionInFile_1 = require("./lib/helper/replaceVersionInFile");
 var runArbitraryCommand_1 = require("./lib/helper/runArbitraryCommand");
-var Observatory = require("observatory");
 var IS_DEBUG = !!process.env.IS_DEBUG;
 function main(args) {
-    return __awaiter(this, void 0, void 0, function () {
-        var gitCommands, options, gfSettings, _a, packageFile, releaseMessage, _b, observatoryTasks, files, _i, files_1, file, _c, _d, command, _e, _f, command, files, _g, _h, command, err_1;
-        return __generator(this, function (_j) {
-            switch (_j.label) {
-                case 0:
-                    _j.trys.push([0, 8, , 9]);
-                    options = new Options_1.Options(args);
-                    if (options.showHelp) {
-                        throw new HelpError_1.HelpError();
-                    }
-                    gfSettings = gitFlowSettings_1.gitFlowSettings(path_1.resolve("./"));
-                    GitCommands_1.GitCommands.checkForCleanWorkingDirectory();
-                    if (!(!options.nextVersion && !options.releaseType)) return [3 /*break*/, 2];
-                    _a = options;
-                    return [4 /*yield*/, askReleaseType_1.askReleaseType()];
-                case 1:
-                    _a.releaseType = _j.sent();
-                    _j.label = 2;
-                case 2:
-                    packageFile = new PackageFile_1.PackageFile(options.packageFileLocation);
-                    packageFile.load();
-                    if (!options.currentVersion) {
-                        options.currentVersion = packageFile.getVersion();
-                    }
-                    if (!options.nextVersion) {
-                        options.nextVersion = incrementVersion_1.incrementVersion(options.currentVersion, options.releaseType);
-                    }
-                    releaseMessage = void 0;
-                    if (!(options.releaseMessage === true)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, askReleaseMessage_1.askReleaseMessage(options.nextVersion)];
-                case 3:
-                    releaseMessage = _j.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    releaseMessage = options.releaseMessage.replace("{version}", options.nextVersion);
-                    _j.label = 5;
-                case 5:
-                    _b = !options.noConfirm;
-                    if (!_b) return [3 /*break*/, 7];
-                    return [4 /*yield*/, askConfirmUpdate_1.askConfirmUpdate(options.currentVersion, options.nextVersion)];
-                case 6:
-                    _b = !(_j.sent());
-                    _j.label = 7;
-                case 7:
-                    if (_b) {
-                        throw new Error("Update Canceled");
-                    }
-                    observatoryTasks = void 0;
-                    if (!options.quiet) {
-                        observatoryTasks = {
-                            git_pull: Observatory.add("GIT: Pull from Origin"),
-                            git_start: Observatory.add("GIT: Start Release"),
-                            write_files: Observatory.add("Files: Write New Version"),
-                            pre_commit_commands: Observatory.add("Commands: Pre Commit"),
-                            git_commit: Observatory.add("GIT: Commit Files"),
-                            post_commit_commands: Observatory.add("Commands: Post Commit"),
-                            git_finish: Observatory.add("GIT: Finish Release"),
-                            git_push: Observatory.add("GIT: Push to Origin"),
-                            post_complete_commands: Observatory.add("Commands: Post Complete"),
-                        };
-                    }
-                    gitCommands = new GitCommands_1.GitCommands({
-                        masterBranch: gfSettings.master,
-                        developBranch: gfSettings.develop,
-                        currentVersion: options.currentVersion,
-                        nextVersion: options.nextVersion,
-                        releaseMessage: releaseMessage,
-                        remote: options.remote,
-                        skipGitFlowFinish: options.skipGitFlowFinish,
-                    });
-                    if (!options.skipGitPull) {
-                        if (!options.quiet) {
-                            observatoryTasks.git_pull.status("Pulling");
-                        }
-                        gitCommands.pull();
-                        if (!options.quiet) {
-                            observatoryTasks.git_pull.done("Complete");
-                        }
-                    }
-                    else {
-                        if (!options.quiet) {
-                            observatoryTasks.git_pull.done("Skipped");
-                        }
-                    }
-                    if (!options.quiet) {
-                        observatoryTasks.git_start.status("Starting");
-                    }
-                    gitCommands.start();
-                    if (!options.quiet) {
-                        observatoryTasks.git_start.done("Complete");
-                    }
-                    try {
-                        files = globNormalize_1.globNormalize(options.filesToVersion);
-                        for (_i = 0, files_1 = files; _i < files_1.length; _i++) {
-                            file = files_1[_i];
-                            if (!options.quiet) {
-                                observatoryTasks.write_files.status(file);
-                            }
-                            replaceVersionInFile_1.replaceVersionInFile(file, options.currentVersion, options.nextVersion);
-                        }
-                    }
-                    catch (e) {
-                        throw new GitResetError_1.GitResetError(e);
-                    }
-                    if (!options.quiet) {
-                        observatoryTasks.write_files.status(options.packageFileLocation);
-                    }
-                    packageFile.setVersion(options.nextVersion);
-                    packageFile.save();
-                    if (!options.quiet) {
-                        observatoryTasks.write_files.done("Complete");
-                    }
-                    try {
-                        if (!options.quiet) {
-                            observatoryTasks.pre_commit_commands.status("Running");
-                        }
-                        for (_c = 0, _d = options.preCommitCommands; _c < _d.length; _c++) {
-                            command = _d[_c];
-                            if (!options.quiet) {
-                                observatoryTasks.pre_commit_commands.status(command);
-                            }
-                            runArbitraryCommand_1.runArbitraryCommand(command);
-                        }
-                        if (!options.quiet) {
-                            observatoryTasks.pre_commit_commands.done("Completed");
-                        }
-                    }
-                    catch (e) {
-                        throw new GitResetError_1.GitResetError(e);
-                    }
-                    try {
-                        if (!options.quiet) {
-                            observatoryTasks.post_commit_commands.status("Running");
-                        }
-                        for (_e = 0, _f = options.postCommitCommands; _e < _f.length; _e++) {
-                            command = _f[_e];
-                            if (!options.quiet) {
-                                observatoryTasks.post_commit_commands.status(command);
-                            }
-                            runArbitraryCommand_1.runArbitraryCommand(command);
-                        }
-                        if (!options.quiet) {
-                            observatoryTasks.post_commit_commands.done("Completed");
-                        }
-                    }
-                    catch (e) {
-                        throw new GitResetError_1.GitResetError(e);
-                    }
-                    try {
-                        if (!options.quiet) {
-                            observatoryTasks.git_commit.status("Committing");
-                        }
-                        files = globNormalize_1.globNormalize(options.packageFileLocation, options.filesToCommit, options.filesToVersion);
-                        gitCommands.commit(files);
-                        if (!options.quiet) {
-                            observatoryTasks.git_commit.done("Completed");
-                        }
-                    }
-                    catch (e) {
-                        throw new GitResetError_1.GitResetError(e);
-                    }
-                    if (!options.skipGitFlowFinish) {
-                        if (!options.quiet) {
-                            observatoryTasks.git_finish.status("Finishing");
-                        }
-                        try {
-                            gitCommands.finish();
-                        }
-                        catch (e) {
-                            throw new GitResetError_1.GitResetError(e);
-                        }
-                        if (!options.quiet) {
-                            observatoryTasks.git_finish.done("Complete");
-                        }
-                    }
-                    else {
-                        if (!options.quiet) {
-                            observatoryTasks.git_finish.done("Skipped");
-                        }
-                    }
-                    if (!options.skipGitPush) {
-                        if (!options.quiet) {
-                            observatoryTasks.git_push.status("Pushing");
-                        }
-                        gitCommands.push();
-                        if (!options.quiet) {
-                            observatoryTasks.git_push.done("Complete");
-                        }
-                    }
-                    else {
-                        if (!options.quiet) {
-                            observatoryTasks.git_push.done("Skipped");
-                        }
-                    }
-                    try {
-                        if (!options.quiet) {
-                            observatoryTasks.post_complete_commands.status("Running");
-                        }
-                        for (_g = 0, _h = options.postCompleteCommands; _g < _h.length; _g++) {
-                            command = _h[_g];
-                            if (!options.quiet) {
-                                observatoryTasks.post_complete_commands.status(command);
-                            }
-                            runArbitraryCommand_1.runArbitraryCommand(command);
-                        }
-                        if (!options.quiet) {
-                            observatoryTasks.post_complete_commands.done("Completed");
-                        }
-                    }
-                    catch (e) {
-                        throw new GitResetError_1.GitResetError(e);
-                    }
-                    process.exit(0);
-                    return [3 /*break*/, 9];
-                case 8:
-                    err_1 = _j.sent();
-                    if (IS_DEBUG) {
-                        throw err_1;
-                    }
-                    if (err_1 instanceof GitResetError_1.GitResetError) {
-                        gitCommands.reset();
-                        console.error(err_1.message);
-                        process.exit(1);
-                    }
-                    else if (err_1 instanceof HelpError_1.HelpError) {
-                        console.log(err_1.message);
-                        process.exit(0);
-                    }
-                    else if (err_1 instanceof UncleanWorkingDirectoryError_1.UncleanWorkingDirectoryError) {
-                        console.log(err_1.message);
-                        process.exit(1);
-                    }
-                    else {
-                        console.error("There was an unknown error.");
-                        process.exit(1);
-                    }
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
-            }
-        });
-    });
+    var m = new Main(args);
+    return m.run();
 }
 exports.main = main;
+var Main = /** @class */ (function () {
+    function Main(args) {
+        this.args = args;
+    }
+    Main.prototype.run = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.runReal()];
+                    case 1:
+                        _a.sent();
+                        process.exit(0);
+                        return [3 /*break*/, 3];
+                    case 2:
+                        err_1 = _a.sent();
+                        if (IS_DEBUG) {
+                            throw err_1;
+                        }
+                        if (err_1 instanceof GitResetError_1.GitResetError) {
+                            this.gitCommands.reset();
+                            console.error(err_1.message);
+                            process.exit(1);
+                        }
+                        else if (err_1 instanceof HelpError_1.HelpError || err_1 instanceof ReleaseCanceledError_1.ReleaseCanceledError) {
+                            console.log(err_1.message);
+                            process.exit(0);
+                        }
+                        else if (err_1 instanceof UncleanWorkingDirectoryError_1.UncleanWorkingDirectoryError) {
+                            console.log(err_1.message);
+                            process.exit(1);
+                        }
+                        else {
+                            console.error("There was an unknown error.");
+                            console.error(err_1.message);
+                            process.exit(1);
+                        }
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Main.prototype.runReal = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.loadOptions()];
+                    case 1:
+                        _a.sent();
+                        this.loadGitFlowSettings();
+                        GitCommands_1.GitCommands.checkForCleanWorkingDirectory();
+                        this.loadPackageFile();
+                        return [4 /*yield*/, this.setReleaseMessage()];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.confirmRelease()];
+                    case 3:
+                        _a.sent();
+                        this.setupObservatory();
+                        this.setupGitCommands();
+                        this.runGitPull();
+                        this.runGitStart();
+                        try {
+                            this.versionFiles();
+                            this.preCommitCommands();
+                            this.runGitCommit();
+                            this.postCommitCommands();
+                            this.runGitFinish();
+                        }
+                        catch (err) {
+                            throw new GitResetError_1.GitResetError(err);
+                        }
+                        this.runGitPush();
+                        this.postCompleteCommands();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Main.prototype.observatoryStatus = function (task, status) {
+        if (this.options.quiet) {
+            return;
+        }
+        this.observatoryTasks[task].status(status);
+    };
+    Main.prototype.observatoryDone = function (task, status) {
+        if (this.options.quiet) {
+            return;
+        }
+        this.observatoryTasks[task].done(status);
+    };
+    Main.prototype.loadOptions = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        this.options = new Options_1.Options(this.args);
+                        if (this.options.showHelp) {
+                            throw new HelpError_1.HelpError();
+                        }
+                        if (!(!this.options.nextVersion && !this.options.releaseType)) return [3 /*break*/, 2];
+                        _a = this.options;
+                        return [4 /*yield*/, askReleaseType_1.askReleaseType()];
+                    case 1:
+                        _a.releaseType = _b.sent();
+                        _b.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Main.prototype.loadGitFlowSettings = function () {
+        this.gitFlowSettings = gitFlowSettings_1.gitFlowSettings(path_1.resolve("./"));
+    };
+    Main.prototype.loadPackageFile = function () {
+        this.packageFile = new PackageFile_1.PackageFile(this.options.packageFileLocation);
+        this.packageFile.load();
+        if (!this.options.currentVersion) {
+            this.options.currentVersion = this.packageFile.getVersion();
+        }
+        if (!this.options.nextVersion) {
+            this.options.nextVersion = incrementVersion_1.incrementVersion(this.options.currentVersion, this.options.releaseType);
+        }
+    };
+    Main.prototype.setReleaseMessage = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(this.options.releaseMessage === true)) return [3 /*break*/, 2];
+                        _a = this;
+                        return [4 /*yield*/, askReleaseMessage_1.askReleaseMessage(this.options.nextVersion)];
+                    case 1:
+                        _a.releaseMessage = _b.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        this.releaseMessage = this.options.releaseMessage.replace("{version}", this.options.nextVersion);
+                        _b.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Main.prototype.confirmRelease = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var doRelease;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (this.options.noConfirm) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, askConfirmUpdate_1.askConfirmUpdate(this.options.currentVersion, this.options.nextVersion)];
+                    case 1:
+                        doRelease = _a.sent();
+                        if (!doRelease) {
+                            throw new ReleaseCanceledError_1.ReleaseCanceledError();
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Main.prototype.setupObservatory = function () {
+        if (!this.options.quiet) {
+            // tslint:disable:object-literal-sort-keys
+            this.observatoryTasks = {
+                git_pull: Observatory.add("GIT: Pull from Origin"),
+                git_start: Observatory.add("GIT: Start Release"),
+                write_files: Observatory.add("Files: Write New Version"),
+                pre_commit_commands: Observatory.add("Commands: Pre Commit"),
+                git_commit: Observatory.add("GIT: Commit Files"),
+                post_commit_commands: Observatory.add("Commands: Post Commit"),
+                git_finish: Observatory.add("GIT: Finish Release"),
+                git_push: Observatory.add("GIT: Push to Origin"),
+                post_complete_commands: Observatory.add("Commands: Post Complete"),
+            };
+            // tslint:enable:object-literal-sort-keys
+        }
+    };
+    Main.prototype.setupGitCommands = function () {
+        this.gitCommands = new GitCommands_1.GitCommands({
+            currentVersion: this.options.currentVersion,
+            developBranch: this.gitFlowSettings.develop,
+            masterBranch: this.gitFlowSettings.master,
+            nextVersion: this.options.nextVersion,
+            releaseMessage: this.releaseMessage,
+            remote: this.options.remote,
+            skipGitFlowFinish: this.options.skipGitFlowFinish,
+        });
+    };
+    Main.prototype.runGitPull = function () {
+        if (this.options.skipGitPull) {
+            this.observatoryDone("git_pull", "Skip");
+            return;
+        }
+        this.observatoryStatus("git_pull", "Pulling");
+        this.gitCommands.pull();
+        this.observatoryDone("git_pull", "Complete");
+    };
+    Main.prototype.runGitStart = function () {
+        this.observatoryStatus("git_start", "Starting");
+        this.gitCommands.start();
+        this.observatoryDone("git_start", "Complete");
+    };
+    Main.prototype.versionFiles = function () {
+        this.observatoryStatus("write_files", "Starting");
+        var files = globNormalize_1.globNormalize(this.options.filesToVersion);
+        for (var _i = 0, files_1 = files; _i < files_1.length; _i++) {
+            var file = files_1[_i];
+            this.observatoryStatus("write_files", file);
+            replaceVersionInFile_1.replaceVersionInFile(file, this.options.currentVersion, this.options.nextVersion);
+        }
+        this.observatoryStatus("write_files", this.options.packageFileLocation);
+        this.packageFile.setVersion(this.options.nextVersion);
+        this.packageFile.save();
+        this.observatoryDone("write_files", "Complete");
+    };
+    Main.prototype.preCommitCommands = function () {
+        this.observatoryStatus("pre_commit_commands", "Running");
+        for (var _i = 0, _a = this.options.preCommitCommands; _i < _a.length; _i++) {
+            var command = _a[_i];
+            this.observatoryStatus("pre_commit_commands", command);
+            runArbitraryCommand_1.runArbitraryCommand(command);
+        }
+        this.observatoryDone("pre_commit_commands", "Complete");
+    };
+    Main.prototype.runGitCommit = function () {
+        this.observatoryStatus("git_commit", "Running");
+        var files = globNormalize_1.globNormalize(this.options.packageFileLocation, this.options.filesToCommit, this.options.filesToVersion);
+        this.gitCommands.commit(files);
+        this.observatoryDone("git_commit", "Complete");
+    };
+    Main.prototype.postCommitCommands = function () {
+        this.observatoryStatus("post_commit_commands", "Running");
+        for (var _i = 0, _a = this.options.postCommitCommands; _i < _a.length; _i++) {
+            var command = _a[_i];
+            this.observatoryStatus("post_commit_commands", command);
+            runArbitraryCommand_1.runArbitraryCommand(command);
+        }
+        this.observatoryDone("post_commit_commands", "Complete");
+    };
+    Main.prototype.runGitFinish = function () {
+        if (this.options.skipGitFlowFinish) {
+            this.observatoryDone("git_finish", "Skip");
+            return;
+        }
+        this.observatoryStatus("git_finish", "Finishing");
+        this.gitCommands.finish();
+        this.observatoryDone("git_finish", "Complete");
+    };
+    Main.prototype.runGitPush = function () {
+        if (this.options.skipGitPush) {
+            this.observatoryDone("git_push", "Skip");
+            return;
+        }
+        this.observatoryStatus("git_push", "Pushing");
+        this.gitCommands.push();
+        this.observatoryDone("git_push", "Complete");
+    };
+    Main.prototype.postCompleteCommands = function () {
+        this.observatoryStatus("post_complete_commands", "Running");
+        for (var _i = 0, _a = this.options.postCompleteCommands; _i < _a.length; _i++) {
+            var command = _a[_i];
+            this.observatoryStatus("post_complete_commands", command);
+            runArbitraryCommand_1.runArbitraryCommand(command);
+        }
+        this.observatoryDone("post_complete_commands", "Complete");
+    };
+    return Main;
+}());

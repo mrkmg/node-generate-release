@@ -4,9 +4,10 @@
  * MIT License 2018
  */
 
-export class GitResetError extends Error {
-    constructor(public originalError?: Error) {
-        super(originalError ? originalError.message : "Unknown Error, Resetting.");
+export class ReleaseCanceledError extends Error {
+    constructor() {
+        super("Release Was Canceled.");
+
         const proto = new.target.prototype;
         if (Object.setPrototypeOf) {
             Object.setPrototypeOf(this, proto);

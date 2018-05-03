@@ -10,8 +10,13 @@ import {parseSync} from "iniparser";
 const BRANCH_CONFIG = 'gitflow "branch"';
 const PREFIX_CONFIG = 'gitflow "prefix"';
 
-export function gitFlowSettings(project_path: string) {
-    const file = `${project_path}/.git/config`;
+export interface IGitFlowSettings {
+    develop: string;
+    master: string;
+}
+
+export function gitFlowSettings(projectPath: string): IGitFlowSettings {
+    const file = `${projectPath}/.git/config`;
 
     if (!existsSync(file)) {
         throw new Error(`Git Config File is missing: ${file}`);
@@ -32,7 +37,7 @@ export function gitFlowSettings(project_path: string) {
     }
 
     return {
-        master: iniData[BRANCH_CONFIG].master,
         develop: iniData[BRANCH_CONFIG].develop,
+        master: iniData[BRANCH_CONFIG].master,
     };
 }

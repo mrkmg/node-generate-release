@@ -11,7 +11,7 @@ export function incrementVersion(version: string, type: "patch" | "minor" | "maj
         throw new Error(`Version does not match semver ${version}`);
     }
 
-    const versionSplit = version.match(VERSION_REGEX)[0].split(".").map((t) => parseInt(t));
+    const versionSplit = version.match(VERSION_REGEX)[0].split(".").map((t) => +t);
 
     switch (type) {
         case "patch":

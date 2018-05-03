@@ -6,21 +6,22 @@
 
 import {spawnSync} from "child_process";
 
+let runner: [string, string[]];
+
+if (isCommandAvailable("sh", ["--version"])) {
+    runner = ["sh", ["-c"]];
+} else if (isCommandAvailable("cmd.exe", ["/v"])) {
+    runner = ["cmd", ["/s", "/v"]];
+} else {
+    throw new Error("Neither \"sh\" nor \"cmd.exe\" is available on your system.");
+}
+
 function isCommandAvailable(cmd: string, opts: string[]) {
     const ret = spawnSync(cmd, opts, {stdio: "ignore"});
     return !ret.error;
 }
 
-const runner: [string, string[]] | false =
-    isCommandAvailable("sh", ["--version"]) ? ["sh", ["-c"]] :
-        isCommandAvailable("cmd.exe", ["/v"]) ? ["cmd", ["/s", "/v"]] :
-            false;
-
 export function runArbitraryCommand(command: string) {
-    if (runner === false) {
-        throw new Error("Neither \"sh\" nor \"cmd.exe\" is available on your system.");
-    }
-
     const ret = spawnSync(runner[0], runner[1].concat([command]), {stdio: "pipe"});
 
     if (ret.error) { throw ret.error; }

@@ -9,8 +9,8 @@ var fs_1 = require("fs");
 var iniparser_1 = require("iniparser");
 var BRANCH_CONFIG = 'gitflow "branch"';
 var PREFIX_CONFIG = 'gitflow "prefix"';
-function gitFlowSettings(project_path) {
-    var file = project_path + "/.git/config";
+function gitFlowSettings(projectPath) {
+    var file = projectPath + "/.git/config";
     if (!fs_1.existsSync(file)) {
         throw new Error("Git Config File is missing: " + file);
     }
@@ -25,8 +25,8 @@ function gitFlowSettings(project_path) {
         throw new Error("Git config missing git-flow prefix configuration");
     }
     return {
-        master: iniData[BRANCH_CONFIG].master,
         develop: iniData[BRANCH_CONFIG].develop,
+        master: iniData[BRANCH_CONFIG].master,
     };
 }
 exports.gitFlowSettings = gitFlowSettings;
