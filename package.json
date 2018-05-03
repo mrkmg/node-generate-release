@@ -19,8 +19,8 @@
         "compile": "tsc -P tsconfig.production.json",
         "test": "npm run lint && npm run unit && npm run cover",
         "lint": "tslint src/**/*.ts || true",
-        "unit": "mocha --require ts-node/register --require es6-shim --timeout 10000 ./test/specs/**/*.ts",
-        "cover": "nyc mocha --require ts-node/register --require es6-shim --require source-map-support/register --timeout 10000 ./test/specs/**/*.ts",
+        "unit": "mocha --require ts-node/register --require es6-shim --timeout 10000 ./test/**/*.spec.ts",
+        "cover": "nyc mocha --require ts-node/register --require es6-shim --require source-map-support/register --timeout 10000 ./test/**/*.spec.ts",
         "coveralls": "nyc report --reporter=text-lcov | coveralls",
         "release": "./bin/generate-release"
     },
