@@ -3,9 +3,8 @@
  * Written by Kevin Gravier <kevin@mrkmg.com>
  * MIT License 2018
  */
-
-require("es6-shim");
-
+import * as Observatory from "observatory";
+import {IObservatoryTask} from "observatory";
 import {UncleanWorkingDirectoryError} from "./lib/error/UncleanWorkingDirectoryError";
 import {resolve} from "path";
 
@@ -20,60 +19,157 @@ import {askConfirmUpdate} from "./lib/question/askConfirmUpdate";
 import {askReleaseMessage} from "./lib/question/askReleaseMessage";
 import {askReleaseType} from "./lib/question/askReleaseType";
 
-import {gitFlowSettings} from "./lib/helper/gitFlowSettings";
+import {gitFlowSettings, IGitFlowSettings} from "./lib/helper/gitFlowSettings";
 import {globNormalize} from "./lib/helper/globNormalize";
 import {incrementVersion} from "./lib/helper/incrementVersion";
 import {replaceVersionInFile} from "./lib/helper/replaceVersionInFile";
 import {runArbitraryCommand} from "./lib/helper/runArbitraryCommand";
 
-import * as Observatory from "observatory";
-
+require("es6-shim");
 
 const IS_DEBUG = !!process.env.IS_DEBUG;
 
-export async function main(args: string[]) {
-    let gitCommands: GitCommands;
+export function main(args: string[]) {
+    const m = new Main(args);
+    return m.run();
+}
 
-    try {
-        const options = new Options(args);
-        if (options.showHelp) {
+interface IObservatoryTasks {
+    git_pull: IObservatoryTask;
+    git_start: IObservatoryTask;
+    write_files: IObservatoryTask;
+    pre_commit_commands: IObservatoryTask;
+    git_commit: IObservatoryTask;
+    post_commit_commands: IObservatoryTask;
+    git_finish: IObservatoryTask;
+    git_push: IObservatoryTask;
+    post_complete_commands: IObservatoryTask;
+}
+
+class Main {
+    private gitCommands: GitCommands;
+    private gitFlowSettings: IGitFlowSettings;
+    private observatoryTasks: IObservatoryTasks;
+    private options: Options;
+    private packageFile: PackageFile;
+    private releaseMessage: string;
+
+    constructor(private args: string[]) {
+    }
+
+    public async run() {
+        try {
+            await this.runReal();
+            process.exit(0);
+        } catch (err) {
+            if (IS_DEBUG) {
+                throw err;
+            }
+            if (err instanceof GitResetError) {
+                this.gitCommands.reset();
+                console.error(err.message);
+                process.exit(1);
+            } else if (err instanceof HelpError) {
+                console.log(err.message);
+                process.exit(0);
+            } else if (err instanceof UncleanWorkingDirectoryError) {
+                console.log(err.message);
+                process.exit(1);
+            } else {
+                console.error("There was an unknown error.");
+                process.exit(1);
+            }
+        }
+    }
+
+    private async runReal() {
+        await this.loadOptions();
+        this.loadGitFlowSettings();
+        GitCommands.checkForCleanWorkingDirectory();
+        this.loadPackageFile();
+        await this.setReleaseMessage();
+        await this.confirmRelease();
+        this.setupObservatory();
+        this.setupGitCommands();
+
+        try {
+            this.runGitPull();
+            this.runGitStart();
+            this.versionFiles();
+            this.preCommitCommands();
+            this.runGitCommit();
+            this.postCommitCommands();
+            this.runGitFinish();
+        } catch (err) {
+            throw new GitResetError(err);
+        }
+
+        this.runGitPush();
+        this.postCompleteCommands();
+    }
+
+    private observatoryStatus(task: keyof IObservatoryTasks, status: string) {
+        if (this.options.quiet) {
+            return;
+        }
+
+        this.observatoryTasks[task].status(status);
+    }
+
+    private observatoryDone(task: keyof IObservatoryTasks, status: string) {
+        if (this.options.quiet) {
+            return;
+        }
+
+        this.observatoryTasks[task].done(status);
+    }
+
+    private async loadOptions() {
+        this.options = new Options(this.args);
+
+        if (this.options.showHelp) {
             throw new HelpError();
         }
 
-        const gfSettings = gitFlowSettings(resolve("./"));
+        if (!this.options.nextVersion && !this.options.releaseType) {
+            this.options.releaseType = await askReleaseType();
+        }
+    }
 
-        GitCommands.checkForCleanWorkingDirectory();
+    private loadGitFlowSettings() {
+        this.gitFlowSettings = gitFlowSettings(resolve("./"));
+    }
 
-        if (!options.nextVersion && !options.releaseType) {
-            options.releaseType = await askReleaseType();
+    private loadPackageFile() {
+        this.packageFile = new PackageFile(this.options.packageFileLocation);
+        this.packageFile.load();
+
+        if (!this.options.currentVersion) {
+            this.options.currentVersion = this.packageFile.getVersion();
         }
 
-        const packageFile = new PackageFile(options.packageFileLocation);
-        packageFile.load();
-
-        if (!options.currentVersion) {
-            options.currentVersion = packageFile.getVersion();
+        if (!this.options.nextVersion) {
+            this.options.nextVersion = incrementVersion(this.options.currentVersion, this.options.releaseType);
         }
+    }
 
-        if (!options.nextVersion) {
-            options.nextVersion = incrementVersion(options.currentVersion, options.releaseType);
-        }
-
-        let releaseMessage: string;
-        if (options.releaseMessage === true) {
-            releaseMessage = await askReleaseMessage(options.nextVersion);
+    private async setReleaseMessage() {
+        if (this.options.releaseMessage === true) {
+            this.releaseMessage = await askReleaseMessage(this.options.nextVersion);
         } else {
-            releaseMessage = options.releaseMessage.replace("{version}", options.nextVersion);
+            this.releaseMessage = this.options.releaseMessage.replace("{version}", this.options.nextVersion);
         }
+    }
 
-        if (!options.noConfirm && !(await askConfirmUpdate(options.currentVersion, options.nextVersion))) {
+    private async confirmRelease() {
+        if (!this.options.noConfirm && !(await askConfirmUpdate(this.options.currentVersion, this.options.nextVersion))) {
             throw new Error("Update Canceled");
         }
+    }
 
-        let observatoryTasks: any;
-
-        if (!options.quiet) {
-            observatoryTasks = {
+    private setupObservatory() {
+        if (!this.options.quiet) {
+            this.observatoryTasks = {
                 git_pull: Observatory.add("GIT: Pull from Origin"),
                 git_start: Observatory.add("GIT: Start Release"),
                 write_files: Observatory.add("Files: Write New Version"),
@@ -85,175 +181,106 @@ export async function main(args: string[]) {
                 post_complete_commands: Observatory.add("Commands: Post Complete"),
             };
         }
+    }
 
-        gitCommands = new GitCommands({
-            masterBranch: gfSettings.master,
-            developBranch: gfSettings.develop,
-            currentVersion: options.currentVersion,
-            nextVersion: options.nextVersion,
-            releaseMessage,
-            remote: options.remote,
-            skipGitFlowFinish: options.skipGitFlowFinish,
+    private setupGitCommands() {
+        this.gitCommands = new GitCommands({
+            masterBranch: this.gitFlowSettings.master,
+            developBranch: this.gitFlowSettings.develop,
+            currentVersion: this.options.currentVersion,
+            nextVersion: this.options.nextVersion,
+            releaseMessage: this.releaseMessage,
+            remote: this.options.remote,
+            skipGitFlowFinish: this.options.skipGitFlowFinish,
         });
+    }
 
-        if (!options.skipGitPull) {
-            if (!options.quiet) {
-                observatoryTasks.git_pull.status("Pulling");
-            }
-            gitCommands.pull();
-            if (!options.quiet) {
-                observatoryTasks.git_pull.done("Complete");
-            }
-        } else {
-            if (!options.quiet) {
-                observatoryTasks.git_pull.done("Skipped");
-            }
+    private runGitPull() {
+        if (this.options.skipGitPull) {
+            this.observatoryDone("git_pull", "Skip");
+            return;
         }
 
-        if (!options.quiet) {
-            observatoryTasks.git_start.status("Starting");
-        }
-        gitCommands.start();
-        if (!options.quiet) {
-            observatoryTasks.git_start.done("Complete");
+        this.observatoryStatus("git_pull", "Pulling");
+        this.gitCommands.pull();
+        this.observatoryDone("git_pull", "Complete");
+    }
+
+    private runGitStart() {
+        this.observatoryStatus("git_start", "Starting");
+        this.gitCommands.start();
+        this.observatoryDone("git_start", "Complete");
+    }
+
+    private versionFiles() {
+        this.observatoryStatus("write_files", "Starting");
+        const files = globNormalize(this.options.filesToVersion);
+        for (const file of files) {
+            this.observatoryStatus("write_files", file);
+            replaceVersionInFile(file, this.options.currentVersion, this.options.nextVersion);
         }
 
-        try {
-            const files = globNormalize(options.filesToVersion);
-            for (const file of files) {
-                if (!options.quiet) {
-                    observatoryTasks.write_files.status(file);
-                }
-                replaceVersionInFile(file, options.currentVersion, options.nextVersion);
-            }
-        } catch (e) {
-            throw new GitResetError(e);
+        this.observatoryStatus("write_files", this.options.packageFileLocation);
+        this.packageFile.setVersion(this.options.nextVersion);
+        this.packageFile.save();
+
+        this.observatoryDone("write_files", "Complete");
+    }
+
+    private preCommitCommands() {
+        this.observatoryStatus("pre_commit_commands", "Running");
+        for (const command of this.options.preCommitCommands) {
+            this.observatoryStatus("pre_commit_commands", command);
+            runArbitraryCommand(command);
+        }
+        this.observatoryDone("pre_commit_commands", "Complete");
+    }
+
+    private runGitCommit() {
+        this.observatoryStatus("git_commit", "Running");
+        const files = globNormalize(this.options.packageFileLocation, this.options.filesToCommit, this.options.filesToVersion);
+        this.gitCommands.commit(files);
+        this.observatoryDone("git_commit", "Complete");
+    }
+
+    private postCommitCommands() {
+        this.observatoryStatus("post_commit_commands", "Running");
+        for (const command of this.options.postCommitCommands) {
+            this.observatoryStatus("post_commit_commands", command);
+            runArbitraryCommand(command);
+        }
+        this.observatoryDone("post_commit_commands", "Complete");
+    }
+
+    private runGitFinish() {
+        if (this.options.skipGitFlowFinish) {
+            this.observatoryDone("git_finish", "Skip");
+            return;
         }
 
-        if (!options.quiet) {
-            observatoryTasks.write_files.status(options.packageFileLocation);
+        this.observatoryStatus("git_finish", "Finishing");
+        this.gitCommands.finish();
+        this.observatoryDone("git_finish", "Complete");
+
+    }
+
+    private runGitPush() {
+        if (this.options.skipGitPush) {
+            this.observatoryDone("git_push", "Skip");
+            return;
         }
 
-        packageFile.setVersion(options.nextVersion);
-        packageFile.save();
-        if (!options.quiet) {
-            observatoryTasks.write_files.done("Complete");
-        }
+        this.observatoryStatus("git_push", "Pushing");
+        this.gitCommands.push();
+        this.observatoryDone("git_push", "Complete");
+    }
 
-        try {
-            if (!options.quiet) {
-                observatoryTasks.pre_commit_commands.status("Running");
-            }
-            for (const command of options.preCommitCommands) {
-                if (!options.quiet) {
-                    observatoryTasks.pre_commit_commands.status(command);
-                }
-                runArbitraryCommand(command);
-            }
-            if (!options.quiet) {
-                observatoryTasks.pre_commit_commands.done("Completed");
-            }
-        } catch (e) {
-            throw new GitResetError(e);
+    private postCompleteCommands() {
+        this.observatoryStatus("post_complete_commands", "Running");
+        for (const command of this.options.postCompleteCommands) {
+            this.observatoryStatus("post_complete_commands", command);
+            runArbitraryCommand(command);
         }
-
-        try {
-            if (!options.quiet) {
-                observatoryTasks.post_commit_commands.status("Running");
-            }
-            for (const command of options.postCommitCommands) {
-                if (!options.quiet) {
-                    observatoryTasks.post_commit_commands.status(command);
-                }
-                runArbitraryCommand(command);
-            }
-            if (!options.quiet) {
-                observatoryTasks.post_commit_commands.done("Completed");
-            }
-        } catch (e) {
-            throw new GitResetError(e);
-        }
-
-        try {
-            if (!options.quiet) {
-                observatoryTasks.git_commit.status("Committing");
-            }
-            const files = globNormalize(options.packageFileLocation, options.filesToCommit, options.filesToVersion);
-            gitCommands.commit(files);
-            if (!options.quiet) {
-                observatoryTasks.git_commit.done("Completed");
-            }
-        } catch (e) {
-            throw new GitResetError(e);
-        }
-
-        if (!options.skipGitFlowFinish) {
-            if (!options.quiet) {
-                observatoryTasks.git_finish.status("Finishing");
-            }
-            try {
-                gitCommands.finish();
-            } catch (e) {
-                throw new GitResetError(e);
-            }
-            if (!options.quiet) {
-                observatoryTasks.git_finish.done("Complete");
-            }
-        } else {
-            if (!options.quiet) {
-                observatoryTasks.git_finish.done("Skipped");
-            }
-        }
-
-        if (!options.skipGitPush) {
-            if (!options.quiet) {
-                observatoryTasks.git_push.status("Pushing");
-            }
-            gitCommands.push();
-            if (!options.quiet) {
-                observatoryTasks.git_push.done("Complete");
-            }
-        } else {
-            if (!options.quiet) {
-                observatoryTasks.git_push.done("Skipped");
-            }
-        }
-
-        try {
-            if (!options.quiet) {
-                observatoryTasks.post_complete_commands.status("Running");
-            }
-            for (const command of options.postCompleteCommands) {
-                if (!options.quiet) {
-                    observatoryTasks.post_complete_commands.status(command);
-                }
-                runArbitraryCommand(command);
-            }
-            if (!options.quiet) {
-                observatoryTasks.post_complete_commands.done("Completed");
-            }
-        } catch (e) {
-            throw new GitResetError(e);
-        }
-
-        process.exit(0);
-    } catch (err) {
-        if (IS_DEBUG) {
-            throw err;
-        }
-        if (err instanceof GitResetError) {
-            gitCommands.reset();
-            console.error(err.message);
-            process.exit(1);
-        } else if (err instanceof HelpError) {
-            console.log(err.message);
-            process.exit(0);
-        } else if (err instanceof UncleanWorkingDirectoryError) {
-            console.log(err.message);
-            process.exit(1);
-        } else {
-            console.error("There was an unknown error.");
-            process.exit(1);
-        }
+        this.observatoryDone("post_complete_commands", "Complete");
     }
 }
