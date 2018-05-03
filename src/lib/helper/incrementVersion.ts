@@ -1,16 +1,18 @@
-"use strict";
 /**
  * Generate Release
  * Written by Kevin Gravier <kevin@mrkmg.com>
  * MIT License 2018
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-var VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/;
-function incrementVersion(version, type) {
+
+const VERSION_REGEX = /([0-9]+\.[0-9]+\.[0-9]+)/;
+
+export function incrementVersion(version: string, type: "patch" | "minor" | "major") {
     if (!VERSION_REGEX.test(version)) {
-        throw new Error("Version does not match semver " + version);
+        throw new Error(`Version does not match semver ${version}`);
     }
-    var versionSplit = version.match(VERSION_REGEX)[0].split(".").map(function (t) { return parseInt(t); });
+
+    const versionSplit = version.match(VERSION_REGEX)[0].split(".").map((t) => parseInt(t));
+
     switch (type) {
         case "patch":
             versionSplit[2]++;
@@ -25,8 +27,8 @@ function incrementVersion(version, type) {
             versionSplit[2] = 0;
             break;
         default:
-            throw new Error("Unknown Bump Type: " + type);
+            throw new Error(`Unknown Bump Type: ${type}`);
     }
+
     return versionSplit.join(".");
 }
-exports.incrementVersion = incrementVersion;
