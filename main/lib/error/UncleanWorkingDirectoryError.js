@@ -21,10 +21,12 @@ var UncleanWorkingDirectoryError = /** @class */ (function (_super) {
         var _newTarget = this.constructor;
         var _this = _super.call(this, "The working directory is not clean.") || this;
         var proto = _newTarget.prototype;
-        if (Object.setPrototypeOf)
+        if (Object.setPrototypeOf) {
             Object.setPrototypeOf(_this, proto);
-        else
+        }
+        else {
             _this.__proto__ = _newTarget.prototype;
+        }
         return _this;
     }
     return UncleanWorkingDirectoryError;

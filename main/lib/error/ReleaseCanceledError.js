@@ -15,12 +15,11 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var GitResetError = /** @class */ (function (_super) {
-    __extends(GitResetError, _super);
-    function GitResetError(originalError) {
+var ReleaseCanceledError = /** @class */ (function (_super) {
+    __extends(ReleaseCanceledError, _super);
+    function ReleaseCanceledError() {
         var _newTarget = this.constructor;
-        var _this = _super.call(this, originalError ? originalError.message : "Unknown Error, Resetting.") || this;
-        _this.originalError = originalError;
+        var _this = _super.call(this, "Release Was Canceled.") || this;
         var proto = _newTarget.prototype;
         if (Object.setPrototypeOf) {
             Object.setPrototypeOf(_this, proto);
@@ -30,6 +29,6 @@ var GitResetError = /** @class */ (function (_super) {
         }
         return _this;
     }
-    return GitResetError;
+    return ReleaseCanceledError;
 }(Error));
-exports.GitResetError = GitResetError;
+exports.ReleaseCanceledError = ReleaseCanceledError;

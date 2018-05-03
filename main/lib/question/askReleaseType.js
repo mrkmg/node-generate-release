@@ -8,11 +8,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var inquirer_1 = require("inquirer");
 function askReleaseType() {
     var args = {
-        type: "list",
-        name: "release",
-        message: "Release Type",
-        default: "patch",
         choices: ["patch", "minor", "major"],
+        default: "patch",
+        message: "Release Type",
+        name: "release",
+        type: "list",
     };
     return inquirer_1.prompt(args).then(function (result) { return result.release; });
 }

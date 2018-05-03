@@ -10,7 +10,7 @@ function incrementVersion(version, type) {
     if (!VERSION_REGEX.test(version)) {
         throw new Error("Version does not match semver " + version);
     }
-    var versionSplit = version.match(VERSION_REGEX)[0].split(".").map(function (t) { return parseInt(t); });
+    var versionSplit = version.match(VERSION_REGEX)[0].split(".").map(function (t) { return +t; });
     switch (type) {
         case "patch":
             versionSplit[2]++;
