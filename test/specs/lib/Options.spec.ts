@@ -5,12 +5,12 @@
  */
 
 import Chai = require("chai");
-import {path} from "temp";
-import {setupTestRepo} from "../../helpers/setupTestRepo";
-import {Options} from "../../../src/lib/Options";
 import {resolve} from "path";
 import * as rimraf from "rimraf";
-
+import {path} from "temp";
+import {Options} from "../../../src/lib/Options";
+import {setupTestRepo} from "../../helpers/setupTestRepo";
+// tslint:disable-next-line:no-var-requires
 Chai.use(require("chai-as-promised"));
 const assert = Chai.assert;
 

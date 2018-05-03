@@ -5,18 +5,18 @@
  */
 
 import {execSync} from "child_process";
-import {writeFileSync, mkdirSync} from "fs";
+import {mkdirSync, writeFileSync} from "fs";
 
-const readme_md = `TEST FILE
+const readmeMd = `TEST FILE
 =========
 
 1.2.3`;
 
-const package_json = `{
+const packageJson = `{
     "version":"1.2.3"
 }`;
 
-const alt_package_json = `{
+const altPackageJson = `{
     "version":"1.2.3",
     "config": {
         "generateRelease": {
@@ -25,13 +25,13 @@ const alt_package_json = `{
     }
 }`;
 
-const release_json = `{
+const releaseJson = `{
     "pre_commit_commands": ["touch ./pre_command", "rm -f deleteme"],
     "post_commit_commands": ["touch ./post_command"],
     "post_complete_commands": ["touch ./post_complete"]
 }`;
 
-const all_release_json = `{
+const allReleaseJson = `{
     "readme_file_location": "./alt.README.md",
     "package_file_location": "./alt.package.json",
     "no_confirm": true,
@@ -45,20 +45,19 @@ const all_release_json = `{
     "remote": "test4"
 }`;
 
-
 export function setupTestRepo(tempDir: string) {
     mkdirSync(tempDir);
     process.chdir(tempDir);
-    writeFileSync("package.json", package_json);
-    writeFileSync("alt.package.json", alt_package_json);
-    writeFileSync(".release.json", release_json);
-    writeFileSync(".alt.release.json", release_json);
-    writeFileSync(".all.release.json", all_release_json);
-    writeFileSync("README.md", readme_md);
+    writeFileSync("package.json", packageJson);
+    writeFileSync("alt.package.json", altPackageJson);
+    writeFileSync(".release.json", releaseJson);
+    writeFileSync(".alt.release.json", releaseJson);
+    writeFileSync(".all.release.json", allReleaseJson);
+    writeFileSync("README.md", readmeMd);
     writeFileSync("deleteme", "testfile");
 
-    execSync('git init', {stdio: 'ignore'});
-    execSync('git add -A');
-    execSync('git commit -m "Commit"', {stdio: 'pipe'});
-    execSync('git flow init -d', {stdio: 'pipe'});
+    execSync("git init", {stdio: "ignore"});
+    execSync("git add -A");
+    execSync('git commit -m "Commit"', {stdio: "pipe"});
+    execSync("git flow init -d", {stdio: "pipe"});
 }

@@ -6,6 +6,7 @@
 
 import Chai = require("chai");
 import {incrementVersion} from "../../../../src/lib/helper/incrementVersion";
+// tslint:disable-next-line:no-var-requires
 Chai.use(require("chai-as-promised"));
 const assert = Chai.assert;
 
@@ -18,7 +19,7 @@ describe("incrementVersion", () => {
 
     it("throws on invalid versions", () => {
         assert.throws(() => {
-            incrementVersion("1", "patch");
+            incrementVersion("1-2-3", "patch");
         });
     });
 

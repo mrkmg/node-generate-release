@@ -3,10 +3,15 @@
  * Written by Kevin Gravier <kevin@mrkmg.com>
  * MIT License 2018
  */
+import {ReleaseCanceledError} from "./lib/error/ReleaseCanceledError";
+
+// tslint:disable-next-line
+require("es6-shim");
+
 import * as Observatory from "observatory";
 import {IObservatoryTask} from "observatory";
-import {UncleanWorkingDirectoryError} from "./lib/error/UncleanWorkingDirectoryError";
 import {resolve} from "path";
+import {UncleanWorkingDirectoryError} from "./lib/error/UncleanWorkingDirectoryError";
 
 import {GitCommands} from "./lib/GitCommands";
 import {Options} from "./lib/Options";
@@ -24,8 +29,6 @@ import {globNormalize} from "./lib/helper/globNormalize";
 import {incrementVersion} from "./lib/helper/incrementVersion";
 import {replaceVersionInFile} from "./lib/helper/replaceVersionInFile";
 import {runArbitraryCommand} from "./lib/helper/runArbitraryCommand";
-
-require("es6-shim");
 
 const IS_DEBUG = !!process.env.IS_DEBUG;
 
@@ -69,14 +72,16 @@ class Main {
                 this.gitCommands.reset();
                 console.error(err.message);
                 process.exit(1);
-            } else if (err instanceof HelpError) {
+            } else if (err instanceof HelpError || err instanceof ReleaseCanceledError) {
                 console.log(err.message);
                 process.exit(0);
-            } else if (err instanceof UncleanWorkingDirectoryError) {
+            } else if (
+                err instanceof UncleanWorkingDirectoryError) {
                 console.log(err.message);
                 process.exit(1);
             } else {
                 console.error("There was an unknown error.");
+                console.error(err.message);
                 process.exit(1);
             }
         }
@@ -91,10 +96,10 @@ class Main {
         await this.confirmRelease();
         this.setupObservatory();
         this.setupGitCommands();
+        this.runGitPull();
+        this.runGitStart();
 
         try {
-            this.runGitPull();
-            this.runGitStart();
             this.versionFiles();
             this.preCommitCommands();
             this.runGitCommit();
@@ -162,13 +167,20 @@ class Main {
     }
 
     private async confirmRelease() {
-        if (!this.options.noConfirm && !(await askConfirmUpdate(this.options.currentVersion, this.options.nextVersion))) {
-            throw new Error("Update Canceled");
+        if (this.options.noConfirm) {
+            return;
+        }
+
+        const doRelease = await askConfirmUpdate(this.options.currentVersion, this.options.nextVersion);
+
+        if (!doRelease) {
+            throw new ReleaseCanceledError();
         }
     }
 
     private setupObservatory() {
         if (!this.options.quiet) {
+            // tslint:disable:object-literal-sort-keys
             this.observatoryTasks = {
                 git_pull: Observatory.add("GIT: Pull from Origin"),
                 git_start: Observatory.add("GIT: Start Release"),
@@ -180,14 +192,15 @@ class Main {
                 git_push: Observatory.add("GIT: Push to Origin"),
                 post_complete_commands: Observatory.add("Commands: Post Complete"),
             };
+            // tslint:enable:object-literal-sort-keys
         }
     }
 
     private setupGitCommands() {
         this.gitCommands = new GitCommands({
-            masterBranch: this.gitFlowSettings.master,
-            developBranch: this.gitFlowSettings.develop,
             currentVersion: this.options.currentVersion,
+            developBranch: this.gitFlowSettings.develop,
+            masterBranch: this.gitFlowSettings.master,
             nextVersion: this.options.nextVersion,
             releaseMessage: this.releaseMessage,
             remote: this.options.remote,
@@ -238,7 +251,9 @@ class Main {
 
     private runGitCommit() {
         this.observatoryStatus("git_commit", "Running");
-        const files = globNormalize(this.options.packageFileLocation, this.options.filesToCommit, this.options.filesToVersion);
+        const files = globNormalize(this.options.packageFileLocation,
+            this.options.filesToCommit,
+            this.options.filesToVersion);
         this.gitCommands.commit(files);
         this.observatoryDone("git_commit", "Complete");
     }

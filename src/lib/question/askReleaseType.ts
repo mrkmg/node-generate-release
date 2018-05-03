@@ -8,11 +8,11 @@ import {prompt} from "inquirer";
 
 export function askReleaseType(): Promise<"patch" | "minor" | "major"> {
     const args = {
-        type: "list",
-        name: "release",
-        message: "Release Type",
-        default: "patch",
         choices: ["patch", "minor", "major"],
+        default: "patch",
+        message: "Release Type",
+        name: "release",
+        type: "list",
     };
 
     return prompt(args).then((result: any) => result.release as "patch" | "minor" | "major");

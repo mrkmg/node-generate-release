@@ -14,11 +14,11 @@ const INFO_MESSAGE = `
 
 export function askReleaseMessage(newVersion: string): Promise<string> {
     const args = {
-        type: "editor",
-        name: "message",
-        message: "Please write a release message.",
         default: `Release ${newVersion}\n\n\n${INFO_MESSAGE}`,
         filter: (result: string) => result.replace(/^#.*$/gm, "").replace(/\n+$/g, ""),
+        message: "Please write a release message.",
+        name: "message",
+        type: "editor",
         validate: (result: string) => result.length === 0 ? "Release message can not be empty." : true,
     };
 

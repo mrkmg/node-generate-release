@@ -11,12 +11,12 @@ const BRANCH_CONFIG = 'gitflow "branch"';
 const PREFIX_CONFIG = 'gitflow "prefix"';
 
 export interface IGitFlowSettings {
-    master: string;
     develop: string;
+    master: string;
 }
 
-export function gitFlowSettings(project_path: string): IGitFlowSettings {
-    const file = `${project_path}/.git/config`;
+export function gitFlowSettings(projectPath: string): IGitFlowSettings {
+    const file = `${projectPath}/.git/config`;
 
     if (!existsSync(file)) {
         throw new Error(`Git Config File is missing: ${file}`);
@@ -37,7 +37,7 @@ export function gitFlowSettings(project_path: string): IGitFlowSettings {
     }
 
     return {
-        master: iniData[BRANCH_CONFIG].master,
         develop: iniData[BRANCH_CONFIG].develop,
+        master: iniData[BRANCH_CONFIG].master,
     };
 }

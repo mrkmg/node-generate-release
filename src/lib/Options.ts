@@ -4,10 +4,10 @@
  * MIT License 2018
  */
 
+import {existsSync} from "fs";
 import * as Minimist from "minimist";
 import {resolve} from "path";
 import * as extend from "xtend";
-import {existsSync} from "fs";
 
 interface IOptionDef {
     "default": any;
@@ -18,83 +18,76 @@ interface IOptionDef {
 }
 
 const options: {[key: string]: IOptionDef} = {
-    showHelp: {
-        default: false,
-        switches: ["h", "help"],
+    currentVersion: {
+        default: null as string,
         file_key: false,
-        validate: (input: any) => typeof input === "boolean",
+        switches: ["c", "current-version"],
+        validate: (input: any) => input === null || typeof input === "string",
     },
-    quiet: {
-        default: false,
-        switches: ["q", "quiet"],
+    dotReleaseFileLocation: {
+        default: "./.release.json",
         file_key: false,
+        filter: (input: any) => resolve(input),
+        switches: ["d", "release-file"],
+        validate: (input: any) => typeof input === "string",
+    },
+    filesToCommit: {
+        default: [] as string[],
+        file_key: "files_to_commit",
+        switches: false,
+        validate: (input: any) => Array.isArray(input),
+    },
+    filesToVersion: {
+        default: ["README.md"],
+        file_key: "files_to_version",
+        switches: false,
+        validate: (input: any) => Array.isArray(input),
+    },
+    nextVersion: {
+        default: null as string,
+        file_key: false,
+        switches: ["v", "next-version"],
+        validate: (input: any) => input === null || typeof input === "string",
+    },
+    noConfirm: {
+        default: false,
+        file_key: "no_confirm",
+        switches: ["n", "no-confirm"],
         validate: (input: any) => typeof input === "boolean",
     },
     packageFileLocation: {
         default: "./package.json",
-        switches: ["p", "package"],
         file_key: "package_file_location",
         filter: (input: any) => resolve(input),
+        switches: ["p", "package"],
         validate: (input: any) => typeof input === "string" && existsSync(input),
     },
-    dotReleaseFileLocation: {
-        default: "./.release.json",
-        switches: ["d", "release-file"],
+    postCommitCommands: {
+        default: [] as string[],
+        file_key: "post_commit_commands",
+        switches: false,
+        validate: (input: any) => Array.isArray(input),
+    },
+    postCompleteCommands: {
+        default: [] as string[],
+        file_key: "post_complete_commands",
+        switches: false,
+        validate: (input: any) => Array.isArray(input),
+    },
+    preCommitCommands: {
+        default: [] as string[],
+        file_key: "pre_commit_commands",
+        switches: false,
+        validate: (input: any) => Array.isArray(input),
+    },
+    quiet: {
+        default: false,
         file_key: false,
-        filter: (input: any) => resolve(input),
-        validate: (input: any) => typeof input === "string",
-    },
-    noConfirm: {
-        default: false,
-        switches: ["n", "no-confirm"],
-        file_key: "no_confirm",
-        validate: (input: any) => typeof input === "boolean",
-    },
-    releaseType: {
-        default: null as string,
-        switches: ["t", "release-type"],
-        file_key: "release_type",
-        validate: (input: any) => input === null || (typeof input === "string" && (input === "patch" || input === "minor" || input === "major")),
-    },
-    currentVersion: {
-        default: null as string,
-        switches: ["c", "current-version"],
-        file_key: false,
-        validate: (input: any) => input === null || typeof input === "string",
-    },
-    nextVersion: {
-        default: null as string,
-        switches: ["v", "next-version"],
-        file_key: false,
-        validate: (input: any) => input === null || typeof input === "string",
-    },
-    remote: {
-        default: "origin",
-        switches: ["o", "remote"],
-        file_key: "remote",
-        validate: (input: any) => typeof input === "string",
-    },
-    skipGitPull: {
-        default: false,
-        switches: ["l", "skip-git-pull"],
-        file_key: "skip_git_pull",
-        validate: (input: any) => typeof input === "boolean",
-    },
-    skipGitPush: {
-        default: false,
-        switches: ["s", "skip-git-push"],
-        file_key: "skip_git_push",
-        validate: (input: any) => typeof input === "boolean",
-    },
-    skipGitFlowFinish: {
-        default: false,
-        switches: ["f", "skip-git-flow-finish"],
-        file_key: "skip_git_flow_finish",
+        switches: ["q", "quiet"],
         validate: (input: any) => typeof input === "boolean",
     },
     releaseMessage: {
         default: "Release {version}",
-        switches: ["m", "set-release-message"],
         file_key: "release_message",
         filter: (input: any) => {
             if (input === false) {
@@ -103,43 +96,49 @@ const options: {[key: string]: IOptionDef} = {
                 return input;
             }
         },
+        switches: ["m", "set-release-message"],
         validate: (input: any) => input === true || typeof input === "string",
     },
-    preCommitCommands: {
-        default: [] as string[],
-        switches: false,
-        file_key: "pre_commit_commands",
-        validate: (input: any) => Array.isArray(input),
+    releaseType: {
+        default: null as string,
+        file_key: "release_type",
+        switches: ["t", "release-type"],
+        validate: (input: any) => input === null ||
+            (typeof input === "string" && (input === "patch" || input === "minor" || input === "major")),
     },
-    postCommitCommands: {
-        default: [] as string[],
-        switches: false,
-        file_key: "post_commit_commands",
-        validate: (input: any) => Array.isArray(input),
+    remote: {
+        default: "origin",
+        file_key: "remote",
+        switches: ["o", "remote"],
+        validate: (input: any) => typeof input === "string",
     },
-    postCompleteCommands: {
-        default: [] as string[],
-        switches: false,
-        file_key: "post_complete_commands",
-        validate: (input: any) => Array.isArray(input),
+    showHelp: {
+        default: false,
+        file_key: false,
+        switches: ["h", "help"],
+        validate: (input: any) => typeof input === "boolean",
     },
-    filesToVersion: {
-        default: ["README.md"],
-        switches: false,
-        file_key: "files_to_version",
-        validate: (input: any) => Array.isArray(input),
+    skipGitFlowFinish: {
+        default: false,
+        file_key: "skip_git_flow_finish",
+        switches: ["f", "skip-git-flow-finish"],
+        validate: (input: any) => typeof input === "boolean",
     },
-    filesToCommit: {
-        default: [] as string[],
-        switches: false,
-        file_key: "files_to_commit",
-        validate: (input: any) => Array.isArray(input),
+    skipGitPull: {
+        default: false,
+        file_key: "skip_git_pull",
+        switches: ["l", "skip-git-pull"],
+        validate: (input: any) => typeof input === "boolean",
+    },
+    skipGitPush: {
+        default: false,
+        file_key: "skip_git_push",
+        switches: ["s", "skip-git-push"],
+        validate: (input: any) => typeof input === "boolean",
     },
 };
 
 export class Options {
-    private fileData: any = {};
-
     public args: Minimist.ParsedArgs;
     public showHelp: boolean;
     public quiet: boolean;
@@ -159,6 +158,8 @@ export class Options {
     public postCompleteCommands: string[];
     public filesToVersion: string[];
     public filesToCommit: string[];
+
+    private fileData: any = {};
 
     constructor(args: any []) {
         this.args = Minimist(args.slice(2));

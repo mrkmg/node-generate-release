@@ -5,10 +5,10 @@
  */
 
 import Chai = require("chai");
+import {readFileSync, unlinkSync, writeFileSync} from "fs";
 import {path} from "temp";
-import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {replaceVersionInFile} from "../../../../src/lib/helper/replaceVersionInFile";
-
+// tslint:disable-next-line:no-var-requires
 Chai.use(require("chai-as-promised"));
 const assert = Chai.assert;
 
