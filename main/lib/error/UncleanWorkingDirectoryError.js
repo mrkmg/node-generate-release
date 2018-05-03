@@ -15,12 +15,11 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var GitResetError = /** @class */ (function (_super) {
-    __extends(GitResetError, _super);
-    function GitResetError(original_error) {
+var UncleanWorkingDirectoryError = /** @class */ (function (_super) {
+    __extends(UncleanWorkingDirectoryError, _super);
+    function UncleanWorkingDirectoryError() {
         var _newTarget = this.constructor;
-        var _this = _super.call(this, original_error ? original_error.message : "Unknown Error, Resetting.") || this;
-        _this.original_error = original_error;
+        var _this = _super.call(this, "The working directory is not clean.") || this;
         var proto = _newTarget.prototype;
         if (Object.setPrototypeOf)
             Object.setPrototypeOf(_this, proto);
@@ -28,6 +27,6 @@ var GitResetError = /** @class */ (function (_super) {
             _this.__proto__ = _newTarget.prototype;
         return _this;
     }
-    return GitResetError;
+    return UncleanWorkingDirectoryError;
 }(Error));
-exports.GitResetError = GitResetError;
+exports.UncleanWorkingDirectoryError = UncleanWorkingDirectoryError;
