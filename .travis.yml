@@ -27,12 +27,13 @@ before_install:
       brew install gnu-getopt;
       echo export FLAGS_GETOPT_CMD="$(brew --prefix gnu-getopt)/bin/getopt" >~/.gitflow_export;
     fi
+  - export PREV=$(pwd)
   - git clone https://github.com/mrkmg/git-stream.git /tmp/git-stream
   - cd /tmp/git-stream
   - git submodule update --init --recursive
   - git checkout v0.7.2
-  - make test
   - sudo make install PREFIX=~
+  - cd $PREV
 before_script:
   - git config --global user.email "test@test.com"
   - git config --global user.name "Testing Tester"
