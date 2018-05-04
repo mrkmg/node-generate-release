@@ -27,8 +27,8 @@ const altPackageJson = `{
 
 const releaseJson = `{
     "pre_commit_commands": ["touch ./pre_command", "rm -f deleteme"],
-    "post_commit_commands": ["touch ./post_command"],
-    "post_complete_commands": ["touch ./post_complete"]
+    "post_complete_commands": ["touch ./post_complete"],
+    "files_to_commit": ["pre_command"]
 }`;
 
 const allReleaseJson = `{
@@ -45,7 +45,7 @@ const allReleaseJson = `{
     "remote": "test4"
 }`;
 
-export function setupTestRepo(tempDir: string) {
+export function setupGitFlowTestRepo(tempDir: string) {
     mkdirSync(tempDir);
     process.chdir(tempDir);
     writeFileSync("package.json", packageJson);
@@ -60,4 +60,21 @@ export function setupTestRepo(tempDir: string) {
     execSync("git add -A");
     execSync('git commit -m "Commit"', {stdio: "pipe"});
     execSync("git flow init -d", {stdio: "pipe"});
+}
+
+export function setupGitStreamTestRepo(tempDir: string) {
+    mkdirSync(tempDir);
+    process.chdir(tempDir);
+    writeFileSync("package.json", packageJson);
+    writeFileSync("alt.package.json", altPackageJson);
+    writeFileSync(".release.json", releaseJson);
+    writeFileSync(".alt.release.json", releaseJson);
+    writeFileSync(".all.release.json", allReleaseJson);
+    writeFileSync("README.md", readmeMd);
+    writeFileSync("deleteme", "testfile");
+
+    execSync("git init", {stdio: "ignore"});
+    execSync("git add -A");
+    execSync('git commit -m "Commit"', {stdio: "pipe"});
+    execSync("git stream init -d", {stdio: "pipe"});
 }

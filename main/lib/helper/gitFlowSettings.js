@@ -7,10 +7,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = require("fs");
 var iniparser_1 = require("iniparser");
+var path_1 = require("path");
 var BRANCH_CONFIG = 'gitflow "branch"';
 var PREFIX_CONFIG = 'gitflow "prefix"';
-function gitFlowSettings(projectPath) {
-    var file = projectPath + "/.git/config";
+function gitFlowSettings() {
+    var file = path_1.resolve(".") + "/.git/config";
     if (!fs_1.existsSync(file)) {
         throw new Error("Git Config File is missing: " + file);
     }

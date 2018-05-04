@@ -111,10 +111,10 @@ var options = {
         switches: ["h", "help"],
         validate: function (input) { return typeof input === "boolean"; },
     },
-    skipGitFlowFinish: {
+    skipFinish: {
         default: false,
-        file_key: "skip_git_flow_finish",
-        switches: ["f", "skip-git-flow-finish"],
+        file_key: ["skip_finish", "skip_git_flow_finish"],
+        switches: ["f", "skip-finish", "skip-git-flow-finish"],
         validate: function (input) { return typeof input === "boolean"; },
     },
     skipGitPull: {
@@ -175,8 +175,18 @@ var Options = /** @class */ (function () {
         }
     };
     Options.prototype.getFileValue = function (fileKey) {
-        if (this.fileData[fileKey]) {
-            return this.fileData[fileKey];
+        if (Array.isArray(fileKey)) {
+            for (var _i = 0, fileKey_1 = fileKey; _i < fileKey_1.length; _i++) {
+                var key = fileKey_1[_i];
+                if (this.fileData[key]) {
+                    return this.fileData[key];
+                }
+            }
+        }
+        else {
+            if (this.fileData[fileKey]) {
+                return this.fileData[fileKey];
+            }
         }
     };
     Options.prototype.loadFileData = function () {

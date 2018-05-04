@@ -44,7 +44,6 @@ var ReleaseCanceledError_1 = require("./lib/error/ReleaseCanceledError");
 // tslint:disable-next-line
 require("es6-shim");
 var Observatory = require("observatory");
-var path_1 = require("path");
 var UncleanWorkingDirectoryError_1 = require("./lib/error/UncleanWorkingDirectoryError");
 var GitCommands_1 = require("./lib/GitCommands");
 var Options_1 = require("./lib/Options");
@@ -54,7 +53,6 @@ var HelpError_1 = require("./lib/error/HelpError");
 var askConfirmUpdate_1 = require("./lib/question/askConfirmUpdate");
 var askReleaseMessage_1 = require("./lib/question/askReleaseMessage");
 var askReleaseType_1 = require("./lib/question/askReleaseType");
-var gitFlowSettings_1 = require("./lib/helper/gitFlowSettings");
 var globNormalize_1 = require("./lib/helper/globNormalize");
 var incrementVersion_1 = require("./lib/helper/incrementVersion");
 var replaceVersionInFile_1 = require("./lib/helper/replaceVersionInFile");
@@ -117,7 +115,6 @@ var Main = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.loadOptions()];
                     case 1:
                         _a.sent();
-                        this.loadGitFlowSettings();
                         GitCommands_1.GitCommands.checkForCleanWorkingDirectory();
                         this.loadPackageFile();
                         return [4 /*yield*/, this.setReleaseMessage()];
@@ -179,9 +176,6 @@ var Main = /** @class */ (function () {
                 }
             });
         });
-    };
-    Main.prototype.loadGitFlowSettings = function () {
-        this.gitFlowSettings = gitFlowSettings_1.gitFlowSettings(path_1.resolve("./"));
     };
     Main.prototype.loadPackageFile = function () {
         this.packageFile = new PackageFile_1.PackageFile(this.options.packageFileLocation);
@@ -253,12 +247,10 @@ var Main = /** @class */ (function () {
     Main.prototype.setupGitCommands = function () {
         this.gitCommands = new GitCommands_1.GitCommands({
             currentVersion: this.options.currentVersion,
-            developBranch: this.gitFlowSettings.develop,
-            masterBranch: this.gitFlowSettings.master,
             nextVersion: this.options.nextVersion,
             releaseMessage: this.releaseMessage,
             remote: this.options.remote,
-            skipGitFlowFinish: this.options.skipGitFlowFinish,
+            skipFinish: this.options.skipFinish,
         });
     };
     Main.prototype.runGitPull = function () {
@@ -313,7 +305,7 @@ var Main = /** @class */ (function () {
         this.observatoryDone("post_commit_commands", "Complete");
     };
     Main.prototype.runGitFinish = function () {
-        if (this.options.skipGitFlowFinish) {
+        if (this.options.skipFinish) {
             this.observatoryDone("git_finish", "Skip");
             return;
         }

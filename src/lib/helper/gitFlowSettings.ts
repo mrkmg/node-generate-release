@@ -6,6 +6,7 @@
 
 import {existsSync} from "fs";
 import {parseSync} from "iniparser";
+import {resolve} from "path";
 
 const BRANCH_CONFIG = 'gitflow "branch"';
 const PREFIX_CONFIG = 'gitflow "prefix"';
@@ -15,8 +16,8 @@ export interface IGitFlowSettings {
     master: string;
 }
 
-export function gitFlowSettings(projectPath: string): IGitFlowSettings {
-    const file = `${projectPath}/.git/config`;
+export function gitFlowSettings(): IGitFlowSettings {
+    const file = `${resolve(".")}/.git/config`;
 
     if (!existsSync(file)) {
         throw new Error(`Git Config File is missing: ${file}`);

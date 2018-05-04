@@ -15,7 +15,7 @@ import {SinonStub, spy, stub} from "sinon";
 import {path} from "temp";
 import {main} from "../../src";
 import {GitCommands} from "../../src/lib/GitCommands";
-import {setupTestRepo} from "../helpers/setupTestRepo";
+import {setupGitFlowTestRepo} from "../helpers/setupTestRepo";
 // tslint:disable-next-line:no-var-requires
 Chai.use(require("chai-as-promised"));
 const assert = Chai.assert;
@@ -30,7 +30,8 @@ const helpMessage = `generate-release
 -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
 -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
 -s, --skip-git-push             Do not push to origin when complete. Default: Do push
--f, --skip-git-flow-finish      Do not finish git-flow release. Default: Do finish
+-f, --skip-git-flow-finish,     Do not finish git-flow release. Default: Do finish
+    --skip-finish
 -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
 -o, --remote REMOTE             Change the remote. Default: origin
 -q, --quiet                     Less output. Default: Do show output
@@ -41,7 +42,7 @@ const helpMessage = `generate-release
 
 `;
 
-describe("Run", () => {
+describe("Run - Git Flow", () => {
     let exitStub: SinonStub;
     let noPromptArguments: string[];
     let helpArguments: string[];
@@ -65,7 +66,7 @@ describe("Run", () => {
     beforeEach(() => {
         startingDir = process.cwd();
         tempDir = path();
-        setupTestRepo(tempDir);
+        setupGitFlowTestRepo(tempDir);
     });
 
     afterEach((cb) => {
@@ -87,16 +88,15 @@ describe("Run", () => {
             const packageFile = JSON.parse(readFileSync(`${tempDir}/package.json`).toString()) as any;
             const readmeFile = readFileSync(`${tempDir}/README.md`).toString();
             const tagCheckResult = execSync("git tag -l 1.2.4").toString();
-            const tagMessageResult = execSync("git cat-file tag 1.2.4 | tail -n +6").toString();
+            const tagMessageResult = execSync("git tag -l --format='%(contents)' 1.2.4").toString();
             const branchCheckResult = execSync("git rev-parse --abbrev-ref HEAD").toString();
 
             assert.equal(packageFile.version, "1.2.4");
             assert.equal(readmeFile, "TEST FILE\n=========\n\n1.2.4");
             assert.equal(tagCheckResult, "1.2.4\n");
-            assert.equal(tagMessageResult, "Release 1.2.4\n");
+            assert.equal(tagMessageResult, "Release 1.2.4\n\n");
             assert.equal(branchCheckResult, "develop\n");
             assert(existsSync(`${tempDir}/pre_command`));
-            assert(existsSync(`${tempDir}/post_command`));
             assert(existsSync(`${tempDir}/post_complete`));
             assert(!existsSync(`${tempDir}/deleteme`));
             assert(pullStub.called);
@@ -139,16 +139,15 @@ describe("Run", () => {
         const packageFile = JSON.parse(readFileSync(`${tempDir}/package.json`).toString()) as any;
         const readmeFile = readFileSync(`${tempDir}/README.md`).toString();
         const tagCheckResult = execSync("git tag -l 2.10.0").toString();
-        const tagMessageResult = execSync("git cat-file tag 2.10.0 | tail -n +6").toString();
+        const tagMessageResult = execSync("git tag -l --format='%(contents)' 2.10.0").toString();
         const branchCheckResult = execSync("git rev-parse --abbrev-ref HEAD").toString();
 
         assert.equal(packageFile.version, "2.10.0");
         assert.equal(readmeFile, "TEST FILE\n=========\n\n2.10.0");
         assert.equal(tagCheckResult, "2.10.0\n");
-        assert.equal(tagMessageResult, "Release 2.10.0\n");
+        assert.equal(tagMessageResult, "Release 2.10.0\n\n");
         assert.equal(branchCheckResult, "develop\n");
         assert(existsSync(`${tempDir}/pre_command`));
-        assert(existsSync(`${tempDir}/post_command`));
         assert(existsSync(`${tempDir}/post_complete`));
         assert(!existsSync(`${tempDir}/deleteme`));
         assert(exitStub.calledWith(0));
@@ -202,16 +201,15 @@ describe("Run", () => {
             const packageFile = JSON.parse(readFileSync(`${tempDir}/package.json`).toString()) as any;
             const readmeFile = readFileSync(`${tempDir}/README.md`).toString();
             const tagCheckResult = execSync("git tag -l 1.2.4").toString();
-            const tagMessageResult = execSync("git cat-file tag 1.2.4 | tail -n +6").toString();
+            const tagMessageResult = execSync("git tag -l --format='%(contents)' 1.2.4").toString();
             const branchCheckResult = execSync("git rev-parse --abbrev-ref HEAD").toString();
 
             assert.equal(packageFile.version, "1.2.4");
             assert.equal(readmeFile, "TEST FILE\n=========\n\n1.2.4");
             assert.equal(tagCheckResult, "1.2.4\n");
-            assert.equal(tagMessageResult, "CUSTOM Version 1.2.4\n");
+            assert.equal(tagMessageResult, "CUSTOM Version 1.2.4\n\n");
             assert.equal(branchCheckResult, "develop\n");
             assert(existsSync(`${tempDir}/pre_command`));
-            assert(existsSync(`${tempDir}/post_command`));
             assert(existsSync(`${tempDir}/post_complete`));
             assert(!existsSync(`${tempDir}/deleteme`));
             assert(exitStub.calledWith(0));
