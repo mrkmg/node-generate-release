@@ -9,24 +9,23 @@ var child_process_1 = require("child_process");
 var fs_1 = require("fs");
 var temp_1 = require("temp");
 var UncleanWorkingDirectoryError_1 = require("./error/UncleanWorkingDirectoryError");
+var gitFlowSettings_1 = require("./helper/gitFlowSettings");
+var gitStreamSettings_1 = require("./helper/gitStreamSettings");
 var env = process.env;
 env.GIT_MERGE_AUTOEDIT = "no";
 var AVH_EDITION_REGEX = /AVH Edition/;
+var RepoType;
+(function (RepoType) {
+    RepoType[RepoType["GitFlow"] = 0] = "GitFlow";
+    RepoType[RepoType["GitStream"] = 1] = "GitStream";
+})(RepoType || (RepoType = {}));
 var GitCommands = /** @class */ (function () {
     function GitCommands(opts) {
-        this.developBranch = "develop";
         this.isAvh = false;
-        this.masterBranch = "master";
         this.skipFinish = false;
         this.releaseMessage = "release/" + this.nextVersion;
         if (opts.currentVersion) {
             this.currentVersion = opts.currentVersion;
-        }
-        if (opts.developBranch) {
-            this.developBranch = opts.developBranch;
-        }
-        if (opts.masterBranch) {
-            this.masterBranch = opts.masterBranch;
         }
         if (opts.nextVersion) {
             this.nextVersion = opts.nextVersion;
@@ -40,7 +39,18 @@ var GitCommands = /** @class */ (function () {
         if (opts.skipFinish) {
             this.skipFinish = opts.skipFinish;
         }
-        this.isAvh = GitCommands.isAvhEdition();
+        this.repoType = GitCommands.getRepoType();
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                var gfSettings = gitFlowSettings_1.gitFlowSettings();
+                this.masterBranch = gfSettings.master;
+                this.developBranch = gfSettings.develop;
+                this.isAvh = GitCommands.isAvhEdition();
+                break;
+            case RepoType.GitStream:
+                var gsSettings = gitStreamSettings_1.gitStreamSettings();
+                this.developBranch = gsSettings.develop;
+        }
         if (!opts.currentVersion) {
             throw new Error("Current Version is not set.");
         }
@@ -48,6 +58,16 @@ var GitCommands = /** @class */ (function () {
             throw new Error("Next Version is not set.");
         }
     }
+    GitCommands.getRepoType = function () {
+        var gitConfigData = fs_1.readFileSync("./.git/config").toString();
+        if (/\[gitstream/.test(gitConfigData)) {
+            return RepoType.GitStream;
+        }
+        if (/\[gitflow/.test(gitConfigData)) {
+            return RepoType.GitFlow;
+        }
+        throw new Error("Unknown Git Plugin");
+    };
     GitCommands.isAvhEdition = function () {
         var versionResult = child_process_1.execSync("git flow version", { env: env });
         return AVH_EDITION_REGEX.test(versionResult.toString());
@@ -84,8 +104,10 @@ var GitCommands = /** @class */ (function () {
         GitCommands.git("fetch", this.remote);
         GitCommands.git("checkout", this.developBranch);
         GitCommands.git("pull", this.remote, this.developBranch, "--rebase");
-        GitCommands.git("checkout", this.masterBranch);
-        GitCommands.git("reset", "--hard", this.remote + "/" + this.masterBranch);
+        if (this.repoType === RepoType.GitFlow) {
+            GitCommands.git("checkout", this.masterBranch);
+            GitCommands.git("reset", "--hard", this.remote + "/" + this.masterBranch);
+        }
     };
     GitCommands.prototype.push = function () {
         if (this.skipFinish) {
@@ -93,7 +115,9 @@ var GitCommands = /** @class */ (function () {
         }
         else {
             GitCommands.git("push", this.remote, this.developBranch);
-            GitCommands.git("push", this.remote, this.masterBranch);
+            if (this.repoType === RepoType.GitFlow) {
+                GitCommands.git("push", this.remote, this.masterBranch);
+            }
             GitCommands.git("push", this.remote, "--tags");
         }
     };
@@ -108,8 +132,16 @@ var GitCommands = /** @class */ (function () {
         }
     };
     GitCommands.prototype.start = function () {
-        GitCommands.git("checkout", this.developBranch);
-        GitCommands.git("flow", "release", "start", this.nextVersion);
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                GitCommands.git("checkout", this.developBranch);
+                GitCommands.git("flow", "release", "start", this.nextVersion);
+                break;
+            case RepoType.GitStream:
+                GitCommands.git("checkout", this.developBranch);
+                GitCommands.git("stream", "release", "start", this.nextVersion);
+                break;
+        }
     };
     GitCommands.prototype.commit = function (files) {
         GitCommands.addDeletedFiles();
@@ -120,12 +152,18 @@ var GitCommands = /** @class */ (function () {
         GitCommands.git("commit", "-m", this.releaseMessage);
     };
     GitCommands.prototype.finish = function () {
-        this.isAvh ? this.finishAvh() : this.finishNonAvh();
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                this.isAvh ?
+                    this.finishGitFlowAvh() :
+                    GitCommands.git("flow", "release", "finish", "-m", this.releaseMessage, this.nextVersion);
+                break;
+            case RepoType.GitStream:
+                GitCommands.git("stream", "release", "finish", "-p", "-m", this.releaseMessage, this.nextVersion);
+                break;
+        }
     };
-    GitCommands.prototype.finishNonAvh = function () {
-        GitCommands.git("flow", "release", "finish", "-m", this.releaseMessage, this.nextVersion);
-    };
-    GitCommands.prototype.finishAvh = function () {
+    GitCommands.prototype.finishGitFlowAvh = function () {
         var releaseMessageFile = temp_1.path();
         fs_1.writeFileSync(releaseMessageFile, this.releaseMessage);
         try {
