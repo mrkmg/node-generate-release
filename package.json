@@ -1,6 +1,6 @@
 {
   "name": "generate-release",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Generate a release using git-glow",
   "engines": {
     "node": ">=4.0.0"
@@ -19,6 +19,7 @@
     "compile": "tsc -P tsconfig.production.json",
     "test": "npm run lint && npm run unit && npm run cover",
     "lint": "tslint src/**/*.ts test/**/*.ts",
+    "lint-fix": "tslint --fix src/**/*.ts test/**/*.ts",
     "unit": "mocha --require ts-node/register --require es6-shim --timeout 10000 --recursive './test/**/*.ts'",
     "cover": "nyc mocha --recursive --require ts-node/register --require es6-shim --require source-map-support/register --timeout 10000 --recursive './test/**/*.ts'",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
@@ -49,11 +50,17 @@
   "config": {
     "ndt": {
       "setup-commands": [
-        "apt-get install -y curl",
+        "apt-get install -y curl git make",
         "curl -OL https://raw.github.com/petervanderdoes/gitflow-avh/develop/contrib/gitflow-installer.sh",
         "chmod +x gitflow-installer.sh",
         "mkdir ~/bin || true",
-        "PREFIX=~ ./gitflow-installer.sh install stable"
+        "PREFIX=~ ./gitflow-installer.sh install stable",
+        "git clone https://github.com/mrkmg/git-stream.git /tmp/git-stream",
+        "cd /tmp/git-stream",
+        "git submodule update --init --recursive",
+        "git checkout v0.7.2",
+        "make install PREFIX=/usr",
+        "rm -rf /tmp/git-stream"
       ],
       "commands": [
         "git config --global user.email \"test@test.com\"",
