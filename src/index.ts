@@ -10,7 +10,6 @@ require("es6-shim");
 
 import * as Observatory from "observatory";
 import {IObservatoryTask} from "observatory";
-import {resolve} from "path";
 import {UncleanWorkingDirectoryError} from "./lib/error/UncleanWorkingDirectoryError";
 
 import {GitCommands} from "./lib/GitCommands";
@@ -24,7 +23,6 @@ import {askConfirmUpdate} from "./lib/question/askConfirmUpdate";
 import {askReleaseMessage} from "./lib/question/askReleaseMessage";
 import {askReleaseType} from "./lib/question/askReleaseType";
 
-import {gitFlowSettings, IGitFlowSettings} from "./lib/helper/gitFlowSettings";
 import {globNormalize} from "./lib/helper/globNormalize";
 import {incrementVersion} from "./lib/helper/incrementVersion";
 import {replaceVersionInFile} from "./lib/helper/replaceVersionInFile";
@@ -51,7 +49,6 @@ interface IObservatoryTasks {
 
 class Main {
     private gitCommands: GitCommands;
-    private gitFlowSettings: IGitFlowSettings;
     private observatoryTasks: IObservatoryTasks;
     private options: Options;
     private packageFile: PackageFile;
@@ -89,7 +86,6 @@ class Main {
 
     private async runReal() {
         await this.loadOptions();
-        this.loadGitFlowSettings();
         GitCommands.checkForCleanWorkingDirectory();
         this.loadPackageFile();
         await this.setReleaseMessage();
@@ -139,10 +135,6 @@ class Main {
         if (!this.options.nextVersion && !this.options.releaseType) {
             this.options.releaseType = await askReleaseType();
         }
-    }
-
-    private loadGitFlowSettings() {
-        this.gitFlowSettings = gitFlowSettings(resolve("./"));
     }
 
     private loadPackageFile() {
@@ -199,12 +191,10 @@ class Main {
     private setupGitCommands() {
         this.gitCommands = new GitCommands({
             currentVersion: this.options.currentVersion,
-            developBranch: this.gitFlowSettings.develop,
-            masterBranch: this.gitFlowSettings.master,
             nextVersion: this.options.nextVersion,
             releaseMessage: this.releaseMessage,
             remote: this.options.remote,
-            skipGitFlowFinish: this.options.skipGitFlowFinish,
+            skipFinish: this.options.skipFinish,
         });
     }
 
@@ -268,7 +258,7 @@ class Main {
     }
 
     private runGitFinish() {
-        if (this.options.skipGitFlowFinish) {
+        if (this.options.skipFinish) {
             this.observatoryDone("git_finish", "Skip");
             return;
         }

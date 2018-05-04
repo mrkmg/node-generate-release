@@ -11,7 +11,7 @@ import * as extend from "xtend";
 
 interface IOptionDef {
     "default": any;
-    file_key: false | string;
+    file_key: false | string | string[];
     filter?: (input: any) => any;
     switches: false | string[];
     validate: (input: any) => boolean;
@@ -118,10 +118,10 @@ const options: {[key: string]: IOptionDef} = {
         switches: ["h", "help"],
         validate: (input: any) => typeof input === "boolean",
     },
-    skipGitFlowFinish: {
+    skipFinish: {
         default: false,
-        file_key: "skip_git_flow_finish",
-        switches: ["f", "skip-git-flow-finish"],
+        file_key: ["skip_finish", "skip_git_flow_finish"],
+        switches: ["f", "skip-finish", "skip-git-flow-finish"],
         validate: (input: any) => typeof input === "boolean",
     },
     skipGitPull: {
@@ -151,7 +151,7 @@ export class Options {
     public remote: string;
     public skipGitPull: boolean;
     public skipGitPush: boolean;
-    public skipGitFlowFinish: boolean;
+    public skipFinish: boolean;
     public releaseMessage: string | true;
     public preCommitCommands: string[];
     public postCommitCommands: string[];
@@ -203,9 +203,17 @@ export class Options {
         }
     }
 
-    public getFileValue(fileKey: string) {
-        if (this.fileData[fileKey]) {
-            return this.fileData[fileKey];
+    public getFileValue(fileKey: string | string[]) {
+        if (Array.isArray(fileKey)) {
+            for (const key of fileKey) {
+                if (this.fileData[key]) {
+                    return this.fileData[key];
+                }
+            }
+        } else {
+            if (this.fileData[fileKey]) {
+                return this.fileData[fileKey];
+            }
         }
     }
 

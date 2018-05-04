@@ -9,7 +9,7 @@ import {resolve} from "path";
 import * as rimraf from "rimraf";
 import {path} from "temp";
 import {Options} from "../../../src/lib/Options";
-import {setupTestRepo} from "../../helpers/setupTestRepo";
+import {setupGitFlowTestRepo} from "../../helpers/setupTestRepo";
 // tslint:disable-next-line:no-var-requires
 Chai.use(require("chai-as-promised"));
 const assert = Chai.assert;
@@ -21,7 +21,7 @@ describe("Options", () => {
     before(() => {
         startingDir = process.cwd();
         tempDir = path();
-        setupTestRepo(tempDir);
+        setupGitFlowTestRepo(tempDir);
     });
 
     after((cb) => {

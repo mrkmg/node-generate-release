@@ -1,5 +1,7 @@
 # node-generate-release
-Generate a release for a project following semver using nodejs and gitflow
+Generate a release for a project following semver using nodejs and 
+[gitflow](https://github.com/petervanderdoes/gitflow-avh) or 
+[git-stream](https://github.com/mrkmg/git-stream)
 
 [![Generate Release on Travis CI](https://img.shields.io/travis/mrkmg/node-generate-release/master.svg?style=flat-square)](https://travis-ci.org/mrkmg/node-generate-release/branches)
 [![Coverage Status](https://img.shields.io/coveralls/mrkmg/node-generate-release/master.svg?style=flat-square)](https://coveralls.io/github/mrkmg/node-generate-release?branch=master)
@@ -41,7 +43,7 @@ Then add the following to your `package.json` file:
 
 Then you can run `npm run-script release` in order to generate a release.
 
-**Important notes for OSX**
+**Important notes for gitflow OSX**
 
 Git-flow from nvie is broken on OSX, and `generate-release` will not work. Please use the updated and actively 
 maintained version from petervanderdoes, 
@@ -59,13 +61,13 @@ This is the default process.
 1. Fetches from `remote`
 1. Rebases `remote`/develop into develop
 1. Resets master to `remote`/master
-1. Starts a git-flow release named the new version number
+1. Starts a gitflow or git-stream release named the new version number
 1. Changes the version number in package.json and any files in `files_to_version`
 1. Runs all `pre_commit_commands`
 1. Commits the changes to the package.json and any file in `files_to_version` and `files_to_commit`
     1. *This will also commit any file deletions which may have occurred during the `pre_commit_commands`*
 1. Runs all `post_commit_commands`
-1. Runs the git-flow finish release command
+1. Runs the gitflow or git-stream finish release command
 1. Pushes master, develop, and tags to `remote`
 1. Runs all the `post_complete_commands`
 
@@ -88,7 +90,8 @@ run `generate-release --help` to see this as well.
     -n, --no-confirm                Do not ask for confirmation. Default: prompt for confirmation
     -l, --skip-git-pull             Do not pull from origin and rebase master and dev. Default: Do pull
     -s, --skip-git-push             Do not push to origin when complete. Default: Do push
-    -f, --skip-git-flow-finish      Do not finish git-flow release. Default: Do finish
+    -f, --skip-git-flow-finish,     Do not finish git-flow release. Default: Do finish
+        --skip-finish
     -d, --release-file FILE         Path to your .release.json file. Default: ./.release.json
     -o, --remote REMOTE             Change the remote. Default: origin
     -q, --quiet                     Less output. Default: Do show output
@@ -105,7 +108,7 @@ is an example with all default options set.
           "no_confirm": false,
           "skip_git_pull": false,
           "skip_git_push": false,
-          "skip_git_flow_finish": false,
+          "skip_finish": false,
           "release_message": true,
           "remote": "origin",
           "pre_commit_commands": [],

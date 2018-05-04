@@ -5,16 +5,30 @@
  */
 
 import {execSync, spawnSync} from "child_process";
-import {unlinkSync, writeFileSync} from "fs";
-import {path} from "temp";
+import {readFileSync, unlinkSync, writeFileSync} from "fs";
+import {path as tempPath} from "temp";
 import {UncleanWorkingDirectoryError} from "./error/UncleanWorkingDirectoryError";
+import {gitFlowSettings} from "./helper/gitFlowSettings";
+import {gitStreamSettings} from "./helper/gitStreamSettings";
 
 const env = process.env;
 env.GIT_MERGE_AUTOEDIT = "no";
 
 const AVH_EDITION_REGEX = /AVH Edition/;
 
+enum RepoType {
+    GitFlow,
+    GitStream,
+}
+
 export class GitCommands {
+    public static getRepoType(): RepoType {
+        const gitConfigData = readFileSync("./.git/config").toString();
+        if (/\[gitstream/.test(gitConfigData)) { return RepoType.GitStream; }
+        if (/\[gitflow/.test(gitConfigData)) { return RepoType.GitFlow; }
+        throw new Error("Unknown Git Plugin");
+    }
+
     public static isAvhEdition() {
         const versionResult = execSync("git flow version", {env});
         return AVH_EDITION_REGEX.test(versionResult.toString());
@@ -48,27 +62,38 @@ export class GitCommands {
     }
 
     public currentVersion: string;
-    public developBranch = "develop";
+    public developBranch: string;
+    public repoType: RepoType;
     public isAvh: boolean = false;
-    public masterBranch = "master";
+    public masterBranch: string;
     public nextVersion: string;
     public releaseBranch: string;
     public releaseMessage: string;
     public remote: string;
-    public skipGitFlowFinish: boolean = false;
+    public skipFinish: boolean = false;
 
-    constructor(opts: any) {
+    constructor(opts: Partial<GitCommands>) {
         this.releaseMessage = `release/${this.nextVersion}`;
 
         if (opts.currentVersion) { this.currentVersion = opts.currentVersion; }
-        if (opts.developBranch) { this.developBranch = opts.developBranch; }
-        if (opts.masterBranch) { this.masterBranch = opts.masterBranch; }
         if (opts.nextVersion) { this.nextVersion = opts.nextVersion; }
         if (opts.releaseMessage) { this.releaseMessage = opts.releaseMessage; }
         if (opts.remote) { this.remote = opts.remote; }
-        if (opts.skipGitFlowFinish) { this.skipGitFlowFinish = opts.skipGitFlowFinish; }
+        if (opts.skipFinish) { this.skipFinish = opts.skipFinish; }
 
-        this.isAvh = GitCommands.isAvhEdition();
+        this.repoType = GitCommands.getRepoType();
+
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                const gfSettings = gitFlowSettings();
+                this.masterBranch = gfSettings.master;
+                this.developBranch = gfSettings.develop;
+                this.isAvh = GitCommands.isAvhEdition();
+                break;
+            case RepoType.GitStream:
+                const gsSettings = gitStreamSettings();
+                this.developBranch = gsSettings.develop;
+        }
 
         if (!opts.currentVersion) { throw new Error("Current Version is not set."); }
         if (!opts.nextVersion) { throw new Error("Next Version is not set."); }
@@ -78,16 +103,22 @@ export class GitCommands {
         GitCommands.git("fetch", this.remote);
         GitCommands.git("checkout", this.developBranch);
         GitCommands.git("pull", this.remote, this.developBranch, "--rebase");
-        GitCommands.git("checkout", this.masterBranch);
-        GitCommands.git("reset", "--hard", `${this.remote}/${this.masterBranch}`);
+        if (this.repoType === RepoType.GitFlow) {
+            GitCommands.git("checkout", this.masterBranch);
+            GitCommands.git("reset", "--hard", `${this.remote}/${this.masterBranch}`);
+        }
     }
 
     public push() {
-        if (this.skipGitFlowFinish) {
+        if (this.skipFinish) {
             GitCommands.git("push", "-u", this.remote, this.releaseBranch);
         } else {
             GitCommands.git("push", this.remote, this.developBranch);
-            GitCommands.git("push", this.remote, this.masterBranch);
+
+            if (this.repoType === RepoType.GitFlow) {
+                GitCommands.git("push", this.remote, this.masterBranch);
+            }
+
             GitCommands.git("push", this.remote, "--tags");
         }
     }
@@ -103,8 +134,16 @@ export class GitCommands {
     }
 
     public start() {
-        GitCommands.git("checkout", this.developBranch);
-        GitCommands.git("flow", "release", "start", this.nextVersion);
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                GitCommands.git("checkout", this.developBranch);
+                GitCommands.git("flow", "release", "start", this.nextVersion);
+                break;
+            case RepoType.GitStream:
+                GitCommands.git("checkout", this.developBranch);
+                GitCommands.git("stream", "release", "start", this.nextVersion);
+                break;
+        }
     }
 
     public commit(files: string[]) {
@@ -114,15 +153,20 @@ export class GitCommands {
     }
 
     public finish() {
-        this.isAvh ? this.finishAvh() : this.finishNonAvh();
+        switch (this.repoType) {
+            case RepoType.GitFlow:
+                this.isAvh ?
+                    this.finishGitFlowAvh() :
+                    GitCommands.git("flow", "release", "finish", "-m", this.releaseMessage, this.nextVersion);
+                break;
+            case RepoType.GitStream:
+                GitCommands.git("stream", "release", "finish", "-p", "-m", this.releaseMessage, this.nextVersion);
+                break;
+        }
     }
 
-    public finishNonAvh() {
-        GitCommands.git("flow", "release", "finish", "-m", this.releaseMessage, this.nextVersion);
-    }
-
-    public finishAvh() {
-        const releaseMessageFile = path();
+    private finishGitFlowAvh() {
+        const releaseMessageFile = tempPath();
         writeFileSync(releaseMessageFile, this.releaseMessage);
         try {
             GitCommands.git("flow", "release", "finish", "-f", releaseMessageFile, this.nextVersion);

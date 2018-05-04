@@ -17,7 +17,7 @@ var GitCommands = /** @class */ (function () {
         this.developBranch = "develop";
         this.isAvh = false;
         this.masterBranch = "master";
-        this.skipGitFlowFinish = false;
+        this.skipFinish = false;
         this.releaseMessage = "release/" + this.nextVersion;
         if (opts.currentVersion) {
             this.currentVersion = opts.currentVersion;
@@ -37,8 +37,8 @@ var GitCommands = /** @class */ (function () {
         if (opts.remote) {
             this.remote = opts.remote;
         }
-        if (opts.skipGitFlowFinish) {
-            this.skipGitFlowFinish = opts.skipGitFlowFinish;
+        if (opts.skipFinish) {
+            this.skipFinish = opts.skipFinish;
         }
         this.isAvh = GitCommands.isAvhEdition();
         if (!opts.currentVersion) {
@@ -88,7 +88,7 @@ var GitCommands = /** @class */ (function () {
         GitCommands.git("reset", "--hard", this.remote + "/" + this.masterBranch);
     };
     GitCommands.prototype.push = function () {
-        if (this.skipGitFlowFinish) {
+        if (this.skipFinish) {
             GitCommands.git("push", "-u", this.remote, this.releaseBranch);
         }
         else {
